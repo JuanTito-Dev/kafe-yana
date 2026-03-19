@@ -1,0 +1,6 @@
+@KafeYana.Api_HostAddress = http://localhost:5012
+
+GET {{KafeYana.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
