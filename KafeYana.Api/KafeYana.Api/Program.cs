@@ -1,7 +1,18 @@
+using KafeYana.Application.Exceptions;
+using KafeYana.Application.IRepositorio;
+using KafeYana.Application.IServicios;
 using KafeYana.Core.Entities.Entity;
 using KafeYana.Infrastructure.Data;
+using KafeYana.Infrastructure.Data.Repositorio;
+using KafeYana.Infrastructure.Options;
+using KafeYana.Infrastructure.Procesos;
+using KafeYana.Infrastructure.Servicios;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,10 +22,14 @@ builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
 
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.JwtOptionsKey));
+
 //Conexion Base de datos
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration["DataBase:Conexion"])
 );
+
+//Configuracion Identity
 
 builder.Services.AddDataProtection();
 
@@ -26,21 +41,87 @@ builder.Services.AddIdentityCore<Usuario>(options =>
     options.Password.RequireLowercase = false;
     options.Password.RequireUppercase = false;
     options.User.RequireUniqueEmail = true;
-}).AddRoles<IdentityRole>()
+}).AddRoles<IdentityRole<Guid>>()
 .AddEntityFrameworkStores<AppDbContext>()
 .AddSignInManager()
 .AddDefaultTokenProviders();
 
+//Configuracion jwt refreshtoken
+
+builder.Services.AddAuthentication(opt =>
+{
+    opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    opt.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(opy =>
+{
+    var jwtop = builder.Configuration.GetSection(JwtOptions.JwtOptionsKey)
+    .Get<JwtOptions>() ?? throw new ArgumentException(nameof(JwtOptions));
+
+    opy.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtop.Issuer,
+        ValidAudience = jwtop.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtop.Secret))
+    };
+
+
+    opy.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = Context =>
+        {
+            Context.Token = Context.Request.Cookies["ACCESS_TOKEN"];
+            return Task.CompletedTask;
+        }
+    };
+});
+
+builder.Services.AddAuthorization();
+
+builder.Services.AddExceptionHandler<ExceptionGlobal>();
+
+//Servicios 
+builder.Services.AddScoped<IAuthTokenProcesador, AuthTokenProcesador>();
+builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+
 builder.Services.AddEndpointsApiExplorer();
+
+//Pra scalar
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.MapOpenApi();
+app.MapScalarApiReference(options =>
 {
-    app.MapOpenApi();
-}
+    options.Title = "KafeYana API";
+    options.Theme = ScalarTheme.DeepSpace;
+});
+
+app.UseExceptionHandler( _ => { });
+
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
+
+app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+
+    if (!await roleManager.RoleExistsAsync("Admin"))
+    {
+        await roleManager.CreateAsync(new IdentityRole<Guid>("Admin"));
+    }
+}
 
 app.Run();
