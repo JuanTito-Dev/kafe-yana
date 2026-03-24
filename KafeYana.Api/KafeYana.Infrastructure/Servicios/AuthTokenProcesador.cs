@@ -33,10 +33,10 @@ namespace KafeYana.Infrastructure.Procesos
 
             var claims = new[]
             {
-                new Claim(type: JwtRegisteredClaimNames.Sub, datos.Id.ToString()),
+                new Claim(type: ClaimTypes.NameIdentifier, datos.Id.ToString()),
                 new Claim(type: JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(type: JwtRegisteredClaimNames.Email, datos.Email!),
-                new Claim(type: ClaimTypes.NameIdentifier, datos.Nombre),
+                new Claim(type: ClaimTypes.Name, datos.Nombre),
                 new Claim(type: ClaimTypes.Role, datos.Rol)
             };
 

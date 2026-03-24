@@ -1,3 +1,4 @@
+using KafeYana.Api.GraphQLMap;
 using KafeYana.Application.Exceptions;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Application.IServicios;
@@ -7,12 +8,14 @@ using KafeYana.Infrastructure.Data.Repositorio;
 using KafeYana.Infrastructure.Options;
 using KafeYana.Infrastructure.Procesos;
 using KafeYana.Infrastructure.Servicios;
+using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using System.Text;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -80,14 +83,43 @@ builder.Services.AddAuthentication(opt =>
     };
 });
 
+builder.Services.AddMapster();
+
 builder.Services.AddAuthorization();
 
 builder.Services.AddExceptionHandler<ExceptionGlobal>();
+
+var origin = builder.Configuration.GetSection("Cors:Origins")
+    .Get<string[]>() ?? [];
+
+builder.Services.AddCors( x =>
+{
+    x.AddPolicy("CorsPoliticy", polity =>
+    {
+        polity
+            .WithOrigins(origin)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
+builder.Services.AddGraphQLServer()
+    .AddQueryType(d => d.Name("Query"))
+    .AddTypeExtension<ProductoQuery>()
+    .AddTypeExtension<UsuarioQuery>()
+    .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = true)
+    .AddFiltering()
+    .AddSorting()
+    .AddAuthorization();
 
 //Servicios 
 builder.Services.AddScoped<IAuthTokenProcesador, AuthTokenProcesador>();
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped(typeof(IGenericRepositorio<>), typeof(GenericRepositorio<>));
+builder.Services.AddScoped<ICategoriaRepositorio, CategoriaRepositorio>();
+builder.Services.AddScoped<IProductoRepositorio, ProductoRepositorio>();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -98,6 +130,7 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.MapOpenApi();
+app.MapGraphQL();
 app.MapScalarApiReference(options =>
 {
     options.Title = "KafeYana API";
@@ -107,6 +140,8 @@ app.MapScalarApiReference(options =>
 app.UseExceptionHandler( _ => { });
 
 app.UseHttpsRedirection();
+
+app.UseCors("CorsPoliticy");
 
 app.UseAuthentication();
 
