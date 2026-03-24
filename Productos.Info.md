@@ -1,53 +1,32 @@
-## 🛍️ Query: GetProductos
+# 🛍️ Query: productos
 
-Obtiene una lista de productos con soporte de filtrado por tipo y paginación.
-
-⚠️ Este endpoint está protegido y solo puede ser usado por usuarios con rol **Admin**.
+Endpoint GraphQL para obtener productos con filtros y paginación.
 
 ---
 
 ## 🔐 Autorización
 
-- Requiere autenticación
-- Rol requerido: `Admin`
+- Requiere usuario autenticado
+- Usa cookies HttpOnly (JWT)
+- En frontend usar: `credentials: "include"`
 
 ---
 
 ## ⚙️ Parámetros
 
-| Nombre | Tipo   | Requerido | Descripción |
-|--------|--------|----------|------------|
-| Tipo | string | ❌ | Filtro por tipo de producto (aunque el nombre del parámetro puede inducir a error) |
-
----
-
-## 🎯 Comportamiento del parámetro `nombre`
-
-Este parámetro controla el **tipo de productos a devolver**:
-
-| Valor enviado | Resultado |
-|--------------|----------|
-| `"Comprado"` | Devuelve solo productos comprados |
-| `"Elaborado"` | Devuelve solo productos elaborados |
-| `"Combos"` | Devuelve solo productos tipo combo |
-| `null` o no enviado | Devuelve **todos los productos** |
-
-📌 **Nota importante para frontend:**  
-Aunque el parámetro se llama `nombre`, **realmente funciona como un filtro por tipo**.
-
----
-
-## ⚡ Funcionalidades automáticas
-
-Este endpoint utiliza:
-
-- `UsePaging` → paginación automática
-- `UseFiltering` → filtros adicionales (opcional)
-- `UseSorting` → ordenamiento
+| Parámetro | Tipo   | Requerido | Descripción |
+|----------|--------|----------|------------|
+| tipo     | String | ❌ | Filtra por tipo (`Comprado`, `Elaborado`, `Combos`) |
+| categoria| String | ❌ | Filtra por categoría |
+| texto    | String | ❌ | Búsqueda parcial (nombre o descripción) |
+| first    | Int    | ❌ | Cantidad de registros |
+| after    | String | ❌ | Cursor para paginación |
 
 ---
 
 ## 📥 Ejemplos de uso
+
+---
 
 ### 🔹 Obtener todos los productos
 
@@ -67,9 +46,28 @@ query {
     nodes {
       id
       nombre
-      tipo
       stock
       costo
+    }
+  }
+}
+
+query {
+  productos(categoria: "Bebidas") {
+    nodes {
+      id
+      nombre
+      categoriaNombre
+    }
+  }
+}
+
+query {
+  productos(tipo: "Elaborado", texto: "latte") {
+    nodes {
+      id
+      nombre
+      recetaName
     }
   }
 }
