@@ -9,6 +9,7 @@ namespace KafeYana.Application.IRepositorio
 {
     public interface IUsuarioRepositorio
     {
-        public Task<Usuario?> GetUsuario(string refreshtoken);
+
+        public Task<Usuario?> Me(string Id);
     }
 }

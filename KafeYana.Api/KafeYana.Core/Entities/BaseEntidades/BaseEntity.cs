@@ -4,12 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KafeYana.Core.Entities
+namespace KafeYana.Domain.Entities.BaseEntidades
 {
     public class BaseEntity
     {
-        public int Id { get; set; }
-
-        public int Codigo { get; set; }
+       public int Id { get; set; }
     }
 }

@@ -20,6 +20,8 @@ https://kafeyanaapi20260321224446-bqdjh9acame8gydt.centralus-01.azurewebsites.ne
 | Módulo | Descripción |
 |--------|-------------|
 | [🔐 Autenticación](/AuthEnpoints.md) | Registro, Login y Refresh Token |
+| [🔐 InfoProductos](/Productos.Info.md) | producto filtrado |
+| [🔐 InfoUsuario](/Usuario.Info.md) | Datos del usuario |
 
 ## ⚠️ Importante para el Frontend
 

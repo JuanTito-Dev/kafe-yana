@@ -1,4 +1,6 @@
-﻿using System;
+﻿using KafeYana.Domain.Entities.BaseEntidades;
+using KafeYana.Domain.Entities.Inventario;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,18 +8,17 @@ using System.Threading.Tasks;
 
 namespace KafeYana.Core.Entities.Inventario
 {
-    public class Categoria
+    public class Categoria : BaseEntity
     {
-        public required string Nombre { get ; set; }
+        public required string Nombre { get; set; }
 
-        public string CategoriaPadre { get; set; } = string.Empty;
+        public string Descripcion { get; set; } = string.Empty;
 
-        public string DescripcionCorta {  get; set; } = string.Empty;
+        public required bool Estado { get; set; }
 
-        public required int Orden { get; set; }
+        public required string Color { get; set; }
 
-        public required bool Menu {  get; set; }
+        public ICollection<Producto> Productos { get; set; } = new List<Producto>();
 
-        public string Color {  get; set; } = string.Empty;
     }
 }

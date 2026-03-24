@@ -35,6 +35,7 @@ namespace KafeYana.Application.Exceptions
                 UsuarioExiste => (HttpStatusCode.Conflict, exception.Message),
                 RegiterUsuarioFailException => (HttpStatusCode.BadRequest, exception.Message),
                 RefreshTokenExceptions => (HttpStatusCode.Unauthorized, exception.Message),
+                InventarioException => (HttpStatusCode.Conflict, exception.Message),
                 _ => (HttpStatusCode.InternalServerError, $"Ocurrido un error critico {exception.Message}")
             };
         }
