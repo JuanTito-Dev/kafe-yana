@@ -1,5 +1,6 @@
 ﻿using KafeYana.Core.Entities.Entity;
 using KafeYana.Core.Entities.Inventario;
+using KafeYana.Domain.Entities;
 using KafeYana.Domain.Entities.Inventario;
 using KafeYana.Infrastructure.Data.ConfigDbContext;
 using KafeYana.Infrastructure.Data.ConfigDbContext.Indentity;
@@ -38,6 +39,29 @@ namespace KafeYana.Infrastructure.Data
         public DbSet<Opcion> Opciones { get; set; }
 
         public DbSet<Ajuste> Ajustes { get; set; }
+
+        public DbSet<Cliente> Clientes { get; set; }
+
+        public DbSet<Stock_Ajuste> AjustesStock {get; set;}
+
+        public DbSet<Mesa> Mesas { get; set; }
+
+        public DbSet<Venta> Ventas {  get; set; }
+
+        public DbSet<Detalle_venta> Detalle_ventas {  get; set; }
+
+        public DbSet<Pedido> Pedidos { get; set; }
+
+        public DbSet<Ronda> Rondas { get; set; }
+
+        public DbSet<Detalle_ronda> Detalle_rondas { get; set; }
+
+        public DbSet<Proveedor> Proveedores { get; set; }
+
+        public DbSet<Detalle_ronda> Detalle_Rondas { get; set; }
+
+        public DbSet<Detalle_Ronda_Opcion> Detalle_Rondas_Opciones { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -67,6 +91,26 @@ namespace KafeYana.Infrastructure.Data
             builder.ApplyConfigurationsFromAssembly(typeof(PromocionConfig).Assembly);
 
             builder.ApplyConfigurationsFromAssembly(typeof(PromocionDetalleConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(ClienteConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(Stock_AjusteConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(MesaConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(VentaConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(Detalle_ventaConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(PedidoConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(RondaConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(ProveedorConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(Detalle_RondaConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(Detalle_Ronda_OpcionConfig).Assembly);
         }
     }
 }

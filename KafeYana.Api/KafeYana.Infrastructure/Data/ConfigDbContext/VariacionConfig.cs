@@ -19,7 +19,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.Nombre).IsRequired().HasMaxLength(50);
 
-            builder.Property(x => x.Requirido).IsRequired().HasDefaultValue(false);
+            builder.Property(x => x.Requerido).IsRequired().HasDefaultValue(false);
 
             builder.HasOne(x => x.Elaborado)
                 .WithMany(e => e.Variaciones)
@@ -30,7 +30,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.HasIndex(x => x.Id_Elaborado);
 
-            builder.HasIndex(x => x.Requirido);
+            builder.HasIndex(x => x.Requerido);
         }
     }
 }

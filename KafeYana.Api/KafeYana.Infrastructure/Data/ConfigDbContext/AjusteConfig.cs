@@ -19,6 +19,10 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.Cantidad).IsRequired().HasColumnType("decimal(10,2)");
 
+            builder.Property(x => x.TipoAjuste)
+            .IsRequired()
+            .HasMaxLength(20);
+
             // Si se borra Opcion se borran sus AjusteInsumos
             builder.HasOne(x => x.Opcion)
                 .WithMany(o => o.Ajustes)
@@ -26,10 +30,21 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Si se borra Insumo se borran sus AjusteInsumos
-            builder.HasOne(x => x.Insumo)
+            builder.HasOne(x => x.InsumoBase)
                 .WithMany(i => i.Ajustes)
                 .HasForeignKey(x => x.Id_Insumo)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(x => x.InsumoNuevo)
+                .WithMany(i => i.AjustesComoNuevo)
+                .HasForeignKey(x => x.Id_InsumoNuevo)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Índices para búsquedas por id
+            builder.HasIndex(x => x.Id_Opcion);
+            builder.HasIndex(x => x.Id_Insumo);
+            builder.HasIndex(x => x.Id_InsumoNuevo);
         }
     }
 }

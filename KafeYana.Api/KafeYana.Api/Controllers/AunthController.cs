@@ -2,6 +2,7 @@
 using KafeYana.Domain.Request;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Principal;
 
 namespace KafeYana.Api.Controllers
 {
@@ -30,8 +31,9 @@ namespace KafeYana.Api.Controllers
                 return BadRequest(ModelState);
             }
 
-            await _servicio.Login(datos);
-            return Ok(new { message = "Usuario Encontrado" });
+            var usuario = await _servicio.Login(datos);
+
+            return Ok(usuario);
         }
 
         [HttpPost("RefreshToken")]
@@ -39,14 +41,22 @@ namespace KafeYana.Api.Controllers
         {
             var RefreshToken = Request.Cookies["REFRESH_TOKEN"];
 
-            if (RefreshToken == null)
+            if (string.IsNullOrEmpty(RefreshToken))
             {
                 return BadRequest(new {Message = "Token No encontrado"});
             }
 
-            await _servicio.RefreshTokenAsync(RefreshToken);
+            var usuario = await _servicio.RefreshTokenAsync(RefreshToken);
 
-            return Ok(new { message = "Token revocado"});
+            return Ok(usuario);
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var refreshToken = Request.Cookies["REFRESH_TOKEN"];
+            await _servicio.Logout(refreshToken);
+            return NoContent();
         }
     }
 }

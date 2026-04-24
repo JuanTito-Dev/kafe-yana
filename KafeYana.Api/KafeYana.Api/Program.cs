@@ -1,8 +1,10 @@
 using KafeYana.Api.GraphQLMap;
+using KafeYana.Api.GraphQLMap.Types;
 using KafeYana.Application.Exceptions;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Application.IServicios;
 using KafeYana.Core.Entities.Entity;
+using KafeYana.Domain.TiposDeDatos;
 using KafeYana.Infrastructure.Data;
 using KafeYana.Infrastructure.Data.Repositorio;
 using KafeYana.Infrastructure.Options;
@@ -105,21 +107,69 @@ builder.Services.AddCors( x =>
 });
 
 builder.Services.AddGraphQLServer()
-    .AddQueryType(d => d.Name("Query"))
-    .AddTypeExtension<ProductoQuery>()
+    .AddQueryType<Query>()
+    .AddTypeExtension<AjustesQuery>()
+    .AddTypeExtension<CategoriaQuery>()
+    .AddTypeExtension<ClienteQuery>()
+    .AddTypeExtension<ComboQuery>()
+    .AddTypeExtension<CompradoQuery>()
+    .AddTypeExtension<ElaboradoQuery>()
+    .AddTypeExtension<InsumoQuery>()
+    .AddTypeExtension<RecetaQuery>()
     .AddTypeExtension<UsuarioQuery>()
+    .AddTypeExtension<MesaQuery>()
+    .AddTypeExtension<VentaQuery>()
+    .AddType<AjusteType>()
+    .AddType<CategoriaType>()
+    .AddType<ClienteType>()
+    .AddType<ComboType>()
+    .AddType<CompradoType>()
+    .AddType<DetalleType>()
+    .AddType<ElaboradoType>()
+    .AddType<InsumoType>()
+    .AddType<OpcionType>()
+    .AddType<ProductoType>()
+    .AddType<PromocionDetalleType>()
+    .AddType<RecetaType>()
+    .AddType<VariacionType>()
+    .AddType<MesaType>()
+    .AddType<PedidoType>()
+    .AddType<RondaType>()
+    .AddType<DetalleRondaType>()
+    .AddType<VentaType>()
+    .AddType<DetalleVentaType>()
     .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = true)
     .AddFiltering()
+    .AddProjections()
     .AddSorting()
-    .AddAuthorization();
+    .AddAuthorization()
+    .AddTypeExtension<ProveedorQuery>()
+    .AddType<ProveedorType>();
 
 //Servicios 
 builder.Services.AddScoped<IAuthTokenProcesador, AuthTokenProcesador>();
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IVentaServices, VentaServices>();
 builder.Services.AddScoped(typeof(IGenericRepositorio<>), typeof(GenericRepositorio<>));
 builder.Services.AddScoped<ICategoriaRepositorio, CategoriaRepositorio>();
 builder.Services.AddScoped<IProductoRepositorio, ProductoRepositorio>();
+builder.Services.AddScoped<IElaboradoRepositorio, ElaboradoRepositorio>();
+builder.Services.AddScoped<IComboRepositorio, ComboRepositorio>();
+builder.Services.AddScoped<IInsumoRepositorio, InsumoRepositorio>();
+builder.Services.AddScoped<IRecetaRepositorio, RecetaRepositorio>();
+builder.Services.AddScoped<IVariacionReposiotorio, VariacionRepositorio>();
+builder.Services.AddScoped<IClienteRespositorio, ClienteRepositorio>();
+builder.Services.AddScoped<IAjusteStockRepositorio, AjusteStockRepositorio>();
+builder.Services.AddScoped<IMesaRepositorio, MesaRepositorio>();
+builder.Services.AddScoped<IPedidoRepositorio, PedidoRepositorio>();
+builder.Services.AddScoped<IRondaRepositorio, RondaRepositorio>();
+builder.Services.AddScoped<IVentaRepositorio, VentaRepositorio>();
+builder.Services.AddScoped<IOpcionRepositorio, OpcionRepositorio>();
+builder.Services.AddScoped<IUnitWork, UnitWork>();
+builder.Services.AddScoped<IProveedorRepositorio, ProveedorRepositorio>();
+builder.Services.AddScoped<IDetalle_RondaRepositorio, Detalle_RondaRepositorio>();
+builder.Services.AddScoped<Detalle_RondaService>();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -153,10 +203,21 @@ using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
 
-    if (!await roleManager.RoleExistsAsync("Admin"))
+    if (!await roleManager.RoleExistsAsync(RolesKafe.Admin))
     {
-        await roleManager.CreateAsync(new IdentityRole<Guid>("Admin"));
+        await roleManager.CreateAsync(new IdentityRole<Guid>(RolesKafe.Admin));
     }
+
+    if (!await roleManager.RoleExistsAsync(RolesKafe.Mesero))
+    {
+        await roleManager.CreateAsync(new IdentityRole<Guid>(RolesKafe.Mesero));
+    }
+
+    if (!await roleManager.RoleExistsAsync(RolesKafe.Cajero))
+    {
+        await roleManager.CreateAsync(new IdentityRole<Guid>(RolesKafe.Cajero));
+    }
+
 }
 
 app.Run();

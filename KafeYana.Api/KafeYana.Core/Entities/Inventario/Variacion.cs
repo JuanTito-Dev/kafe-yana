@@ -11,7 +11,7 @@ namespace KafeYana.Domain.Entities.Inventario
     {
         public required string Nombre { get; set; }
 
-        public required bool Requirido { get; set; }
+        public required bool Requerido { get; set; }
 
         //Fk
 
@@ -19,6 +19,6 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public Elaborado Elaborado { get; set; }
 
-        public ICollection<Opcion> Opciones { get; set; } = new List<Opcion>();
+        public List<Opcion> Opciones { get; set; } = new List<Opcion>();
     }
 }

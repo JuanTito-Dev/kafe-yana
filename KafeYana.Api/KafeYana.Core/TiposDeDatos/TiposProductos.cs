@@ -9,10 +9,10 @@ namespace KafeYana.Domain.TiposDeDatos
 {
     public class TiposProductos
     {
-        public static string Comprado { get; } = "Comprado" ;
+        public const string Comprado  = "Comprado" ;
 
-        public static string Elaborado { get; } = "Elaborado";
+        public const string Elaborado  = "Elaborado";
 
-        public static string Promocion { get; } = "Combos";
+        public const string Promocion  = "Combos";
     }
 }

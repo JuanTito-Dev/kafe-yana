@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<parameters>
+  <parameter name="IIS Web Application Name" description="" value="UsaAutoPartesApi20260406085513" tags="IisApp">
+    <parameterEntry kind="ProviderPath" scope="IisApp" match="^C:\\Users\\HP\\Escritorio\\C\#\\Aspe\ \.net\ core\ MVC\\kafe-yana\\UsaAutoPartes\.Api\\UsaAutoPartes\.Api\\obj\\Release\\net9\.0\\PubTmp\\Out\\$" />
+  </parameter>
+</parameters>

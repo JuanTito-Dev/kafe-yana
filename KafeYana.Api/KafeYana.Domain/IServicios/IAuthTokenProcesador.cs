@@ -15,5 +15,7 @@ namespace KafeYana.Application.IServicios
         public string RefreshToken();
 
         public void WriteAunthHttpOnlyCookie(string NameToken, string Token, DateTime expiration);
+
+        void DeleteAuthCookie(string nombre);
     }
 }

@@ -12,7 +12,7 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public required bool Opcional { get; set; }
 
-        public required int Id_Promocion    { get; set; }
+        public int Id_Promocion    { get; set; }
 
         public required int Id_Producto { get; set; }
 

@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace KafeYana.Application.Exceptions
 {
-    public class InventarioException (string Mesagge) : Exception($"Error : {Mesagge}");
+    public class InventarioException (string Mesagge) : Exception($"{Mesagge}");
 }

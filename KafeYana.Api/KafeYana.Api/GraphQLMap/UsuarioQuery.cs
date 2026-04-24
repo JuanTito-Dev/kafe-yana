@@ -15,10 +15,6 @@ namespace KafeYana.Api.GraphQLMap
         [Authorize]
         public async Task<DtoUsuarioDatos> Me([Service] IUsuarioRepositorio user, ClaimsPrincipal info)
         {
-            foreach (var claim in info.Claims)
-            {
-                Console.WriteLine($"{claim.Type}: {claim.Value}");
-            }
 
             var userId = info.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 

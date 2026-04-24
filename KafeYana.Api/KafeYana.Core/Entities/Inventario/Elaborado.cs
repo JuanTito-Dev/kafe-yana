@@ -10,14 +10,18 @@ namespace KafeYana.Domain.Entities.Inventario
     public class Elaborado : BaseEntity
     {
         public required string Unidad_medida { get; set; }
+
+        public required bool Producible { get; set; }
+
+        public int Stock_actual { get; set; } = 0;
         
-        public required int Id_Producto { get; set; }
+        public int Id_Producto { get; set; }
 
         //Navegacion
         public Producto Producto { get; set; }
 
-        public Receta Receta { get; set; }
+        public Receta? Receta { get; set; }
 
-        public ICollection<Variacion> Variaciones { get; set; } = new List<Variacion>();
+        public List<Variacion>? Variaciones { get; set; } = new List<Variacion>();
     }
 }

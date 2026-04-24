@@ -30,19 +30,9 @@ namespace KafeYana.Infrastructure.Data.Repositorio
             return categoria;
         }
 
-        public async Task<List<DtoCategoriaLista>> ObtenerTodosAsync()
+        public IQueryable<Categoria> QueryCategorias()
         {
-            return await _db.Categorias
-                .Select(c => new DtoCategoriaLista
-                {
-                    Id = c.Id,
-                    Nombre = c.Nombre,
-                    Descripcion = c.Descripcion,
-                    Estado = c.Estado,
-                    Color = c.Color,
-                    Cantidad = c.Productos.Count
-                })
-                .ToListAsync();
+           return _db.Categorias.OrderBy(x => x.Id).AsSplitQuery().AsQueryable();
         }
     }
 }
