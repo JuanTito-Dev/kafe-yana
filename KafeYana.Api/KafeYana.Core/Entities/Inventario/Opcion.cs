@@ -13,6 +13,10 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public required decimal AjustePrecio { get; set; }
 
+        public string TipoOpcion { get; set; } = "normal";
+
+        public string? ValorAnterior { get; set; }
+
         public int Id_variacion { get; set; }
 
         public Variacion Variacion { get; set; }

@@ -13,6 +13,7 @@ namespace KafeYana.Api.GraphQLMap.Types
             descriptor.Field(x => x.Precio).Type<DecimalType>();
             descriptor.Field(x => x.ronda).Type<RondaType>();
             descriptor.Field(x => x.producto).Ignore();
+            descriptor.Field(x => x.Opciones).Type<ListType<DetalleRondaOpcionType>>();
         }
     }
 }

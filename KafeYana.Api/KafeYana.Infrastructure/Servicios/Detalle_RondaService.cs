@@ -1,12 +1,13 @@
 using KafeYana.Application.IRepositorio;
 using KafeYana.Application.Exceptions;
 using KafeYana.Domain.Dtos.Detalle_RondaDtos;
+using KafeYana.Domain.Dtos.RondaDtos;
 using KafeYana.Domain.Entities.Inventario;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using KafeYana.Infrastructure.Data;
-using KafeYana.Domain.Dtos.RondaDtos;
+using Microsoft.EntityFrameworkCore;
 
 namespace KafeYana.Infrastructure.Servicios
 {
@@ -21,49 +22,43 @@ namespace KafeYana.Infrastructure.Servicios
             _db = db;
         }
 
-        /// <summary>
-        /// Crea una ronda con detalles y opciones. Todo se guarda o nada.
-        /// </summary>
         public async Task<Ronda> CrearRondaConDetallesAsync(int idPedido, List<DtoRondadetalle> detallesDto)
         {
+            _db.ChangeTracker.Clear();
+
             using (var transaction = await _db.Database.BeginTransactionAsync())
             {
                 try
                 {
                     var listaDetalles = new List<Detalle_ronda>();
                     var subtotal = 0.00M;
+                    var opcionesPorDetalle = new List<(int DetalleIndex, int IdOpcion)>();
 
-                    // Procesar cada detalle
-                    foreach (var detalleDto in detallesDto)
+                    for (int i = 0; i < detallesDto.Count; i++)
                     {
-                        // Validar producto existe
+                        var detalleDto = detallesDto[i];
+
                         var producto = await _unitWork.productos.FindByIdAsync(detalleDto.Id_Producto);
                         if (producto is null)
                             throw new DetalleRondaException($"El producto con ID {detalleDto.Id_Producto} no existe.");
 
-                        // Validar que no exista detalle duplicado
-                        bool existe = await _unitWork.detallesRondas.ExisteDetalleRondaPorProductoAsync(idPedido, detalleDto.Id_Producto);
-                        if (existe)
-                            throw new DetalleRondaException($"Ya existe un detalle para el producto {detalleDto.Id_Producto} en esta ronda.");
-
                         var precioAjuste = 0.00M;
 
-                        // Procesar opciones si existe
-                        var opciones = new List<DtoDetalle_RondaOpcionCrear>();
-
-                        if (detalleDto.Id_Opcion.HasValue && detalleDto.Id_Opcion > 0)
+                        if (detalleDto.Ids_Opcion != null && detalleDto.Ids_Opcion.Count > 0)
                         {
-                            // Validar que la opción pertenece al producto
-                            bool opcionValida = await _unitWork.opciones.Opciondeproducto(detalleDto.Id_Producto, detalleDto.Id_Opcion.Value);
-                            if (!opcionValida)
-                                throw new OpcionProductoException($"La opción {detalleDto.Id_Opcion} no pertenece al producto {detalleDto.Id_Producto}.");
+                            foreach (var idOpcion in detalleDto.Ids_Opcion)
+                            {
+                                bool opcionValida = await _unitWork.opciones.Opciondeproducto(detalleDto.Id_Producto, idOpcion);
+                                if (!opcionValida)
+                                    throw new OpcionProductoException($"La opciÃ³n {idOpcion} no pertenece al producto {detalleDto.Id_Producto}.");
 
-                            var opcion = await _unitWork.opciones.FindByIdAsync(detalleDto.Id_Opcion.Value);
-                            if (opcion is null)
-                                throw new OpcionProductoException($"La opción con ID {detalleDto.Id_Opcion} no existe.");
+                                var opcion = await _unitWork.opciones.FindByIdAsync(idOpcion);
+                                if (opcion is null)
+                                    throw new OpcionProductoException($"La opciÃ³n con ID {idOpcion} no existe.");
 
-                            precioAjuste = opcion.AjustePrecio;
-                            opciones.Add(new DtoDetalle_RondaOpcionCrear { Id_Opcion = detalleDto.Id_Opcion.Value });
+                                precioAjuste += opcion.AjustePrecio;
+                                opcionesPorDetalle.Add((i, idOpcion));
+                            }
                         }
 
                         var detalle = new Detalle_ronda
@@ -71,18 +66,8 @@ namespace KafeYana.Infrastructure.Servicios
                             Id_Producto = producto.Id,
                             Nombre_Producto = producto.Nombre,
                             Cantidad = detalleDto.Cantidad,
-                            Precio = producto.Precio + precioAjuste,
-                            Opciones = new List<Detalle_Ronda_Opcion>()
+                            Precio = producto.Precio + precioAjuste
                         };
-
-                        // Agregar opciones al detalle
-                        foreach (var opcionDto in opciones)
-                        {
-                            detalle.Opciones.Add(new Detalle_Ronda_Opcion
-                            {
-                                Id_Opcion = opcionDto.Id_Opcion
-                            });
-                        }
 
                         subtotal += detalle.Precio * detalle.Cantidad;
                         listaDetalles.Add(detalle);
@@ -91,10 +76,8 @@ namespace KafeYana.Infrastructure.Servicios
                     if (listaDetalles.Count == 0)
                         throw new DetalleRondaException("No se han agregado productos a la ronda.");
 
-                    // Obtener número de ronda
                     var numeroRonda = await _unitWork.rondas.Count(x => x.Id_Pedido == idPedido) + 1;
 
-                    // Crear ronda
                     var ronda = new Ronda
                     {
                         Id_Pedido = idPedido,
@@ -103,9 +86,21 @@ namespace KafeYana.Infrastructure.Servicios
                         SubTotal = subtotal
                     };
 
-                    // Guardar todo
                     await _unitWork.rondas.Crear(ronda);
                     await _unitWork.SaveUnitWork();
+
+                    var detallesGuardados = await _db.Detalle_Rondas
+                        .Where(d => d.Id_Ronda == ronda.Id)
+                        .OrderBy(d => d.Id)
+                        .ToListAsync();
+
+                    foreach (var (detalleIndex, idOpcion) in opcionesPorDetalle)
+                    {
+                        await _db.Database.ExecuteSqlAsync(
+                            @$"INSERT INTO ""Detalle_Ronda_Opcion"" (""Id_Detalle_Ronda"", ""Id_Opcion"")
+                               VALUES ({detallesGuardados[detalleIndex].Id}, {idOpcion})");
+                    }
+
                     await transaction.CommitAsync();
 
                     return ronda;

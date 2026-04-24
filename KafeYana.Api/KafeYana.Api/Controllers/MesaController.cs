@@ -123,6 +123,16 @@ namespace KafeYana.Api.Controllers
         [HttpPost("ronda/{Id:int}")]
         public async Task<IActionResult> AgregarRonda(int Id, DtoRondaAgregar datos)
         {
+            Console.WriteLine($"DEBUG - Id_Pedido: {datos.Id_Pedido}");
+            Console.WriteLine($"DEBUG - Detalles count: {datos.Detalles?.Count}");
+            if (datos.Detalles != null)
+            {
+                foreach (var d in datos.Detalles)
+                {
+                    Console.WriteLine($"DEBUG - Detalle: Producto={d.Id_Producto}, Cantidad={d.Cantidad}, Ids_Opcion={System.Text.Json.JsonSerializer.Serialize(d.Ids_Opcion)}");
+                }
+            }
+
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             // Verificaciones de mesa
