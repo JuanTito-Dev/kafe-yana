@@ -1,0 +1,342 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\KafeYana.Api.csproj": {}
+  },
+  "projects": {
+    "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\KafeYana.Api.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\KafeYana.Api.csproj",
+        "projectName": "KafeYana.Api",
+        "projectPath": "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\KafeYana.Api.csproj",
+        "packagesPath": "C:\\Users\\jaime\\.nuget\\packages\\",
+        "outputPath": "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\jaime\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj": {
+                "projectPath": "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "HotChocolate.AspNetCore": {
+              "target": "Package",
+              "version": "[15.1.12, )"
+            },
+            "HotChocolate.AspNetCore.Authorization": {
+              "target": "Package",
+              "version": "[15.1.12, )"
+            },
+            "HotChocolate.Data": {
+              "target": "Package",
+              "version": "[15.1.12, )"
+            },
+            "Mapster": {
+              "target": "Package",
+              "version": "[10.0.3, )"
+            },
+            "Mapster.DependencyInjection": {
+              "target": "Package",
+              "version": "[10.0.0, )"
+            },
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[9.0.4, )"
+            },
+            "Microsoft.AspNetCore.OpenApi": {
+              "target": "Package",
+              "version": "[9.0.14, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[9.0.4, )"
+            },
+            "Scalar.AspNetCore": {
+              "target": "Package",
+              "version": "[2.13.13, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.313/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\KafeYana.Domain.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\KafeYana.Domain.csproj",
+        "projectName": "KafeYana.Domain",
+        "projectPath": "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\KafeYana.Domain.csproj",
+        "packagesPath": "C:\\Users\\jaime\\.nuget\\packages\\",
+        "outputPath": "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\jaime\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.Extensions.Identity.Stores": {
+              "target": "Package",
+              "version": "[9.0.4, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.313/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\KafeYana.Application.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\KafeYana.Application.csproj",
+        "projectName": "KafeYana.Application",
+        "projectPath": "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\KafeYana.Application.csproj",
+        "packagesPath": "C:\\Users\\jaime\\.nuget\\packages\\",
+        "outputPath": "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\jaime\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\KafeYana.Domain.csproj": {
+                "projectPath": "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\KafeYana.Domain.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.AspNetCore.Diagnostics": {
+              "target": "Package",
+              "version": "[2.3.9, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.313/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj",
+        "projectName": "KafeYana.Infrastructure",
+        "projectPath": "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj",
+        "packagesPath": "C:\\Users\\jaime\\.nuget\\packages\\",
+        "outputPath": "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\jaime\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\KafeYana.Domain.csproj": {
+                "projectPath": "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\KafeYana.Domain.csproj"
+              },
+              "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\KafeYana.Application.csproj": {
+                "projectPath": "C:\\dev\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\KafeYana.Application.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.AspNetCore.Http.Abstractions": {
+              "target": "Package",
+              "version": "[2.3.9, )"
+            },
+            "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.8, )"
+            },
+            "Microsoft.EntityFrameworkCore.Tools": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[9.0.4, )"
+            },
+            "Microsoft.IdentityModel.Tokens": {
+              "target": "Package",
+              "version": "[8.16.0, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[9.0.4, )"
+            },
+            "System.IdentityModel.Tokens.Jwt": {
+              "target": "Package",
+              "version": "[8.16.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.313/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

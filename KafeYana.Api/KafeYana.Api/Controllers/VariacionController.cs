@@ -85,7 +85,20 @@ namespace KafeYana.Api.Controllers
 
             if (!await _db.Existe(datos.Id_variacion)) return BadRequest("Variacion no encontrada");
 
+            Console.WriteLine($"[DEBUG] DTO recibido - Nombre: {datos.Nombre}, TipoOpcion: {datos.TipoOpcion}, ValorAnterior: {datos.ValorAnterior}");
+            Console.WriteLine($"[DEBUG] Ajustes count: {datos.Ajustes.Count}");
+            foreach (var a in datos.Ajustes)
+            {
+                Console.WriteLine($"  -> Ajuste: Id_Insumo={a.Id_Insumo}, Id_InsumoNuevo={a.Id_InsumoNuevo}, Cantidad={a.Cantidad}");
+            }
+
             var Variacion = datos.Crear();
+
+            Console.WriteLine($"[DEBUG] Opcion creada - TipoOpcion: {Variacion.TipoOpcion}, Ajustes count: {Variacion.Ajustes.Count}");
+            foreach (var a in Variacion.Ajustes)
+            {
+                Console.WriteLine($"  -> Ajuste entity: Id_Insumo={a.Id_Insumo}, Id_InsumoNuevo={a.Id_InsumoNuevo}, TipoAjuste={a.TipoAjuste}");
+            }
 
             await _db.CrearOpcion(Variacion);
 

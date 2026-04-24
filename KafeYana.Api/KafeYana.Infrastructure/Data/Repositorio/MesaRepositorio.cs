@@ -19,7 +19,23 @@ namespace KafeYana.Infrastructure.Data.Repositorio
 
         public IQueryable<Mesa> MesaQuery()
         {
-            return _set.AsNoTracking().AsQueryable();
+            return _set
+                .AsNoTracking()
+                .Include(x => x.pedido)
+                    .ThenInclude(p => p.Rondas)
+                        .ThenInclude(r => r.Detalle)
+                            .ThenInclude(d => d.Opciones)
+                                .ThenInclude(o => o.Opcion)
+                                    .ThenInclude(op => op.Ajustes)
+                                        .ThenInclude(a => a.InsumoBase)
+                .Include(x => x.pedido)
+                    .ThenInclude(p => p.Rondas)
+                        .ThenInclude(r => r.Detalle)
+                            .ThenInclude(d => d.Opciones)
+                                .ThenInclude(o => o.Opcion)
+                                    .ThenInclude(op => op.Ajustes)
+                                        .ThenInclude(a => a.InsumoNuevo)
+                .AsQueryable();
         }
 
         public async Task<Mesa?> GetMesaPedido(int Id)

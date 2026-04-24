@@ -398,15 +398,24 @@ namespace KafeYana.Infrastructure.Migrations
                     b.Property<int>("Id_Opcion")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("Detalle_RondaId")
-                        .HasColumnType("integer");
+                    b.Property<decimal?>("CostoExtra")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("TipoOpcion")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("normal");
+
+                    b.Property<string>("ValorAnterior")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.HasKey("Id_Detalle_Ronda", "Id_Opcion");
 
-                    b.HasIndex("Detalle_RondaId");
-
-                    b.HasIndex("Id_Opcion")
-                        .IsUnique();
+                    b.HasIndex("Id_Opcion");
 
                     b.HasIndex("Id_Detalle_Ronda", "Id_Opcion")
                         .IsUnique()
@@ -591,6 +600,17 @@ namespace KafeYana.Infrastructure.Migrations
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("TipoOpcion")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("normal");
+
+                    b.Property<string>("ValorAnterior")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.HasKey("Id");
 
@@ -1199,11 +1219,13 @@ namespace KafeYana.Infrastructure.Migrations
                 {
                     b.HasOne("KafeYana.Domain.Entities.Inventario.Detalle_ronda", "Detalle_Ronda")
                         .WithMany("Opciones")
-                        .HasForeignKey("Detalle_RondaId");
+                        .HasForeignKey("Id_Detalle_Ronda")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("KafeYana.Domain.Entities.Inventario.Opcion", "Opcion")
-                        .WithOne()
-                        .HasForeignKey("KafeYana.Domain.Entities.Inventario.Detalle_Ronda_Opcion", "Id_Opcion")
+                        .WithMany()
+                        .HasForeignKey("Id_Opcion")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

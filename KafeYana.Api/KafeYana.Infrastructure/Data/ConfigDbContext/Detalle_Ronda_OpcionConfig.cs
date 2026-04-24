@@ -17,16 +17,33 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.Id_Opcion).IsRequired();
 
-            // Índice para la combinación única
+            builder.Property(x => x.TipoOpcion)
+                .IsRequired()
+                .HasMaxLength(20)
+                .HasDefaultValue("normal");
+
+            builder.Property(x => x.ValorAnterior)
+                .HasMaxLength(100);
+
+            builder.Property(x => x.CostoExtra)
+                .HasPrecision(18, 2);
+
+            // Ãndice para la combinaciÃ³n Ãºnica
             builder.HasIndex(x => new { x.Id_Detalle_Ronda, x.Id_Opcion })
                 .IsUnique()
                 .HasDatabaseName("ix_detalle_ronda_opcion_unique");
 
-            // Relación con Opcion
+            // RelaciÃ³n con Opcion
             builder.HasOne(x => x.Opcion)
-                .WithOne()
-                .HasForeignKey<Detalle_Ronda_Opcion>(x => x.Id_Opcion)
+                .WithMany()
+                .HasForeignKey(x => x.Id_Opcion)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // RelaciÃ³n con Detalle_ronda
+            builder.HasOne(x => x.Detalle_Ronda)
+                .WithMany(x => x.Opciones)
+                .HasForeignKey(x => x.Id_Detalle_Ronda)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
