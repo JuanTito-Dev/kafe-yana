@@ -15,9 +15,9 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public required decimal SubTotal { get; set; }
 
-        public required int Id_insumo { get; set; }
+        public int Id_insumo { get; set; }
 
-        public required int Id_receta { get; set; }
+        public int Id_receta { get; set; }
 
         //Navegacion 
         public Receta Receta { get; set; }

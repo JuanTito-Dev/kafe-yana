@@ -19,6 +19,7 @@ namespace KafeYana.Api.Controllers
         public async Task<IActionResult> Crear(DtoCategoriaCrear datos)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+                
             try
             {
                 var Categoria = datos.Adapt<Categoria>();
@@ -43,7 +44,15 @@ namespace KafeYana.Api.Controllers
 
             var categoria = await _Categoria.FindByIdAsync(Id);
 
-            if (categoria == null) return BadRequest("Categoria no encontrada");
+            if (categoria == null) return BadRequest(new { message = "Categoria no encontrada" });
+
+            if(categoria.Nombre != datos.Nombre)
+            {
+                if (await _Categoria.ExisteAsync(x => x.Nombre == datos.Nombre))
+                {
+                    throw new CampoYaExistenteFailException(datos.Nombre);
+                }
+            }
 
             datos.Adapt(categoria);
 
@@ -56,6 +65,8 @@ namespace KafeYana.Api.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Eliminar(int Id)
         {
+            if (Id == 23) return BadRequest(new { message = "No puedes eliminar la categoria combos" });
+
             var categoria = await _Categoria.BuscarConProductos(Id);
 
             if (categoria.Productos.Any())
@@ -66,23 +77,6 @@ namespace KafeYana.Api.Controllers
             await _Categoria.SaveAsync();
 
             return NoContent();
-        }
-
-        [Authorize(Roles = "Admin")]
-        [HttpGet("all")]
-        public async Task<ActionResult<List<DtoCategoriaLista>>> Getall() => Ok(await _Categoria.ObtenerTodosAsync());
-
-        [Authorize(Roles = "Admin")]
-        [HttpGet("{Id:int}")]
-        public async Task<ActionResult<DtoCategoriaGet>> Get(int Id)
-        {
-            var categoria = await _Categoria.FindByIdAsync(Id);
-
-            if (categoria == null) return BadRequest("Categoria no encontrada");
-
-            var mostrar = categoria.Adapt<DtoCategoriaGet>();
-
-            return Ok(mostrar);
         }
     }
 }

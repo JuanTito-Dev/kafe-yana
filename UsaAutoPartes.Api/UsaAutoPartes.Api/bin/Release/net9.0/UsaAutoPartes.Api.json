@@ -1,0 +1,624 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "UsaAutoPartes.Api | v1",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/Auth": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestRegister"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RequestLogin"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/DtoUsuarioDatos"
+            }
+          }
+        }
+      }
+    },
+    "/api/Auth/refresh": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/DtoUsuarioDatos"
+            }
+          }
+        }
+      }
+    },
+    "/api/Producto": {
+      "post": {
+        "tags": [
+          "Producto"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ProductoCU"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Producto/{Id}": {
+      "put": {
+        "tags": [
+          "Producto"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "Id",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ProductoCU"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Producto/{id}": {
+      "delete": {
+        "tags": [
+          "Producto"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Producto/lista": {
+      "post": {
+        "tags": [
+          "Producto"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/DtoProductosLista"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Producto/importacion": {
+      "post": {
+        "tags": [
+          "Producto"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/DtoImportacionLista"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Proveedor": {
+      "post": {
+        "tags": [
+          "Proveedor"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ProveedorCU"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Proveedor/{Id}": {
+      "put": {
+        "tags": [
+          "Proveedor"
+        ],
+        "consumes": [
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "Id",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ProveedorCU"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Proveedor"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "Id",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "DtoImportacionLista": {
+      "required": [
+        "id_Proveedor",
+        "fecha",
+        "costoTotal"
+      ],
+      "type": "object",
+      "properties": {
+        "id_Proveedor": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "fecha": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "costoTotal": {
+          "format": "double",
+          "type": "number"
+        },
+        "productos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DtoImportacionProducto"
+          }
+        }
+      }
+    },
+    "DtoImportacionProducto": {
+      "required": [
+        "conversionABs",
+        "codigo",
+        "nombre",
+        "stock_Actual",
+        "costo"
+      ],
+      "type": "object",
+      "properties": {
+        "conversionABs": {
+          "format": "double",
+          "type": "number"
+        },
+        "codigo": {
+          "type": "string"
+        },
+        "codigoAux": {
+          "type": "string"
+        },
+        "codigoAux2": {
+          "type": "string"
+        },
+        "nombre": {
+          "type": "string"
+        },
+        "marca": {
+          "type": "string"
+        },
+        "descripcion": {
+          "type": "string"
+        },
+        "unidad_Medida": {
+          "type": "string"
+        },
+        "ubicacion": {
+          "type": "string"
+        },
+        "stock_Actual": {
+          "format": "int32",
+          "maximum": 2147483647,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stock_Minimo": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "costo": {
+          "format": "double",
+          "minimum": 1,
+          "type": "number"
+        },
+        "precio": {
+          "format": "double",
+          "type": "number"
+        }
+      }
+    },
+    "DtoProductosLista": {
+      "required": [
+        "codigo",
+        "nombre",
+        "stock_Actual",
+        "costo"
+      ],
+      "type": "object",
+      "properties": {
+        "codigo": {
+          "type": "string"
+        },
+        "codigoAux": {
+          "type": "string"
+        },
+        "codigoAux2": {
+          "type": "string"
+        },
+        "nombre": {
+          "type": "string"
+        },
+        "marca": {
+          "type": "string"
+        },
+        "descripcion": {
+          "type": "string"
+        },
+        "unidad_Medida": {
+          "type": "string"
+        },
+        "ubicacion": {
+          "type": "string"
+        },
+        "stock_Actual": {
+          "format": "int32",
+          "maximum": 2147483647,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stock_Minimo": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "costo": {
+          "format": "double",
+          "minimum": 1,
+          "type": "number"
+        },
+        "precio": {
+          "format": "double",
+          "type": "number"
+        }
+      }
+    },
+    "DtoUsuarioDatos": {
+      "type": "object",
+      "properties": {
+        "nombre": {
+          "type": "string"
+        },
+        "correo": {
+          "type": "string"
+        },
+        "rol": {
+          "type": "string"
+        }
+      }
+    },
+    "ProductoCU": {
+      "required": [
+        "codigo",
+        "nombre",
+        "stock_Actual",
+        "stock_Minimo",
+        "costo",
+        "precio",
+        "conversionABs"
+      ],
+      "type": "object",
+      "properties": {
+        "codigo": {
+          "type": "string"
+        },
+        "codigoAux": {
+          "type": "string"
+        },
+        "codigoAux2": {
+          "type": "string"
+        },
+        "nombre": {
+          "type": "string"
+        },
+        "marca": {
+          "type": "string"
+        },
+        "descripcion": {
+          "type": "string"
+        },
+        "unidad_Medida": {
+          "type": "string"
+        },
+        "ubicacion": {
+          "type": "string"
+        },
+        "stock_Actual": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "stock_Minimo": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "costo": {
+          "format": "double",
+          "minimum": 1,
+          "type": "number"
+        },
+        "precio": {
+          "format": "double",
+          "minimum": 1,
+          "type": "number"
+        },
+        "conversionABs": {
+          "format": "double",
+          "minimum": 1,
+          "type": "number"
+        }
+      }
+    },
+    "ProveedorCU": {
+      "required": [
+        "nombre",
+        "pais",
+        "moneda",
+        "terminos",
+        "nombre_Contacto",
+        "email"
+      ],
+      "type": "object",
+      "properties": {
+        "nombre": {
+          "type": "string"
+        },
+        "pais": {
+          "type": "string"
+        },
+        "moneda": {
+          "type": "string"
+        },
+        "terminos": {
+          "type": "string"
+        },
+        "nombre_Contacto": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "telefono": {
+          "type": "string"
+        },
+        "tiempoReposicion": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "sitioWeb": {
+          "type": "string"
+        },
+        "estado": {
+          "type": "boolean"
+        },
+        "nota": {
+          "type": "string"
+        }
+      }
+    },
+    "RequestLogin": {
+      "required": [
+        "email",
+        "password"
+      ],
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "RequestRegister": {
+      "required": [
+        "nombre",
+        "apellido",
+        "email",
+        "password"
+      ],
+      "type": "object",
+      "properties": {
+        "nombre": {
+          "type": "string"
+        },
+        "apellido": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Auth"
+    },
+    {
+      "name": "Producto"
+    },
+    {
+      "name": "Proveedor"
+    }
+  ]
+}

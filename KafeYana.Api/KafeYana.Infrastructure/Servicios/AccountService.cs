@@ -3,6 +3,7 @@ using KafeYana.Application.Exceptions.Usuarios;
 using KafeYana.Application.IServicios;
 using KafeYana.Core.Entities.Entity;
 using KafeYana.Domain.Request;
+using KafeYana.Domain.TiposDeDatos;
 using KafeYana.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -40,7 +41,7 @@ namespace KafeYana.Infrastructure.Servicios
                     throw new RegiterUsuarioFailException(result.Errors.Select(x => x.Description));
                 }
 
-                var rolResult = await _usuarios.AddToRoleAsync(user, "Admin");
+                var rolResult = await _usuarios.AddToRoleAsync(user, RolesKafe.Cajero);
                 if (!rolResult.Succeeded)
                 {
                     throw new RegiterUsuarioFailException(rolResult.Errors.Select(x => x.Description));
@@ -56,7 +57,7 @@ namespace KafeYana.Infrastructure.Servicios
 
         }
 
-        public async Task Login(LoginRequest datos)
+        public async Task<DtoUsuarioAnswer> Login(LoginRequest datos)
         {
             var user = await _usuarios.FindByEmailAsync(datos.Email);
 
@@ -97,13 +98,22 @@ namespace KafeYana.Infrastructure.Servicios
             _loggin.WriteAunthHttpOnlyCookie("ACCESS_TOKEN", jwt, expires);
             _loggin.WriteAunthHttpOnlyCookie("REFRESH_TOKEN", refresh, refresExpires);
 
+            var respuesta = new DtoUsuarioAnswer
+            {
+                Nombre = user.Nombre,
+                Email = user.Email!,
+                Rol = role.FirstOrDefault() ?? string.Empty
+            };
+
+            return respuesta;
+
         }
 
-        public async Task RefreshTokenAsync(string? token)
+        public async Task<DtoUsuarioAnswer> RefreshTokenAsync(string? token)
         {
             if (string.IsNullOrEmpty(token))
             {
-                throw new RefreshTokenExceptions("Refresh token missing");
+                throw new RefreshTokenExceptions("Token refresh no encontrado");
             }
 
             // 1. Buscar el token en BD
@@ -124,6 +134,7 @@ namespace KafeYana.Infrastructure.Servicios
 
             // 4. Generar nuevos tokens
             var roles = await _usuarios.GetRolesAsync(refreshToken.User);
+
             var datosToken = new InfoUsuarioToken
             {
                 Id = refreshToken.User.Id,
@@ -137,21 +148,44 @@ namespace KafeYana.Infrastructure.Servicios
             var refreshExpires = DateTime.UtcNow.AddDays(7);
 
             // 5. Guardar nuevo RefreshToken en BD
-            var nuevoTokenEntidad = new RefreshToken
-            {
-                Token = nuevoRefresh,
-                ExpiraEn = refreshExpires,
-                CreadoEn = DateTime.UtcNow,
-                UserId = refreshToken.UserId,
-                IsRevoked = false
-            };
-
-            await _db.RefreshTokens.AddAsync(nuevoTokenEntidad);
+            refreshToken.IsRevoked = false;
+            refreshToken.ExpiraEn = refreshExpires;
+            refreshToken.CreadoEn = DateTime.UtcNow;
+            refreshToken.Token = nuevoRefresh;
             await _db.SaveChangesAsync();
 
             // 6. Escribir nuevas cookies
             _loggin.WriteAunthHttpOnlyCookie("ACCESS_TOKEN", jwt, jwtExpires);
             _loggin.WriteAunthHttpOnlyCookie("REFRESH_TOKEN", nuevoRefresh, refreshExpires);
+
+            var respuesta = new DtoUsuarioAnswer
+            {
+                Nombre = refreshToken.User.Nombre,
+                Email = refreshToken.User.Email!,
+                Rol = roles.FirstOrDefault() ?? string.Empty
+            };
+
+            return respuesta;
+        }
+
+        public async Task Logout(string? refreshToken)
+        {
+            // Borrar el refresh token de la BD si existe
+            if (!string.IsNullOrEmpty(refreshToken))
+            {
+                var token = await _db.RefreshTokens
+                    .FirstOrDefaultAsync(r => r.Token == refreshToken);
+
+                if (token != null)
+                {
+                    _db.RefreshTokens.Remove(token);
+                    await _db.SaveChangesAsync();
+                }
+            }
+
+            // Borrar las cookies
+            _loggin.DeleteAuthCookie("ACCESS_TOKEN");
+            _loggin.DeleteAuthCookie("REFRESH_TOKEN");
         }
     }
 }

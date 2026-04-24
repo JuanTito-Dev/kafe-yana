@@ -9,7 +9,7 @@ namespace KafeYana.Domain.Entities.Inventario
 {
     public class Promocion : BaseEntity
     {
-        public required int Producto_Id { get; set; }
+        public int Producto_Id { get; set; }
 
         public Producto Producto { get; set; }
 

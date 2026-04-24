@@ -20,6 +20,8 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.Unidad_medida).IsRequired().HasMaxLength(20);
 
+            builder.Property(x => x.Producible).HasDefaultValue(false);
+
             // Relacion 1 a 1 con Producto
             builder.HasOne(x => x.Producto)
                 .WithOne(p => p.Elaborado)

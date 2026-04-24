@@ -33,10 +33,10 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.Factor_conversion)
             .IsRequired()
-            .HasColumnType("decimal(10,4)");
+            .HasColumnType("decimal(10,2)");
 
             builder.Property(x => x.Costo)
-                .IsRequired().HasColumnType("decimal(10,4)");
+                .IsRequired().HasColumnType("decimal(10,2)");
 
             builder.Property(x => x.Stock_actual)
             .IsRequired();

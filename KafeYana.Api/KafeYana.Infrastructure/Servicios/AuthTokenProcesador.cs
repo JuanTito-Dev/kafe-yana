@@ -79,5 +79,10 @@ namespace KafeYana.Infrastructure.Procesos
                 }
                 );
         }
+
+        public void DeleteAuthCookie(string nombre)
+        {
+            _http.HttpContext?.Response.Cookies.Delete(nombre);
+        }
     }
 }

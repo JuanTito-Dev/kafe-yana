@@ -9,9 +9,11 @@ namespace KafeYana.Domain.Entities.Inventario
 {
     public class Ajuste 
     {
-        public required int Id_Opcion {  get; set; }
+        public int Id_Opcion {  get; set; }
 
         public required int Id_Insumo { get; set; }
+
+        public int? Id_InsumoNuevo { get; set; }
 
         public required int Cantidad { get; set; }
 
@@ -19,6 +21,8 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public Opcion Opcion { get; set; }
 
-        public Insumo Insumo  { get; set; }
+        public Insumo InsumoBase  { get; set; }
+
+        public Insumo InsumoNuevo   { get; set; }
     }
 }

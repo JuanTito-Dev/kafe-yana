@@ -34,5 +34,7 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public ICollection<PromocionDetalle> Detalles { get; set; } = new List<PromocionDetalle>();
 
+        public List<Detalle_ronda> Detalle_Rondas { get; set; } = new List<Detalle_ronda>();
+
     }
 }

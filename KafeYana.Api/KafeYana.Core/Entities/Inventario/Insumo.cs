@@ -21,12 +21,14 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public required decimal Costo { get; set; }
 
-        public required decimal Stock_actual { get; set; }
+        public required int Stock_actual { get; set; }
 
-        public required decimal Stock_min { get; set; }
+        public required int Stock_min { get; set; }
 
         public ICollection<Detalle> Detalles { get; set; }
 
         public ICollection<Ajuste> Ajustes { get; set; }
+
+        public ICollection<Ajuste> AjustesComoNuevo { get; set; }
     }
 }

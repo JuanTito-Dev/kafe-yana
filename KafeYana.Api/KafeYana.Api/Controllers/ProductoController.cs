@@ -1,5 +1,6 @@
 ﻿using KafeYana.Application.Dtos.CompradoDtos;
 using KafeYana.Application.IRepositorio;
+using KafeYana.Application.Exceptions;
 using KafeYana.Domain.Entities.Inventario;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
@@ -20,6 +21,9 @@ namespace KafeYana.Api.Controllers
         {
             if(!ModelState.IsValid) return BadRequest(ModelState);
 
+            if (await _producto.ExisteAsync(x => x.Nombre == datos.Nombre))
+                throw new CampoYaExistenteFailException(datos.Nombre);
+
             await _producto.Crear(datos.ProductoCrear());
             await _producto.SaveAsync();
 
@@ -34,6 +38,9 @@ namespace KafeYana.Api.Controllers
             var productoDb = await _producto.TraerProducto(Id, comprado: true);
 
             if (productoDb is null) return BadRequest();
+
+            if (datos.Nombre != productoDb.Nombre && await _producto.ExisteAsync(x => x.Nombre == datos.Nombre)) throw new CampoYaExistenteFailException(datos.Nombre);
+
 
             datos.Editar(productoDb);
 

@@ -1,4 +1,5 @@
-﻿using KafeYana.Domain.Request;
+﻿using KafeYana.Application.Dtos.Autentication;
+using KafeYana.Domain.Request;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +12,10 @@ namespace KafeYana.Application.IServicios
     {
         Task Register(RegisterRequest datos);
 
-        Task Login(LoginRequest datos);
+        Task<DtoUsuarioAnswer> Login(LoginRequest datos);
 
-        Task RefreshTokenAsync(string? token);
+        Task<DtoUsuarioAnswer> RefreshTokenAsync(string? token);
+
+        Task Logout(string? refreshToken);
     }
 }

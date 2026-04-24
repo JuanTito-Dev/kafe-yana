@@ -13,6 +13,6 @@ namespace KafeYana.Application.IRepositorio
     {
         public Task<Categoria> BuscarConProductos(int Id);
 
-        Task<List<DtoCategoriaLista>> ObtenerTodosAsync();
+        public IQueryable<Categoria> QueryCategorias();
     }
 }

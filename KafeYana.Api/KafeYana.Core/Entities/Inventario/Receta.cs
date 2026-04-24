@@ -9,6 +9,9 @@ namespace KafeYana.Domain.Entities.Inventario
 {
     public class Receta : BaseEntity
     {
+        public required string Nombre { get; set; } 
+
+        public required int Porciones { get; set; }
         public string Nota { get; set; } = string.Empty;
 
         public int? Id_Elaborado { get; set; }
