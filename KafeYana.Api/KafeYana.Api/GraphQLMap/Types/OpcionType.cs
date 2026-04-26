@@ -9,8 +9,11 @@ namespace KafeYana.Api.GraphQLMap.Types
             base.Configure(descriptor);
             descriptor.Field(x => x.Id);
             descriptor.Field(x => x.Nombre);
+            descriptor.Field(x => x.AjustePrecio);
+            descriptor.Field(x => x.TipoOpcion);
+            descriptor.Field(x => x.ValorAnterior);
             descriptor.Field(x => x.Id_variacion);
-            descriptor.Field(x => x.Variacion);
+            descriptor.Field(x => x.Variacion).Type<VariacionType>();
             descriptor.Field(x => x.Ajustes).Type<ListType<AjusteType>>();
         }
     }

@@ -35,7 +35,10 @@ namespace KafeYana.Infrastructure.Data.Repositorio
 
         public async Task<Opcion?> TraerOpcion(int Id)
         {
-            var opcion = await _db.Opciones.Include(x => x.Ajustes).FirstOrDefaultAsync(x => x.Id == Id);
+            var opcion = await _db.Opciones
+                .Include(x => x.Ajustes).ThenInclude(a => a.InsumoBase)
+                .Include(x => x.Ajustes).ThenInclude(a => a.InsumoNuevo)
+                .FirstOrDefaultAsync(x => x.Id == Id);
 
             if (opcion is null) return null;
 

@@ -15,7 +15,7 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public int? Id_InsumoNuevo { get; set; }
 
-        public required int Cantidad { get; set; }
+        public required decimal Cantidad { get; set; }
 
         public required string TipoAjuste { get; set; }
 
