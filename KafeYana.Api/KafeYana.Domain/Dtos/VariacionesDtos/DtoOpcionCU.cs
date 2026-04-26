@@ -20,6 +20,10 @@ namespace KafeYana.Application.Dtos.VariacionesDtos
         [Required]
         public int Id_variacion { get; set; }
 
+        public string TipoOpcion { get; set; } = "normal";
+
+        public string? ValorAnterior { get; set; }
+
         public List<DtoAjusteCU> Ajustes { get; set; } = new List<DtoAjusteCU>();
 
         public Opcion Crear()
@@ -29,6 +33,8 @@ namespace KafeYana.Application.Dtos.VariacionesDtos
                 Nombre = this.Nombre,
                 AjustePrecio = this.AjustePrecio,
                 Id_variacion = this.Id_variacion,
+                TipoOpcion = this.TipoOpcion,
+                ValorAnterior = this.ValorAnterior,
                 Ajustes = Ajustes.Select(a => new Ajuste
                 {
                     Id_Insumo = a.Id_Insumo,
@@ -45,6 +51,8 @@ namespace KafeYana.Application.Dtos.VariacionesDtos
         {
             existente.Nombre = this.Nombre;
             existente.AjustePrecio = this.AjustePrecio;
+            existente.TipoOpcion = this.TipoOpcion;
+            existente.ValorAnterior = this.ValorAnterior;
             // Reemplazo total de ajustes igual que hiciste con detalles}
             existente.Ajustes.Clear();
             existente.Ajustes = Ajustes.Select(a => new Ajuste

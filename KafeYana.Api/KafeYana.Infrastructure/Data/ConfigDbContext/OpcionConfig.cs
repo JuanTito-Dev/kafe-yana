@@ -19,6 +19,10 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.AjustePrecio).IsRequired().HasColumnType("decimal(10,2)");
 
+            builder.Property(x => x.TipoOpcion).IsRequired().HasMaxLength(20).HasDefaultValue("normal");
+
+            builder.Property(x => x.ValorAnterior).HasMaxLength(100);
+
             builder.HasOne(x => x.Variacion)
                 .WithMany(x => x.Opciones)
                 .HasForeignKey(x => x.Id_variacion)

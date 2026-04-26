@@ -19,7 +19,9 @@ namespace KafeYana.Infrastructure.Data.Repositorio
 
         public async Task<Pedido?> TraerPedido(int Id)
         {
-            var pedido = _dbSet.AsSplitQuery().Include(x => x.Rondas).ThenInclude(x => x.Detalle).ThenInclude(x => x.producto)
+            var pedido = _dbSet.AsSplitQuery()
+                .Include(x => x.Rondas).ThenInclude(x => x.Detalle).ThenInclude(x => x.Opciones).ThenInclude(x => x.Opcion)
+                .Include(x => x.Rondas).ThenInclude(x => x.Detalle).ThenInclude(x => x.producto)
                 .Include(x => x.Cliente).AsQueryable();
 
             return await pedido.FirstOrDefaultAsync(x => x.Id == Id);

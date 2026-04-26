@@ -8,14 +8,9 @@ namespace KafeYana.Domain.Dtos.RondaDtos
         [Required(ErrorMessage = "El campo Id_Producto es obligatorio.")]
         public int Id_Producto { get; set; }
 
-        public int? Id_Opcion { get; set; }
+        public List<int>? Ids_Opcion { get; set; }
 
         [Range(1, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor que cero.")]
         public int Cantidad { get; set; }
-
-        /// <summary>
-        /// Lista de opciones adicionales para el producto
-        /// </summary>
-        public List<int>? OpcionesAdicionales { get; set; }
     }
 }
