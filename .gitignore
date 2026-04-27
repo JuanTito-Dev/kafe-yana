@@ -1,0 +1,7 @@
+.vs/ 
+bin/ 
+obj/ 
+*.suo 
+*.db 
+*.cache 
+*.backup.json 
