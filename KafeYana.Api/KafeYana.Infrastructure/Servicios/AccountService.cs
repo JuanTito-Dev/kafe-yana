@@ -41,7 +41,7 @@ namespace KafeYana.Infrastructure.Servicios
                     throw new RegiterUsuarioFailException(result.Errors.Select(x => x.Description));
                 }
 
-                var rolResult = await _usuarios.AddToRoleAsync(user, RolesKafe.Cajero);
+                var rolResult = await _usuarios.AddToRoleAsync(user, RolesKafe.Admin);
                 if (!rolResult.Succeeded)
                 {
                     throw new RegiterUsuarioFailException(rolResult.Errors.Select(x => x.Description));

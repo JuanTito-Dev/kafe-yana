@@ -15,7 +15,7 @@ namespace KafeYana.Api.GraphQLMap
     public class ElaboradoQuery
     {
         [Authorize(Roles = new[] { "Admin" })]
-        [UsePaging]
+        [UsePaging(IncludeTotalCount = true, DefaultPageSize = 20)]
         [UseProjection]
         [UseFiltering]
         [UseSorting]

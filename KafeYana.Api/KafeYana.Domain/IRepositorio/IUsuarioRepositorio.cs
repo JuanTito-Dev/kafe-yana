@@ -10,6 +10,6 @@ namespace KafeYana.Application.IRepositorio
     public interface IUsuarioRepositorio
     {
 
-        public Task<Usuario?> Me(string Id);
+        Task<(string role, Usuario? usuario)> Me(string Id);
     }
 }

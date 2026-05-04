@@ -1,8 +1,10 @@
-﻿using KafeYana.Domain.Entities.Inventario;
+﻿using KafeYana.Application.IRepositorio;
+using KafeYana.Domain.Entities.Inventario;
 using KafeYana.Domain.TiposDeDatos;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,9 +28,9 @@ namespace KafeYana.Application.Dtos.VariacionesDtos
 
         public List<DtoAjusteCU> Ajustes { get; set; } = new List<DtoAjusteCU>();
 
-        public Opcion Crear()
+        public Opcion? Crear(Receta receta, int id)
         {
-            return new Opcion
+            var opcion = new Opcion
             {
                 Nombre = this.Nombre,
                 AjustePrecio = this.AjustePrecio,
@@ -45,10 +47,16 @@ namespace KafeYana.Application.Dtos.VariacionesDtos
                     Id_InsumoNuevo = a.Id_InsumoNuevo
                 }).ToList()
             };
+
+            if (!Verificar(receta, opcion)) return null;
+
+            return opcion;
         }
 
-        public void Actualizar(Opcion existente)
+        public bool Actualizar(Receta receta, Opcion existente)
         {
+            if (!Verificar(receta, existente)) return false;
+
             existente.Nombre = this.Nombre;
             existente.AjustePrecio = this.AjustePrecio;
             existente.TipoOpcion = this.TipoOpcion;
@@ -64,6 +72,20 @@ namespace KafeYana.Application.Dtos.VariacionesDtos
                     : TiposAjuste.Reemplazo,
                 Id_InsumoNuevo = a.Id_InsumoNuevo
             }).ToList();
+
+            return true;
+        }
+
+        public bool Verificar(Receta receta, Opcion opcion)
+        {
+            foreach(var item in opcion.Ajustes)
+            {
+                if(!receta.Detalles.Any(x => x.Id_insumo == item.Id_Insumo))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }

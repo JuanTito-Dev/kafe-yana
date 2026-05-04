@@ -20,9 +20,9 @@ namespace KafeYana.Api.GraphQLMap
 
             if (userId == null) throw new Exception("info no encontrado");
 
-            var usuarioDb = await user.Me(userId);
+            var (Role, usuarioDb) = await user.Me(userId);
 
-            if (usuarioDb == null) throw new Exception("Usario no encontrado");
+            if (usuarioDb == null || Role == string.Empty) throw new Exception("Usario no encontrado"); 
 
             var usaurio = new DtoUsuarioDatos
             {
@@ -31,8 +31,8 @@ namespace KafeYana.Api.GraphQLMap
                 UserName = usuarioDb.UserName == null ? string.Empty : usuarioDb.UserName,
                 Email = usuarioDb.Email == null ? string.Empty : usuarioDb.Email,
                 Celular = usuarioDb.PhoneNumber == null ? string.Empty : usuarioDb.PhoneNumber,
-                Estado = usuarioDb.LockoutEnabled
-
+                Estado = usuarioDb.LockoutEnabled,
+                Rol = Role
             };
 
             return usaurio;

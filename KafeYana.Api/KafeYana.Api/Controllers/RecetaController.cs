@@ -17,32 +17,19 @@ namespace KafeYana.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Crear(DtoRecetaCU datos)
         {
-            try
-            {
-                if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-                if (await _db.ExisteAsync(x => x.Nombre == datos.Nombre))
-                    throw new CampoYaExistenteFailException(datos.Nombre);
+            var producto = await _db.TraerProducto(datos.Id_Elaborado, elaborado: true);
 
-                var producto = await _db.TraerProducto(datos.Id_Elaborado, elaborado: true);
+            if (producto == null || producto.Elaborado == null) return NotFound(new { message = "Producto no encontrado o no pertenece a elaborados" });
 
-                if (producto == null || producto.Elaborado == null) return NotFound("Producto no encontrado o no pertenece a elaborados");
+            datos.Id_Elaborado = producto.Elaborado.Id;
 
-                datos.Id_Elaborado = producto.Elaborado.Id;
+            var receta = datos.Adatar();
 
-                var receta = datos.Adatar();
-
-                await _db.Crear(receta);
-                await _db.SaveAsync();
-                return Created();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-                Console.WriteLine($"Inner: {ex.InnerException?.Message}");
-                Console.WriteLine($"Inner2: {ex.InnerException?.InnerException?.Message}");
-                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
-            }
+            await _db.Crear(receta);
+            await _db.SaveAsync();
+            return Created("", new { message = "Receta creada" });
         }
 
         [HttpPut("{Id:int}")]
@@ -50,37 +37,31 @@ namespace KafeYana.Api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            if (!await _db.Existe(Id)) return NotFound("Receta no encontrada");
-
             var Receta = await _db.GetReceta(Id);
 
-            if (Receta == null) return NotFound("Receta no encontrada");
+            if (Receta == null) return NotFound(new { message = "Receta no encontrada" });
 
             var producto = await _db.TraerProducto(datos.Id_Elaborado, elaborado: true);
 
-            if (producto == null || producto.Elaborado == null) return NotFound("Producto no encontrado o no pertenece a elaborados");
+            if (producto == null || producto.Elaborado == null) return NotFound(new { message = "Producto no encontrado o no pertenece a elaborados" });
 
             datos.Id_Elaborado = producto.Elaborado.Id;
-
-            if (datos.Nombre != Receta.Nombre && await _db.ExisteAsync(x => x.Nombre == datos.Nombre)) throw new CampoYaExistenteFailException(datos.Nombre);
-
 
             datos.Actualizar(Receta);
 
             await _db.SaveAsync();
 
-            return NoContent();
+            return Ok(new { message = "Receta editada" });
         }
 
         [HttpDelete("{Id:int}")]
         public async Task<IActionResult> Delete(int Id)
         {
-            if (Id <= 0) return BadRequest("Receta no encontrada");
             var receta = await _db.FindByIdAsync(Id);
-            if (receta is null) return NotFound("Receta no encontrada");
+            if (receta is null) return NotFound(new { message = "Receta no encontrada" });
             await _db.Remove(receta);
             await _db.SaveAsync();
-            return NoContent();
+            return Ok(new {message = "Receta eliminada"});
         }
     }
 }

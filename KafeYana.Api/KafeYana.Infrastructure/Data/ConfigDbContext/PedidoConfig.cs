@@ -25,7 +25,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.HasOne(x => x.Cliente)
                 .WithOne(x => x.Pedido)
                 .HasForeignKey<Pedido>(x => x.Id_Cliente)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.SetNull).HasConstraintName("fx_pedido_cliente");
         }
     }
 }

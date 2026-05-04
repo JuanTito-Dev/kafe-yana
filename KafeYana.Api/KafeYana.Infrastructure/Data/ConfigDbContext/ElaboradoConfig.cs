@@ -26,7 +26,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.HasOne(x => x.Producto)
                 .WithOne(p => p.Elaborado)
                 .HasForeignKey<Elaborado>(x => x.Id_Producto)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade).HasConstraintName("fx_producto_elaborado");
 
             builder.HasIndex(x => x.Id_Producto).IsUnique();
         }

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using KafeYana.Domain.TiposDeDatos;
 
 namespace KafeYana.Api.Controllers
 {
@@ -21,13 +22,10 @@ namespace KafeYana.Api.Controllers
         {
             if(!ModelState.IsValid) return BadRequest(ModelState);
 
-            if (await _producto.ExisteAsync(x => x.Nombre == datos.Nombre))
-                throw new CampoYaExistenteFailException(datos.Nombre);
-
             await _producto.Crear(datos.ProductoCrear());
             await _producto.SaveAsync();
 
-            return Ok();
+            return Created("", new { message = "Producto creado"} );
         }
 
         [HttpPut("{Id:int}")]
@@ -37,16 +35,13 @@ namespace KafeYana.Api.Controllers
 
             var productoDb = await _producto.TraerProducto(Id, comprado: true);
 
-            if (productoDb is null) return BadRequest();
-
-            if (datos.Nombre != productoDb.Nombre && await _producto.ExisteAsync(x => x.Nombre == datos.Nombre)) throw new CampoYaExistenteFailException(datos.Nombre);
-
+            if (productoDb is null || productoDb.Tipo != TiposProductos.Comprado) return NotFound(new { message = "Producto no encontrado" });  
 
             datos.Editar(productoDb);
 
             await _producto.SaveAsync();
 
-            return NoContent();
+            return Ok(new { message = "Prodcutos actualizado"});
         }
 
         [HttpDelete("{Id:int}")]
@@ -54,13 +49,13 @@ namespace KafeYana.Api.Controllers
         {
             var producto = await _producto.FindByIdAsync(Id);
 
-            if (producto is null) return BadRequest();
+            if (producto is null) return NotFound(new { message = "Producto no encontrado"});
 
             await _producto.Remove(producto);
 
             await _producto.SaveAsync();
 
-            return Ok();
+            return Ok(new { message = "Prodcuto eliminado"});
 
         }
     }

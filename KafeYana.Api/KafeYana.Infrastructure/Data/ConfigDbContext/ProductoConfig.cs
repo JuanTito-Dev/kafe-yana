@@ -34,8 +34,11 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.Tipo).IsRequired().HasMaxLength(20);
 
-            builder.HasOne(p => p.Categoria).WithMany(x => x.Productos)
-                .HasForeignKey(p => p.Categoria_Id).OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne(p => p.Categoria)
+                .WithMany(x => x.Productos)
+                .HasForeignKey(p => p.Categoria_Id)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("fk_productos_categoria");
 
             builder.HasIndex(x => x.Tipo);
             builder.HasIndex(x => x.Categoria_Id);

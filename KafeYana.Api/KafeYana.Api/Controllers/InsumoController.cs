@@ -20,17 +20,13 @@ namespace KafeYana.Api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var nombre = await _db.ExisteAsync(x => x.Nombre == datos.Nombre);
-
-            if (nombre) throw new CampoYaExistenteFailException(datos.Nombre);
-
             var insumo = datos.Adapt<Insumo>();
 
             await _db.Crear(insumo);
 
             await _db.SaveAsync();
 
-            return Created();
+            return Created("", new { message = "Insumo creado"});
         }
 
         [Authorize(Roles = "Admin")]
@@ -42,15 +38,13 @@ namespace KafeYana.Api.Controllers
 
             var insumodb = await _db.FindByIdAsync(Id);
 
-            if (insumodb == null) return BadRequest("Insumo no encontrado");
-
-            if (datos.Nombre != insumodb.Nombre && await _db.ExisteAsync(x => x.Nombre == datos.Nombre)) throw new CampoYaExistenteFailException(datos.Nombre);
+            if (insumodb == null) return NotFound(new { message = "Insumo no encontrado" });
 
             datos.Adapt(insumodb);
 
             await _db.SaveAsync();
 
-            return NoContent();
+            return Ok(new { message = "Insumo actualizado" } );
 
         }
 
@@ -58,17 +52,15 @@ namespace KafeYana.Api.Controllers
         [HttpDelete("{Id:int}")]
         public async Task<IActionResult> Delete(int Id)
         {
-            if (Id <= 0) return BadRequest("Insumo no encontrado");
-
             var insumo = await _db.FindByIdAsync(Id);
 
-            if (insumo is null) return BadRequest("Insumo no encontrado");
+            if (insumo is null) return NotFound(new { message = "Insumo no encontrado" });
 
             await _db.Remove(insumo);
 
             await _db.SaveAsync();
 
-            return NoContent();
+            return Ok(new { message = "Insumo eliminado" });
         }
     }
 }

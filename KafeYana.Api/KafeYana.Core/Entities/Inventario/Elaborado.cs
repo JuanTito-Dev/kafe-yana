@@ -17,6 +17,8 @@ namespace KafeYana.Domain.Entities.Inventario
         
         public int Id_Producto { get; set; }
 
+        public string Ubicacion { get; set; } = string.Empty;
+
         //Navegacion
         public Producto Producto { get; set; }
 

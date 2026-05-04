@@ -25,16 +25,13 @@ namespace KafeYana.Api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            if (await _Mesa.ExisteAsync(x => x.Nombre == datos.Nombre))
-                throw new CampoYaExistenteFailException(datos.Nombre);
-
             var mesa = datos.Adapt<Mesa>();
 
             await _Mesa.Crear(mesa);
 
             await _Mesa.SaveAsync();
 
-            return Created();
+            return Created("", new {message = "Mesa creada"});
         }
 
         [HttpPut("{Id:int}")]
@@ -44,16 +41,13 @@ namespace KafeYana.Api.Controllers
 
             var mesadb = await _Mesa.FindByIdAsync(Id);
 
-            if (mesadb == null) return BadRequest(new { message = "Mesa no encontrada" });
-
-            if (datos.Nombre != mesadb.Nombre &&  await _Mesa.ExisteAsync(x => x.Nombre == datos.Nombre))
-                throw new CampoYaExistenteFailException(datos.Nombre);
+            if (mesadb == null) return NotFound(new { message = "Mesa no encontrada" });
 
             datos.Adapt(mesadb);
 
             await _Mesa.SaveAsync();
 
-            return NoContent();
+            return Ok(new {message = "Mesa actualizada"});
             
         }
 
@@ -62,13 +56,13 @@ namespace KafeYana.Api.Controllers
         {
             var mesadb = await _Mesa.FindByIdAsync(Id);
 
-            if (mesadb is null) return BadRequest(new { message = "Mesa no existe" });
+            if (mesadb is null) return NotFound(new { message = "Mesa no existe" });
 
             await _Mesa.Remove(mesadb);
 
             await _Mesa.SaveAsync();
 
-            return NoContent();
+            return Ok(new {message = "Mesa eliminada"});
         }
 
         [HttpPost("Ocupar/{Id:int}")]
@@ -76,7 +70,7 @@ namespace KafeYana.Api.Controllers
         {
             var mesa = await _db.mesas.FindByIdAsync(Id);
 
-            if (mesa is null) return BadRequest(new { message = "Mesa no existe" });
+            if (mesa is null) return NotFound(new { message = "Mesa no existe" });
 
             if (!mesa.Disponible) return BadRequest(new { message = "Mesa no disponible" });
 
@@ -107,9 +101,9 @@ namespace KafeYana.Api.Controllers
         {
             var mesa = await _db.mesas.GetMesaPedido(Id);
 
-            if (mesa is null) return BadRequest(new { message = "Mesa no existe" });
+            if (mesa is null) return NotFound(new { message = "Mesa no existe" });
 
-            if (mesa.pedido.Total > 0) return BadRequest(new { message = "No puedes liberar un pedido sin antes cobrar" });
+            if (mesa.pedido.Total > 0) return NotFound(new { message = "No puedes liberar un pedido sin antes cobrar" });
 
             await _db.Pedidos.Remove(mesa.pedido);
 
@@ -117,32 +111,22 @@ namespace KafeYana.Api.Controllers
 
             await _db.SaveUnitWork();
 
-            return NoContent();
+            return Ok(new {message = "Mesa libre"});
         }
 
         [HttpPost("ronda/{Id:int}")]
         public async Task<IActionResult> AgregarRonda(int Id, DtoRondaAgregar datos)
         {
-            Console.WriteLine($"DEBUG - Id_Pedido: {datos.Id_Pedido}");
-            Console.WriteLine($"DEBUG - Detalles count: {datos.Detalles?.Count}");
-            if (datos.Detalles != null)
-            {
-                foreach (var d in datos.Detalles)
-                {
-                    Console.WriteLine($"DEBUG - Detalle: Producto={d.Id_Producto}, Cantidad={d.Cantidad}, Ids_Opcion={System.Text.Json.JsonSerializer.Serialize(d.Ids_Opcion)}");
-                }
-            }
-
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             // Verificaciones de mesa
             var mesa = await _db.mesas.GetMesaPedido(Id);
 
             if (mesa is null) 
-                return BadRequest(new { message = "Mesa no existe" });
+                return NotFound(new { message = "Mesa no existe" });
 
             if (mesa.pedido == null) 
-                return BadRequest(new { message = "La mesa no tiene un pedido activo" });
+                return NotFound(new { message = "La mesa no tiene un pedido activo" });
 
             if (mesa.Id_Pedido != datos.Id_Pedido) 
                 return BadRequest(new { message = "El pedido no corresponde a la mesa" });
@@ -153,7 +137,7 @@ namespace KafeYana.Api.Controllers
             var ronda = await _detalleRondaService.CrearRondaConDetallesAsync(datos.Id_Pedido, datos.Detalles);
 
             // Agregar ronda al pedido de la mesa
-            mesa.pedido.Rondas.Add(ronda);
+            await _db.rondas.Crear(ronda);
             mesa.pedido.Total += ronda.SubTotal;
 
             // Guardar cambios
@@ -172,11 +156,11 @@ namespace KafeYana.Api.Controllers
             // Obtener mesa con pedido
             var mesa = await _db.mesas.GetMesaPedido(Id);
             if (mesa is null)
-                return BadRequest(new { message = "Mesa no existe" });
+                return NotFound(new { message = "Mesa no existe" });
 
             // Validar pedido corresponde a la mesa
             if (!await _db.mesas.MesaConpedido(datos.Id_Pedido, Id_mesa: Id))
-                return BadRequest(new { message = "El pedido no corresponde a la mesa" });
+                return NotFound(new { message = "El pedido no corresponde a la mesa" });
 
             // Obtener usuario actual
             var nombreUsuario = User.Identity?.Name;

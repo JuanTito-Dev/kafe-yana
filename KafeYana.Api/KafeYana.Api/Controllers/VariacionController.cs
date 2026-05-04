@@ -4,6 +4,7 @@ using KafeYana.Application.IRepositorio;
 using KafeYana.Domain.Entities.Inventario;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KafeYana.Api.Controllers
@@ -11,7 +12,7 @@ namespace KafeYana.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = "Admin")]
-    public class VariacionController(IVariacionReposiotorio _db) : ControllerBase
+    public class VariacionController(IVariacionReposiotorio _db, IUnitWork _base) : ControllerBase
     {
         [HttpPost("Variacion")]
         public async Task<IActionResult> Crear(DtoVariacionCU datos)
@@ -20,7 +21,11 @@ namespace KafeYana.Api.Controllers
 
             var producto = await _db.TraerProducto(datos.Id_Producto, elaborado: true);
 
-            if (producto == null) return BadRequest("Producto no encontrado");
+            if (producto == null) return NotFound(new { message = "Producto no encontrado" });
+
+            if (producto.Elaborado is null) return NotFound(new { message = "Prodcuto no encontrado" });
+
+            if (producto.Elaborado.Producible) return BadRequest(new { message = "Este producto no puede tener varciaiones" });
 
             datos.Id_Producto = producto.Elaborado.Id;
 
@@ -45,13 +50,17 @@ namespace KafeYana.Api.Controllers
 
             var producto = await _db.TraerProducto(datos.Id_Producto, elaborado: true);
 
-            if (producto == null || Id < 0) return BadRequest("Producto no encontrado");
+            if (producto == null || Id < 0) return NotFound(new { message = "Producto no encontrado" });
+
+            if (producto.Elaborado is null) return NotFound(new { message = "Prodcuto no encontrado" });
+
+            if (producto.Elaborado.Producible) return BadRequest(new { message = "Este producto no puede tener varciaiones" });
 
             datos.Id_Producto = producto.Elaborado.Id;
 
             var avacion = await _db.FindByIdAsync(Id);
 
-            if (avacion == null) return BadRequest("Variacion no encontrada");
+            if (avacion == null) return NotFound(new { message = "Variacion no encontrada" });
 
             datos.Actualizar(avacion);
 
@@ -69,12 +78,11 @@ namespace KafeYana.Api.Controllers
         [HttpDelete("Variacion/{Id:int}")]
         public async Task<IActionResult> Delete(int Id)
         {
-            if (Id < 0) return BadRequest("Id no valido");
             var variacion = await _db.FindByIdAsync(Id);
-            if (variacion == null) return BadRequest("Variacion no encontrada");
+            if (variacion == null) return BadRequest(new { message = "Variacion no encontrada" });
             await _db.Remove(variacion);
             await _db.SaveAsync();
-            return NoContent();
+            return Ok(new {message = "variacion eliminada"});
         }
 
 
@@ -83,28 +91,23 @@ namespace KafeYana.Api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            if (!await _db.Existe(datos.Id_variacion)) return BadRequest("Variacion no encontrada");
+            var variacion = await _base.variaciones.FindByIdAsync(datos.Id_variacion);
 
-            Console.WriteLine($"[DEBUG] DTO recibido - Nombre: {datos.Nombre}, TipoOpcion: {datos.TipoOpcion}, ValorAnterior: {datos.ValorAnterior}");
-            Console.WriteLine($"[DEBUG] Ajustes count: {datos.Ajustes.Count}");
-            foreach (var a in datos.Ajustes)
-            {
-                Console.WriteLine($"  -> Ajuste: Id_Insumo={a.Id_Insumo}, Id_InsumoNuevo={a.Id_InsumoNuevo}, Cantidad={a.Cantidad}");
-            }
+            if (variacion == null) return NotFound(new { message = "Variacion no encontrada" });
 
-            var Variacion = datos.Crear();
+            var receta = await _base.recetas.GetRectaByIdElaborado(variacion.Id_Elaborado);
 
-            Console.WriteLine($"[DEBUG] Opcion creada - TipoOpcion: {Variacion.TipoOpcion}, Ajustes count: {Variacion.Ajustes.Count}");
-            foreach (var a in Variacion.Ajustes)
-            {
-                Console.WriteLine($"  -> Ajuste entity: Id_Insumo={a.Id_Insumo}, Id_InsumoNuevo={a.Id_InsumoNuevo}, TipoAjuste={a.TipoAjuste}");
-            }
+            if (receta == null) return NotFound(new { message = "Receta no encontrada" });
 
-            await _db.CrearOpcion(Variacion);
+            var Variacionnuevo = datos.Crear(receta, datos.Id_variacion);
 
-            await _db.SaveAsync();
+            if (Variacionnuevo is null) return BadRequest(new { message = "Un insumo nose encuentra en la receta" });
 
-            return Created();
+            await _base.variaciones.CrearOpcion(Variacionnuevo);
+
+            await _base.SaveUnitWork();
+
+            return Created("", new {message = "Opcion creada"});
         }
 
         [HttpPut("Opcion/{Id:int}")]
@@ -112,31 +115,38 @@ namespace KafeYana.Api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var opcion = await _db.TraerOpcion(Id);
+            var variacion = await _base.variaciones.FindByIdAsync(datos.Id_variacion);
 
-            if (opcion == null) return BadRequest("Opcion no encontrada");
+            if (variacion == null) return NotFound(new { message = "Variacion no encontrada" });
 
-            datos.Actualizar(opcion);
+            var receta = await _base.recetas.GetRectaByIdElaborado(variacion.Id_Elaborado);
+
+            if (receta == null) return NotFound(new { message = "Receta no encontrada" });
+
+            var opcion = await _base.opciones.TraerOpcion(Id);
+
+            if (opcion == null) return BadRequest(new { message = "Opcion no encontrada" });
+
+            if(!datos.Actualizar(receta,opcion)) return BadRequest(new { message = "Un insumo nose encuentra en la receta" });
 
             await _db.SaveAsync();
 
-            return NoContent();
+            return Ok(new {message = "Opcion actualizada"});
         }
 
         [HttpDelete("Opcion/{Id:int}")]
         public async Task<IActionResult> DeleteOpcion(int Id)
         {
-            if (Id < 0 || !await _db.ExisteOpcion(Id)) return BadRequest("Opcion no encontrada");
 
             var opcion = await _db.TraerOpcion(Id);
 
-            if (opcion == null) return BadRequest("No encontrado");
+            if (opcion == null) return NotFound(new { message = "No encontrado" });
 
             await _db.DeleteOpcion(opcion);
 
             await _db.SaveAsync();
 
-            return NoContent();
+            return Ok(new {message = "Opcion eliminada"});
         }
     }
 }

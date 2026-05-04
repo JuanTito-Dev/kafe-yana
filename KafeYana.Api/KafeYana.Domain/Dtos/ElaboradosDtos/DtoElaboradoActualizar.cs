@@ -1,5 +1,4 @@
 ﻿using KafeYana.Domain.Entities.Inventario;
-using KafeYana.Domain.TiposDeDatos;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -9,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace KafeYana.Application.Dtos.ElaboradosDtos
 {
-    public class DtoElaboradoCliente
+    public class DtoElaboradoActualizar
     {
         [Required(ErrorMessage = "Nombre requerido")]
         public string Nombre { get; set; } = string.Empty;
@@ -28,28 +27,7 @@ namespace KafeYana.Application.Dtos.ElaboradosDtos
         [Required]
         public required string Unidad_medida { get; set; }
 
-        [Required]
-        public bool Producible { get; set; } = false;
-
-        public Producto CrearEntidad()
-        {
-            var producto = new Producto
-            {
-                Nombre = this.Nombre,
-                Descripcion = this.Descripcion,
-                Precio = this.Precio,
-                Tipo = TiposProductos.Elaborado,
-                Categoria_Id = this.Categoria_Id,
-                Elaborado = new Elaborado
-                {
-                    Unidad_medida = this.Unidad_medida,
-                    Producible = this.Producible
-                }
-
-            };
-
-            return producto;
-        }
+        public string Ubicacion { get; set; } = string.Empty;
 
         public void Editar(Producto datos)
         {
@@ -58,7 +36,7 @@ namespace KafeYana.Application.Dtos.ElaboradosDtos
             datos.Precio = this.Precio;
             datos.Categoria_Id = this.Categoria_Id;
             datos.Elaborado.Unidad_medida = this.Unidad_medida;
-            datos.Elaborado.Producible = this.Producible;
+            datos.Elaborado.Ubicacion = this.Ubicacion;
         }
     }
 }

@@ -19,9 +19,6 @@ namespace KafeYana.Api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            if (await _db.ExisteAsync(x => x.Nombre == datos.Nombre))
-                throw new CampoYaExistenteFailException(datos.Nombre);
-
             try
             {
                 await datos.ValidarProductos(_db);
@@ -35,7 +32,7 @@ namespace KafeYana.Api.Controllers
 
             await _db.SaveAsync();
 
-            return Created();
+            return Created("", new { message = "Combo creado"});
         }
 
 
@@ -55,15 +52,13 @@ namespace KafeYana.Api.Controllers
 
             var producto = await _db.TraerProducto(Id: Id, combo: true);
 
-            if (producto is null || producto.Promocion is null || producto.Promocion.Detalles is null) return BadRequest("Producto elaborado no existe");
-
-            if (datos.Nombre != producto.Nombre && await _db.ExisteAsync(x => x.Nombre == datos.Nombre)) throw new CampoYaExistenteFailException(datos.Nombre);
+            if (producto is null || producto.Promocion is null || producto.Promocion.Detalles is null) return NotFound("Combo no existe");
 
             datos.Actualizar(producto);
 
             await _db.SaveAsync();
 
-            return NoContent();
+            return Ok(new {message = "Combo actualizado"});
         }
 
     }

@@ -32,7 +32,7 @@ namespace KafeYana.Infrastructure.Data.Repositorio
 
         public IQueryable<Categoria> QueryCategorias()
         {
-           return _db.Categorias.OrderBy(x => x.Id).AsSplitQuery().AsQueryable();
+           return _db.Categorias.AsSplitQuery().AsQueryable();
         }
     }
 }

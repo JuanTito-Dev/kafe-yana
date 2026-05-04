@@ -22,7 +22,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.HasOne(p => p.pedido)
                 .WithMany(x => x.Rondas)
                 .HasForeignKey(p => p.Id_Pedido)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade).HasConstraintName("fx_pedido_ronda");
 
         }
     }

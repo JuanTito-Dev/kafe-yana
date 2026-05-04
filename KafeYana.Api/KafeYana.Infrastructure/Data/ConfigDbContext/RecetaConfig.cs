@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace KafeYana.Infrastructure.Data.ConfigDbContext
 {
-    internal class RecetaConfig : IEntityTypeConfiguration<Receta>
+    public class RecetaConfig : IEntityTypeConfiguration<Receta>
     {
         public void Configure(EntityTypeBuilder<Receta> builder)
         {
@@ -19,17 +19,20 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.Id).UseIdentityColumn();
 
-            builder.HasIndex(x => x.Nombre).IsUnique();
+            builder.HasIndex(x => x.Nombre).IsUnique().HasDatabaseName("receta_nombre");
 
-            builder.Property(x => x.Porciones ).IsRequired();
+            builder.HasIndex(x => x.Id_Elaborado)
+           .IsUnique()
+           .HasDatabaseName("ix_receta_id_elaborado");
 
-
+            builder.Property(x => x.Porciones).IsRequired();
             builder.Property(x => x.Id_Elaborado).IsRequired(false);
 
             builder.HasOne(x => x.Elaborado)
-                .WithOne(x => x.Receta )
-                .HasForeignKey<Receta>(x => x.Id_Elaborado)
-                .OnDelete(DeleteBehavior.SetNull);
+                   .WithOne(x => x.Receta)
+                   .HasForeignKey<Receta>(x => x.Id_Elaborado)
+                   .OnDelete(DeleteBehavior.SetNull)
+                   .HasConstraintName("fx_elaborado_receta");
 
         }
     }

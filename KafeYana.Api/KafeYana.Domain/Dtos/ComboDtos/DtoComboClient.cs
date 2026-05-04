@@ -32,7 +32,7 @@ namespace KafeYana.Application.Dtos.ComboDtos
                 Descripcion = this.Descripcion,
                 Precio = this.Precio,
                 Tipo = TiposProductos.Promocion,
-                Categoria_Id = 23,
+                Categoria_Id = 4,
                 Promocion = new Promocion
                 {
                     Detalles = this.Productos.Select(p => new PromocionDetalle

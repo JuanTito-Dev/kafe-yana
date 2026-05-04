@@ -14,8 +14,8 @@ namespace KafeYana.Api.GraphQLMap
     {
         [UsePaging(IncludeTotalCount = true, DefaultPageSize = 20)]
         [UseProjection]
-        [UseSorting]
-        [UseFiltering]
+        [UseFiltering]   // 👈 filtering antes
+        [UseSorting]     // 👈 sorting después
         [Authorize(Roles = new[] { "Admin" })]
         [GraphQLType(typeof(ListType<CategoriaType>))]
         public IQueryable<Categoria> Categorias([Service] ICategoriaRepositorio _db)

@@ -27,19 +27,19 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.HasOne(x => x.Opcion)
                 .WithMany(o => o.Ajustes)
                 .HasForeignKey(x => x.Id_Opcion)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade).HasConstraintName("fx_ajuste_opcion");
 
             // Si se borra Insumo se borran sus AjusteInsumos
             builder.HasOne(x => x.InsumoBase)
                 .WithMany(i => i.Ajustes)
                 .HasForeignKey(x => x.Id_Insumo)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade).HasConstraintName("fx_ajuste_insumobase");
 
             builder.HasOne(x => x.InsumoNuevo)
                 .WithMany(i => i.AjustesComoNuevo)
                 .HasForeignKey(x => x.Id_InsumoNuevo)
                 .IsRequired(false)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade).HasConstraintName("fx_ajuste_insumoNevo");
 
             // Índices para búsquedas por id
             builder.HasIndex(x => x.Id_Opcion);

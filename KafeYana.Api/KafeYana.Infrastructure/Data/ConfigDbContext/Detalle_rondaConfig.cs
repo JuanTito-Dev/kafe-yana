@@ -41,9 +41,9 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             // Relación con Producto
             builder.HasOne(x => x.producto)
-                .WithMany()
+                .WithMany(x => x.Detalle_Rondas)
                 .HasForeignKey(x => x.Id_Producto)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("IX_Detalle_Ronda_ProductoId");
         }
     }
 }

@@ -20,5 +20,6 @@ namespace KafeYana.Domain.Entities.Inventario
         public Elaborado Elaborado { get; set; }
 
         public ICollection<Detalle> Detalles {get; set;} = new List<Detalle>();
+
     }
 }

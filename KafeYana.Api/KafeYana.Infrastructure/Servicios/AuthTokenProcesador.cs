@@ -75,14 +75,20 @@ namespace KafeYana.Infrastructure.Procesos
                     Expires = expiration,
                     IsEssential = true,
                     Secure = true,
-                    SameSite = SameSiteMode.Strict
+                    SameSite = SameSiteMode.Strict,
+                    // 👇 Si es RefreshToken solo se envía en esa ruta, si no va en todos
+                    Path = NameToken == "REFRESH_TOKEN" ? "/api/Aunth/RefreshToken" : "/"
                 }
                 );
         }
 
         public void DeleteAuthCookie(string nombre)
         {
-            _http.HttpContext?.Response.Cookies.Delete(nombre);
+            _http.HttpContext?.Response.Cookies.Delete(nombre, new CookieOptions
+            {
+                // 👇 Debe coincidir exactamente con el Path con que fue creada
+                Path = nombre == "REFRESH_TOKEN" ? "/api/Aunth/RefreshToken" : "/"
+            });
         }
     }
 }

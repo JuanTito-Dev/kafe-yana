@@ -143,19 +143,23 @@ namespace KafeYana.Infrastructure.Servicios
 
         public async Task DescontarElaborado(int id, int cantidad, List<Detalle_Ronda_Opcion> opciones)
         {
-            if (await _db.elaborados.EsProducible(id))
+            var elaborado = await _db.elaborados.TraerElaborado(id, withreceta: true);
+            if (elaborado is null)
+                throw new InventarioException($"Elaborado no encontrado: {id}");
+
+            if (elaborado.Producible)
             {
-                var elaborado = await _db.elaborados.TraerElaborado(id);
-                if (elaborado is null) 
-                    throw new InventarioException($"Elaborado no encontrado: {id}");
-                
-                elaborado.Stock_actual -= cantidad;
+                if(elaborado.Stock_actual >= cantidad)
+                {
+                    elaborado.Stock_actual -= cantidad;
+                }
+                else
+                {
+                    elaborado.Stock_actual = 0;
+                }
             }
             else
             {
-                var elaborado = await _db.elaborados.TraerElaborado(id, withreceta: true);
-                if (elaborado is null) 
-                    throw new InventarioException($"Elaborado no encontrado: {id}");
                 
                 if (elaborado.Receta is null) 
                     return;
@@ -166,13 +170,7 @@ namespace KafeYana.Infrastructure.Servicios
 
                 if (opcionIds.Count > 0)
                 {
-                    opcionesEntity = await _db.opciones.Query()
-                        .Where(x => opcionIds.Contains(x.Id))
-                        .Include(x => x.Ajustes)
-                            .ThenInclude(x => x.InsumoBase)
-                        .Include(x => x.Ajustes)
-                            .ThenInclude(x => x.InsumoNuevo)
-                        .ToListAsync();
+                    opcionesEntity = await _db.opciones.GetOpcionesByIds(opcionIds);
                 }
 
                 // Insumos a omitir (reemplazos)
