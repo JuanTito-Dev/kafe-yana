@@ -19,7 +19,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.Nombre).IsRequired();
 
-            builder.HasIndex(x => x.Nombre).IsUnique();
+            builder.HasIndex(x => x.Nombre).IsUnique().HasDatabaseName("Unique_mesa_nombre");
 
             builder.Property(x => x.Id_Pedido).IsRequired(false);
 
@@ -28,7 +28,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.HasOne(x => x.pedido)
                 .WithOne(x => x.Mesa)
                 .HasForeignKey<Mesa>(x => x.Id_Pedido)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.SetNull).HasConstraintName("fx_pedido_mesa");
         }
     }
 }

@@ -35,9 +35,9 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             // Relación con Opcion
             builder.HasOne(x => x.Opcion)
-                .WithMany()
+                .WithMany(x => x.Detalle_Ronda_Opcions)
                 .HasForeignKey(x => x.Id_Opcion)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_Detalle_Ronda_Opcion_Opcion_Id_Opcion");
 
             // Relación con Detalle_ronda
             builder.HasOne(x => x.Detalle_Ronda)

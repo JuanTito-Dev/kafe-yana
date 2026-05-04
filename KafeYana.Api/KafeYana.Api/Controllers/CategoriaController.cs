@@ -19,21 +19,14 @@ namespace KafeYana.Api.Controllers
         public async Task<IActionResult> Crear(DtoCategoriaCrear datos)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-                
-            try
-            {
-                var Categoria = datos.Adapt<Categoria>();
 
-                await _Categoria.Crear(Categoria);
+            var Categoria = datos.Adapt<Categoria>();
 
-                await _Categoria.SaveAsync();
+            await _Categoria.Crear(Categoria);
 
-                return Ok(Categoria.Adapt<DtoCategoriaCrear>());
-            }
-            catch
-            {
-                return Conflict(new { mensaje = $"Ya existe una categoría con ese nombre" });
-            }
+            await _Categoria.SaveAsync();
+
+            return Created("", new { message = "Categoria creada"});
         }
 
         [Authorize(Roles = "Admin")]
@@ -44,39 +37,30 @@ namespace KafeYana.Api.Controllers
 
             var categoria = await _Categoria.FindByIdAsync(Id);
 
-            if (categoria == null) return BadRequest(new { message = "Categoria no encontrada" });
-
-            if(categoria.Nombre != datos.Nombre)
-            {
-                if (await _Categoria.ExisteAsync(x => x.Nombre == datos.Nombre))
-                {
-                    throw new CampoYaExistenteFailException(datos.Nombre);
-                }
-            }
+            if (categoria == null) return NotFound(new { message = "Categoria no encontrada" });
 
             datos.Adapt(categoria);
 
             await _Categoria.SaveAsync();
 
-            return Ok(categoria.Adapt<DtoCategoriaUpdate>());
+            return Ok(new { message = "Categoria actualizada" });
         }
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Eliminar(int Id)
         {
-            if (Id == 23) return BadRequest(new { message = "No puedes eliminar la categoria combos" });
+            if (Id == 4) return BadRequest(new { message = "No puedes eliminar la categoria combos" });
 
-            var categoria = await _Categoria.BuscarConProductos(Id);
+            var categoria = await _Categoria.FindByIdAsync(Id);
 
-            if (categoria.Productos.Any())
-                throw new InventarioException("No se puede eliminar la categoría porque tiene productos asociados");
+            if (categoria == null) return NotFound(new { message = "Categoria no encontrada" });
 
             await _Categoria.Remove(categoria);
 
             await _Categoria.SaveAsync();
 
-            return NoContent();
+            return Ok(new { message = "Categoria eliminada" });
         }
     }
 }

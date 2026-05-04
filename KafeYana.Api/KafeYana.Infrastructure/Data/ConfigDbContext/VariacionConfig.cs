@@ -24,9 +24,9 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.HasOne(x => x.Elaborado)
                 .WithMany(e => e.Variaciones)
                 .HasForeignKey(x => x.Id_Elaborado)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade).HasConstraintName("fx_variacion_elaborado");
 
-            builder.HasIndex(x => x.Nombre);
+            builder.HasIndex(x => new { x.Nombre, x.Id_Elaborado}).IsUnique().HasDatabaseName("fx_varicion_nombre");
 
             builder.HasIndex(x => x.Id_Elaborado);
 

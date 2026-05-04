@@ -25,11 +25,11 @@ namespace KafeYana.Api.Controllers
 
             var nombre = User.Identity?.Name;
 
-            if (nombre is null) return BadRequest("Usuario no encontrado");
+            if (nombre is null) return NotFound(new { message = "Usuario no encontrado" });
 
-            if (comprado is null) return BadRequest("Producto no encontrado");
+            if (comprado is null) return NotFound(new { message = "Producto no encontrado" });
 
-            if (datos.Cantidad > comprado.Stock_actual && !entrada) return BadRequest("No puedes quitar mas productos del que tienes");
+            if (datos.Cantidad > comprado.Stock_actual && !entrada) return BadRequest(new { message = "No puedes quitar mas productos del que tienes" });
 
             var ajusteInfo = new Stock_Ajuste
             {
@@ -71,7 +71,7 @@ namespace KafeYana.Api.Controllers
 
             if (nombre == null) return BadRequest("Usuario no encontrado");
 
-            if (datos.Cantidad > Insumo.Stock_actual && !entrada) return BadRequest("No puedes quitar mas insumos del que tienes");
+            if (datos.Cantidad > Insumo.Stock_actual && !entrada) return BadRequest(new { message = "No puedes quitar mas insumos del que tienes" });
 
             var AjusteInfo = new Stock_Ajuste
             {
@@ -105,37 +105,52 @@ namespace KafeYana.Api.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var elaborado = await _db.elaborados.ElaboradoWithProducto(datos.Id_elaborado);
+            if (elaborado is null)
+                return NotFound(new { message = "Producto no encontrado" });
 
-            if (elaborado is null) return BadRequest("Producto no encontrado");
-
-            if (entrada && !elaborado.Producible) return BadRequest("El producto no es producible");
+            if (entrada && !elaborado.Producible)
+                return BadRequest(new { message = "Solo se puede registrar entrada a productos producibles" });
 
             var nombre = User.Identity?.Name;
+            if (nombre is null)
+                return NotFound(new { message = "Usuario no encontrado" });
 
-            if (nombre is null) return BadRequest("Usuario no encontrado");
+            var ajusteInfo = datos.Crear(elaborado.Producto.Nombre, nombre);
+            ajusteInfo.StockAnterior = elaborado.Stock_actual;
 
-            var AjusteInfo = datos.Crear(elaborado.Producto.Nombre, nombre);
-
-            if (!entrada && elaborado.Producible)
+            if (entrada)
             {
-                if (datos.Cantidad > elaborado.Stock_actual) return BadRequest("No puedes quitar mas productos del que tienes");
-            }
-
-            AjusteInfo.StockAnterior = elaborado.Stock_actual;
-            if (elaborado.Producible) elaborado.Stock_actual += entrada ? datos.Cantidad : (datos.Cantidad * (-1));
-            AjusteInfo.StockNuevo = elaborado.Stock_actual;
-            AjusteInfo.Ajuste = AjusteInfo.StockNuevo - AjusteInfo.StockAnterior;
-            if (!entrada) AjusteInfo.Perdida = elaborado.Producto.Precio * datos.Cantidad;
-            
-            if (!elaborado.Producible)
-            {
+                // Caso 1: Entrada producible → descontar receta + agregar stock
                 var receta = await _db.recetas.GetRectaByIdElaborado(elaborado.Id);
+                if (receta is null)
+                    return NotFound(new { message = "No se encontró receta para este producto" });
+
                 RestarInsumo(receta, datos.Cantidad);
-                
+                elaborado.Stock_actual += datos.Cantidad * receta.Porciones;
+            }
+            else if (elaborado.Producible)
+            {
+                // Caso 2: Salida producible → solo descontar stock
+                if (datos.Cantidad > elaborado.Stock_actual)
+                    return BadRequest(new { message = "No puedes quitar más productos de los que tienes" });
+
+                elaborado.Stock_actual -= datos.Cantidad;
+            }
+            else
+            {
+                // Caso 3: Salida no producible → solo descontar insumos de la receta
+                var receta = await _db.recetas.GetRectaByIdElaborado(elaborado.Id);
+                if (receta is null)
+                    return NotFound(new { message = "No se encontró receta para este producto" });
+
+                RestarInsumo(receta, datos.Cantidad);
             }
 
-            await _db.ajustes.Crear(AjusteInfo);
+            ajusteInfo.StockNuevo = elaborado.Stock_actual;
+            ajusteInfo.Ajuste = ajusteInfo.StockNuevo - ajusteInfo.StockAnterior;
+            ajusteInfo.Perdida = !entrada ? elaborado.Producto.Precio * datos.Cantidad : 0;
 
+            await _db.ajustes.Crear(ajusteInfo);
             await _db.SaveUnitWork();
 
             return Ok(new { message = "Ajuste registrado" });
@@ -147,7 +162,9 @@ namespace KafeYana.Api.Controllers
 
             foreach (var detalle in receta.Detalles)
             {
-                detalle.Insumo.Stock_actual -= (int)(detalle.Cantidad * cantidad * (1 + (detalle.Merma / 100)));
+                var resta = (int)(detalle.Cantidad * cantidad * (1 + (detalle.Merma / 100)));
+
+                detalle.Insumo.Stock_actual -= detalle.Insumo.Stock_actual <= resta ? detalle.Insumo.Stock_actual : resta;
             }
         }
     }

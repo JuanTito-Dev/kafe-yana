@@ -46,7 +46,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.HasIndex(x => x.Id).IsUnique();
 
-            builder.HasIndex(x => x.Nombre).IsUnique();
+            builder.HasIndex(x => x.Nombre).IsUnique().HasDatabaseName("nombre_insumo");
 
             builder.HasIndex(x => x.Categoria);
         }

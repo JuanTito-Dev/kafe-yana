@@ -30,5 +30,16 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                     .ThenInclude(x => x.InsumoNuevo)  // 👈 esto te falta
                 .FirstOrDefaultAsync(x => x.Id == Id);
         }
+
+        public async Task<List<Opcion>> GetOpcionesByIds(List<int> ids)
+        {
+            return await _Set
+                .Where(x => ids.Contains(x.Id))
+                .Include(x => x.Ajustes)
+                    .ThenInclude(x => x.InsumoBase)
+                .Include(x => x.Ajustes)
+                    .ThenInclude(x => x.InsumoNuevo)
+                .ToListAsync(); // ✅ sin AsNoTracking, EF trackea los cambios
+        }
     }
 }

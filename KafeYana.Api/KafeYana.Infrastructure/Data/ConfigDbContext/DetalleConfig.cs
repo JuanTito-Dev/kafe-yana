@@ -21,12 +21,12 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.HasOne(x => x.Receta)
                 .WithMany(x => x.Detalles)
                 .HasForeignKey(x => x.Id_receta)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade).HasConstraintName("fx_detalle_receta");
 
             builder.HasOne(x => x.Insumo)
                 .WithMany(x => x.Detalles)
                 .HasForeignKey(x => x.Id_insumo)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade).HasConstraintName("fx_detalle_insumo");
         
         }
     }

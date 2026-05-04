@@ -34,6 +34,8 @@ namespace KafeYana.Application.IRepositorio
 
         IVentaRepositorio ventas { get; }
 
+        IVariacionReposiotorio variaciones { get; }
+
         Task<int> SaveUnitWork();
     }
 }

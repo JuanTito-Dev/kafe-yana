@@ -12,12 +12,15 @@ namespace KafeYana.Infrastructure.Data.Repositorio
             this._Usuario = _Usuario;
         }
 
-        public async Task<Usuario?> Me(string Id)
+        public async Task<(string role ,Usuario? usuario)> Me(string Id)
         {
             var usuario = await _Usuario.FindByIdAsync(Id);
-            if (usuario is null) return null;
 
-            return usuario;
+            if (usuario == null) return (string.Empty, null);
+
+            var Role = await _Usuario.GetRolesAsync(usuario);
+
+            return (Role.FirstOrDefault() ?? string.Empty, usuario);
         }
     }
 }

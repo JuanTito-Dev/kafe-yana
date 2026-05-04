@@ -36,10 +36,11 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.HasOne(x => x.Producto)
             .WithOne(p => p.Comprado)
             .HasForeignKey<Comprado>(x => x.Id_Producto)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Cascade).HasConstraintName("fx_producto_comprado");
 
             builder.HasIndex(x => x.Id_Producto).IsUnique(); // unico por ser 1 a 1
-            builder.HasIndex(x => x.Codigo_barra);
+            builder.HasIndex(x => x.Codigo_barra).IsUnique().HasDatabaseName("codigo_producto_comprado")
+                .HasFilter("\"Codigo_barra\" IS NOT NULL AND \"Codigo_barra\" <> ''");
             builder.HasIndex(x => x.Disponible);
         }
     }

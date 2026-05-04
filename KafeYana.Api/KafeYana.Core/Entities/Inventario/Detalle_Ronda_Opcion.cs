@@ -15,5 +15,17 @@
         public Detalle_ronda? Detalle_Ronda { get; set; }
 
         public Opcion? Opcion { get; set; }
+
+        public Detalle_Ronda_Opcion()
+        {
+            
+        }
+
+        public Detalle_Ronda_Opcion(int Id_opcion, string ValorAnterior, decimal Costoextra )
+        {
+            Id_Opcion = Id_opcion;
+            this.ValorAnterior = ValorAnterior;
+            this.CostoExtra = Costoextra;
+        }
     }
 }

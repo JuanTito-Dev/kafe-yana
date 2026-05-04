@@ -27,10 +27,10 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.Estado).HasDefaultValue(true);
 
-            builder.HasIndex(x => x.Nombre).IsUnique();
-            builder.HasIndex(x => x.Celular).IsUnique();
-            builder.HasIndex(x => x.Correo).IsUnique().HasFilter("\"Correo\" <> ''");
-            builder.HasIndex(x => x.Dni).IsUnique().HasFilter("\"Dni\" IS NOT NULL");
+            builder.HasIndex(x => x.Nombre).IsUnique().HasDatabaseName("unique_nombre_cliente");
+            builder.HasIndex(x => x.Celular).IsUnique().HasDatabaseName("Unique_celular_cliente");
+            builder.HasIndex(x => x.Correo).IsUnique().HasFilter("\"Correo\" <> ''").HasDatabaseName("Unique_correo_cliente");
+            builder.HasIndex(x => x.Dni).IsUnique().HasFilter("\"Dni\" IS NOT NULL").HasDatabaseName("Unique_Dni_cliente");
             builder.HasIndex(x => x.Correonormalizado).IsUnique().HasFilter("\"Correonormalizado\" <> ''");
         }
     }

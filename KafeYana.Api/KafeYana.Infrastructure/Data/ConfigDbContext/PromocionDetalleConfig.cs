@@ -15,7 +15,8 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
         {
             builder.ToTable("Detalle_promocion");
 
-            builder.HasKey(x => new { x.Id_Producto, x.Id_Promocion });
+            builder.HasKey(x => new { x.Id_Producto, x.Id_Promocion })
+                .HasName("pk_producto_promocion"); ;
 
             builder.Property(x => x.Cantidad).IsRequired();
 
@@ -25,13 +26,13 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.HasOne(x => x.Promocion)
                 .WithMany(p => p.Detalles)
                 .HasForeignKey(x => x.Id_Promocion)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade).HasConstraintName("fx");
 
             // Si se borra Producto se borran sus detalles
             builder.HasOne(x => x.Producto)
                 .WithMany(x => x.Detalles)
                 .HasForeignKey(x => x.Id_Producto)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade).HasConstraintName("fx_detallecombo_producto");
         }
     }
 }

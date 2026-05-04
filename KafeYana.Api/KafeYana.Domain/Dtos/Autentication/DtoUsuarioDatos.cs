@@ -14,6 +14,8 @@ namespace KafeYana.Application.Dtos.Autentication
 
         public string UserName { get; set; }
 
+        public string Rol {  get; set; }
+
         public string Email { get; set; }
 
         public string Celular { get; set; }

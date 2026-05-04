@@ -1,3 +1,4 @@
+using KafeYana.Api.DataLoaders;
 using KafeYana.Api.GraphQLMap;
 using KafeYana.Api.GraphQLMap.Types;
 using KafeYana.Application.Exceptions;
@@ -26,7 +27,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.SnakeCaseLower;
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
     });
 
 builder.Services.AddOpenApi();
@@ -37,6 +38,10 @@ builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptio
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration["DataBase:Conexion"])
 );
+
+builder.Services.AddDbContextFactory<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration["DataBase:Conexion"]),
+    ServiceLifetime.Scoped);
 
 //Configuracion Identity
 
@@ -83,7 +88,11 @@ builder.Services.AddAuthentication(opt =>
     {
         OnMessageReceived = Context =>
         {
-            Context.Token = Context.Request.Cookies["ACCESS_TOKEN"];
+            // ?? Solo leer la cookie si NO es el endpoint de RefreshToken
+            if (!Context.Request.Path.StartsWithSegments("/api/Aunth/RefreshToken"))
+            {
+                Context.Token = Context.Request.Cookies["ACCESS_TOKEN"];
+            }
             return Task.CompletedTask;
         }
     };
@@ -142,13 +151,16 @@ builder.Services.AddGraphQLServer()
     .AddType<DetalleRondaType>()
     .AddType<VentaType>()
     .AddType<DetalleVentaType>()
+    .AddType<CategoriaForProductosType>()
     .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = true)
     .AddFiltering()
     .AddProjections()
     .AddSorting()
     .AddAuthorization()
     .AddTypeExtension<ProveedorQuery>()
-    .AddType<ProveedorType>();
+    .AddType<ProveedorType>()
+    .AddDataLoader<PromocionCantidadProducibleDataLoader>()
+    .AddDataLoader<RecetaCantidadProducibleDataLoader>();
 
 //Servicios 
 builder.Services.AddScoped<IAuthTokenProcesador, AuthTokenProcesador>();
@@ -225,3 +237,4 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+    

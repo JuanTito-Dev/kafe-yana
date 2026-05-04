@@ -17,6 +17,8 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.HasKey(x => x.Id);
 
+            builder.HasIndex(x => x.Nombre).IsUnique().HasDatabaseName("fx_opcion_nombre");
+
             builder.Property(x => x.AjustePrecio).IsRequired().HasColumnType("decimal(10,2)");
 
             builder.Property(x => x.TipoOpcion).IsRequired().HasMaxLength(20).HasDefaultValue("normal");
@@ -26,7 +28,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.HasOne(x => x.Variacion)
                 .WithMany(x => x.Opciones)
                 .HasForeignKey(x => x.Id_variacion)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade).HasConstraintName("fx_opcion_variacion");
 
             builder.HasIndex(x => x.Id);
             builder.HasIndex(x => x.Id_variacion);

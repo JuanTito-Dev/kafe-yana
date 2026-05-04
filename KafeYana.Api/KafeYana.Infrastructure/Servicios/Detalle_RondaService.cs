@@ -32,32 +32,33 @@ namespace KafeYana.Infrastructure.Servicios
                 {
                     var listaDetalles = new List<Detalle_ronda>();
                     var subtotal = 0.00M;
-                    var opcionesPorDetalle = new List<(int DetalleIndex, int IdOpcion)>();
+                    
 
-                    for (int i = 0; i < detallesDto.Count; i++)
+                    foreach (var i in detallesDto)
                     {
-                        var detalleDto = detallesDto[i];
-
-                        var producto = await _unitWork.productos.FindByIdAsync(detalleDto.Id_Producto);
+                        var opcionesPorDetalle = new List<Detalle_Ronda_Opcion>();
+                        var producto = await _unitWork.productos.FindByIdAsync(i.Id_Producto);
                         if (producto is null)
-                            throw new DetalleRondaException($"El producto con ID {detalleDto.Id_Producto} no existe.");
+                            throw new DetalleRondaException($"El producto con ID {i.Id_Producto} no existe.");
 
                         var precioAjuste = 0.00M;
 
-                        if (detalleDto.Ids_Opcion != null && detalleDto.Ids_Opcion.Count > 0)
+                        if (i.Ids_Opcion != null && i.Ids_Opcion.Count > 0)
                         {
-                            foreach (var idOpcion in detalleDto.Ids_Opcion)
+                            foreach (var idOpcion in i.Ids_Opcion)
                             {
-                                bool opcionValida = await _unitWork.opciones.Opciondeproducto(detalleDto.Id_Producto, idOpcion);
+                                bool opcionValida = await _unitWork.opciones.Opciondeproducto(i.Id_Producto, idOpcion);
                                 if (!opcionValida)
-                                    throw new OpcionProductoException($"La opción {idOpcion} no pertenece al producto {detalleDto.Id_Producto}.");
+                                    throw new OpcionProductoException($"La opción {idOpcion} no pertenece al producto {i.Id_Producto}.");
 
                                 var opcion = await _unitWork.opciones.FindByIdAsync(idOpcion);
                                 if (opcion is null)
                                     throw new OpcionProductoException($"La opción con ID {idOpcion} no existe.");
 
                                 precioAjuste += opcion.AjustePrecio;
-                                opcionesPorDetalle.Add((i, idOpcion));
+
+                                var detalleopcion = new Detalle_Ronda_Opcion(idOpcion, producto.Precio.ToString(), opcion.AjustePrecio);
+                                opcionesPorDetalle.Add(detalleopcion);
                             }
                         }
 
@@ -65,8 +66,10 @@ namespace KafeYana.Infrastructure.Servicios
                         {
                             Id_Producto = producto.Id,
                             Nombre_Producto = producto.Nombre,
-                            Cantidad = detalleDto.Cantidad,
-                            Precio = producto.Precio + precioAjuste
+                            Cantidad = i.Cantidad,
+                            Precio = producto.Precio + precioAjuste,
+                            Opciones = opcionesPorDetalle
+                            
                         };
 
                         subtotal += detalle.Precio * detalle.Cantidad;
@@ -85,21 +88,6 @@ namespace KafeYana.Infrastructure.Servicios
                         Detalle = listaDetalles,
                         SubTotal = subtotal
                     };
-
-                    await _unitWork.rondas.Crear(ronda);
-                    await _unitWork.SaveUnitWork();
-
-                    var detallesGuardados = await _db.Detalle_Rondas
-                        .Where(d => d.Id_Ronda == ronda.Id)
-                        .OrderBy(d => d.Id)
-                        .ToListAsync();
-
-                    foreach (var (detalleIndex, idOpcion) in opcionesPorDetalle)
-                    {
-                        await _db.Database.ExecuteSqlAsync(
-                            @$"INSERT INTO ""Detalle_Ronda_Opcion"" (""Id_Detalle_Ronda"", ""Id_Opcion"")
-                               VALUES ({detallesGuardados[detalleIndex].Id}, {idOpcion})");
-                    }
 
                     await transaction.CommitAsync();
 

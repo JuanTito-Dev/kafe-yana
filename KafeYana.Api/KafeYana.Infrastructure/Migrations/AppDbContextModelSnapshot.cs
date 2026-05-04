@@ -226,10 +226,12 @@ namespace KafeYana.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Celular")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("Unique_celular_cliente");
 
                     b.HasIndex("Correo")
                         .IsUnique()
+                        .HasDatabaseName("Unique_correo_cliente")
                         .HasFilter("\"Correo\" <> ''");
 
                     b.HasIndex("Correonormalizado")
@@ -238,10 +240,12 @@ namespace KafeYana.Infrastructure.Migrations
 
                     b.HasIndex("Dni")
                         .IsUnique()
+                        .HasDatabaseName("Unique_Dni_cliente")
                         .HasFilter("\"Dni\" IS NOT NULL");
 
                     b.HasIndex("Nombre")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("unique_nombre_cliente");
 
                     b.ToTable("Clientes");
                 });
@@ -356,7 +360,10 @@ namespace KafeYana.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Codigo_barra");
+                    b.HasIndex("Codigo_barra")
+                        .IsUnique()
+                        .HasDatabaseName("codigo_producto_comprado")
+                        .HasFilter("\"Codigo_barra\" IS NOT NULL AND \"Codigo_barra\" <> ''");
 
                     b.HasIndex("Disponible");
 
@@ -451,14 +458,9 @@ namespace KafeYana.Infrastructure.Migrations
                         .HasColumnType("decimal(10,2)")
                         .HasDefaultValue(0.00m);
 
-                    b.Property<int?>("ProductoId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("Id_Producto");
-
-                    b.HasIndex("ProductoId");
 
                     b.HasIndex("Id_Ronda", "Id_Producto")
                         .IsUnique()
@@ -485,6 +487,10 @@ namespace KafeYana.Infrastructure.Migrations
 
                     b.Property<int>("Stock_actual")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Ubicacion")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Unidad_medida")
                         .IsRequired()
@@ -547,7 +553,8 @@ namespace KafeYana.Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex("Nombre")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("nombre_insumo");
 
                     b.ToTable("Insumo", (string)null);
                 });
@@ -578,7 +585,8 @@ namespace KafeYana.Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex("Nombre")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("Unique_mesa_nombre");
 
                     b.ToTable("Mesa", (string)null);
                 });
@@ -617,6 +625,10 @@ namespace KafeYana.Infrastructure.Migrations
                     b.HasIndex("Id");
 
                     b.HasIndex("Id_variacion");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique()
+                        .HasDatabaseName("fx_opcion_nombre");
 
                     b.ToTable("Opcion", (string)null);
                 });
@@ -698,7 +710,8 @@ namespace KafeYana.Infrastructure.Migrations
                     b.Property<bool>("Opcional")
                         .HasColumnType("boolean");
 
-                    b.HasKey("Id_Producto", "Id_Promocion");
+                    b.HasKey("Id_Producto", "Id_Promocion")
+                        .HasName("pk_producto_promocion");
 
                     b.HasIndex("Id_Promocion");
 
@@ -733,10 +746,12 @@ namespace KafeYana.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Id_Elaborado")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_receta_id_elaborado");
 
                     b.HasIndex("Nombre")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("receta_nombre");
 
                     b.ToTable("Receta", (string)null);
                 });
@@ -840,9 +855,11 @@ namespace KafeYana.Infrastructure.Migrations
 
                     b.HasIndex("Id_Elaborado");
 
-                    b.HasIndex("Nombre");
-
                     b.HasIndex("Requerido");
+
+                    b.HasIndex("Nombre", "Id_Elaborado")
+                        .IsUnique()
+                        .HasDatabaseName("fx_varicion_nombre");
 
                     b.ToTable("Variacion", (string)null);
                 });
@@ -1165,18 +1182,21 @@ namespace KafeYana.Infrastructure.Migrations
                         .WithMany("Ajustes")
                         .HasForeignKey("Id_Insumo")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fx_ajuste_insumobase");
 
                     b.HasOne("KafeYana.Domain.Entities.Inventario.Insumo", "InsumoNuevo")
                         .WithMany("AjustesComoNuevo")
                         .HasForeignKey("Id_InsumoNuevo")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fx_ajuste_insumoNevo");
 
                     b.HasOne("KafeYana.Domain.Entities.Inventario.Opcion", "Opcion")
                         .WithMany("Ajustes")
                         .HasForeignKey("Id_Opcion")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fx_ajuste_opcion");
 
                     b.Navigation("InsumoBase");
 
@@ -1191,7 +1211,8 @@ namespace KafeYana.Infrastructure.Migrations
                         .WithOne("Comprado")
                         .HasForeignKey("KafeYana.Domain.Entities.Inventario.Comprado", "Id_Producto")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fx_producto_comprado");
 
                     b.Navigation("Producto");
                 });
@@ -1202,13 +1223,15 @@ namespace KafeYana.Infrastructure.Migrations
                         .WithMany("Detalles")
                         .HasForeignKey("Id_insumo")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fx_detalle_insumo");
 
                     b.HasOne("KafeYana.Domain.Entities.Inventario.Receta", "Receta")
                         .WithMany("Detalles")
                         .HasForeignKey("Id_receta")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fx_detalle_receta");
 
                     b.Navigation("Insumo");
 
@@ -1224,10 +1247,11 @@ namespace KafeYana.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("KafeYana.Domain.Entities.Inventario.Opcion", "Opcion")
-                        .WithMany()
+                        .WithMany("Detalle_Ronda_Opcions")
                         .HasForeignKey("Id_Opcion")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("FK_Detalle_Ronda_Opcion_Opcion_Id_Opcion");
 
                     b.Navigation("Detalle_Ronda");
 
@@ -1237,20 +1261,17 @@ namespace KafeYana.Infrastructure.Migrations
             modelBuilder.Entity("KafeYana.Domain.Entities.Inventario.Detalle_ronda", b =>
                 {
                     b.HasOne("KafeYana.Domain.Entities.Inventario.Producto", "producto")
-                        .WithMany()
+                        .WithMany("Detalle_Rondas")
                         .HasForeignKey("Id_Producto")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("IX_Detalle_Ronda_ProductoId");
 
                     b.HasOne("KafeYana.Domain.Entities.Inventario.Ronda", "ronda")
                         .WithMany("Detalle")
                         .HasForeignKey("Id_Ronda")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("KafeYana.Domain.Entities.Inventario.Producto", null)
-                        .WithMany("Detalle_Rondas")
-                        .HasForeignKey("ProductoId");
 
                     b.Navigation("producto");
 
@@ -1263,7 +1284,8 @@ namespace KafeYana.Infrastructure.Migrations
                         .WithOne("Elaborado")
                         .HasForeignKey("KafeYana.Domain.Entities.Inventario.Elaborado", "Id_Producto")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fx_producto_elaborado");
 
                     b.Navigation("Producto");
                 });
@@ -1273,7 +1295,8 @@ namespace KafeYana.Infrastructure.Migrations
                     b.HasOne("KafeYana.Domain.Entities.Pedido", "pedido")
                         .WithOne("Mesa")
                         .HasForeignKey("KafeYana.Domain.Entities.Inventario.Mesa", "Id_Pedido")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fx_pedido_mesa");
 
                     b.Navigation("pedido");
                 });
@@ -1284,7 +1307,8 @@ namespace KafeYana.Infrastructure.Migrations
                         .WithMany("Opciones")
                         .HasForeignKey("Id_variacion")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fx_opcion_variacion");
 
                     b.Navigation("Variacion");
                 });
@@ -1295,7 +1319,8 @@ namespace KafeYana.Infrastructure.Migrations
                         .WithMany("Productos")
                         .HasForeignKey("Categoria_Id")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_productos_categoria");
 
                     b.Navigation("Categoria");
                 });
@@ -1317,13 +1342,15 @@ namespace KafeYana.Infrastructure.Migrations
                         .WithMany("Detalles")
                         .HasForeignKey("Id_Producto")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fx_detallecombo_producto");
 
                     b.HasOne("KafeYana.Domain.Entities.Inventario.Promocion", "Promocion")
                         .WithMany("Detalles")
                         .HasForeignKey("Id_Promocion")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fx");
 
                     b.Navigation("Producto");
 
@@ -1335,7 +1362,8 @@ namespace KafeYana.Infrastructure.Migrations
                     b.HasOne("KafeYana.Domain.Entities.Inventario.Elaborado", "Elaborado")
                         .WithOne("Receta")
                         .HasForeignKey("KafeYana.Domain.Entities.Inventario.Receta", "Id_Elaborado")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fx_elaborado_receta");
 
                     b.Navigation("Elaborado");
                 });
@@ -1346,7 +1374,8 @@ namespace KafeYana.Infrastructure.Migrations
                         .WithMany("Rondas")
                         .HasForeignKey("Id_Pedido")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fx_pedido_ronda");
 
                     b.Navigation("pedido");
                 });
@@ -1357,7 +1386,8 @@ namespace KafeYana.Infrastructure.Migrations
                         .WithMany("Variaciones")
                         .HasForeignKey("Id_Elaborado")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fx_variacion_elaborado");
 
                     b.Navigation("Elaborado");
                 });
@@ -1367,7 +1397,8 @@ namespace KafeYana.Infrastructure.Migrations
                     b.HasOne("KafeYana.Domain.Entities.Cliente", "Cliente")
                         .WithOne("Pedido")
                         .HasForeignKey("KafeYana.Domain.Entities.Pedido", "Id_Cliente")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fx_pedido_cliente");
 
                     b.Navigation("Cliente");
                 });
@@ -1457,6 +1488,8 @@ namespace KafeYana.Infrastructure.Migrations
             modelBuilder.Entity("KafeYana.Domain.Entities.Inventario.Opcion", b =>
                 {
                     b.Navigation("Ajustes");
+
+                    b.Navigation("Detalle_Ronda_Opcions");
                 });
 
             modelBuilder.Entity("KafeYana.Domain.Entities.Inventario.Producto", b =>

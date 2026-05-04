@@ -11,5 +11,7 @@ namespace KafeYana.Application.IRepositorio
     {
         Task<bool> Opciondeproducto(int Id, int Id_Opcion);
         Task<Opcion?> TraerOpcion(int? Id);
+
+        Task<List<Opcion>> GetOpcionesByIds(List<int> ids);
     }
 }

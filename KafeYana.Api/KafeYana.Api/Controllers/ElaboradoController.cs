@@ -15,36 +15,45 @@ namespace KafeYana.Api.Controllers
     public class ElaboradoController(IElaboradoRepositorio _repo) : ControllerBase
     {
         [HttpPost]
-        public async Task<IActionResult> Crear(DtoElaboradoCliente datos)
+        public async Task<IActionResult> Crear(DtoElaboradoCrear datos)
         {
             if(!ModelState.IsValid) return BadRequest(ModelState);
 
-            if(await _repo.ExisteAsync(x => x.Nombre == datos.Nombre)) throw new CampoYaExistenteFailException(datos.Nombre);
+            var entidad = datos.CrearEntidad();
 
-            await _repo.Crear(datos.CrearEntidad());
+            await _repo.Crear(entidad);
 
             await _repo.SaveAsync();
 
-            return Created();
+            return Created("", new
+            {
+                entidad.Id,
+                entidad.Nombre,
+                entidad.Precio,
+                message = "Producto creado"
+            });
         }
 
         [HttpPut("{Id:int}")]
-        public async Task<IActionResult> Update(int Id, DtoElaboradoCliente datos)
+        public async Task<IActionResult> Update(int Id, DtoElaboradoActualizar datos)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var producto = await _repo.TraerProducto(Id: Id, elaborado: true);
 
-            if (producto is null || producto.Elaborado is null) return BadRequest("Producto elaborado no existe");
-
-            if (datos.Nombre != producto.Nombre && await _repo.ExisteAsync(x => x.Nombre == datos.Nombre)) throw new CampoYaExistenteFailException(datos.Nombre);
-
+            if (producto is null || producto.Elaborado is null) return NotFound("Producto elaborado no existe");
 
             datos.Editar(producto);
 
             await _repo.SaveAsync();
 
-            return NoContent();
+            return Ok(new
+            {
+                producto.Id,
+                producto.Nombre,
+                producto.Precio,
+                message = "Producto creado"
+            });
         }
 
     }
