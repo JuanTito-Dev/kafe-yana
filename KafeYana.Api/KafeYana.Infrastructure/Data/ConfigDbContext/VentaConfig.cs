@@ -37,8 +37,9 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.Total).IsRequired().HasPrecision(10, 2);
 
-            builder.Property(x => x.Codigo).HasComputedColumnSql("'VTA-' || CAST(\"Id\" AS VARCHAR)", stored: true);
-
+            builder.Property(x => x.Codigo)
+                .IsRequired()
+                .HasDefaultValue("VTA-LEGACY");
         }
     }
 }

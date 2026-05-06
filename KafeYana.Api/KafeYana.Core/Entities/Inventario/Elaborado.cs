@@ -1,4 +1,6 @@
-﻿using KafeYana.Domain.Entities.BaseEntidades;
+﻿using HotChocolate;
+using KafeYana.Domain.Entities.BaseEntidades;
+using KafeYana.Domain.TiposDeDatos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +15,7 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public required bool Producible { get; set; }
 
-        public int Stock_actual { get; set; } = 0;
+        public int Stock_actual { get; private set; } = 0;
         
         public int Id_Producto { get; set; }
 
@@ -25,5 +27,43 @@ namespace KafeYana.Domain.Entities.Inventario
         public Receta? Receta { get; set; }
 
         public List<Variacion>? Variaciones { get; set; } = new List<Variacion>();
+
+        [GraphQLIgnore]
+        public ProductoMovimiento AjusteEntrada(int Cantidad, int Porciones, Stock_Ajuste ajuste, decimal costo)
+        {
+            Stock_actual += Cantidad * Porciones;
+            ajuste.StockNuevo = Stock_actual;
+            ajuste.Ajuste = ajuste.StockNuevo - ajuste.StockAnterior;
+            ajuste.Perdida = 0;
+            string Referencia = $"AJU-{ajuste.Fecha:yyyy-MM-dd}";
+
+            var movimiento = this.Producto.Movimiento(Cantidad, TipoMovimientos.Ajuste.ToString(), Referencia, Stock_actual, costo);
+
+            return movimiento;
+        }
+
+        [GraphQLIgnore]
+        public ProductoMovimiento AjusteSalida(int cantidad, decimal costo, Stock_Ajuste ajuste)
+        {
+            Stock_actual -= cantidad;
+            ajuste.StockNuevo = Stock_actual;
+            ajuste.Ajuste = ajuste.StockNuevo - ajuste .StockAnterior;
+
+            string Referencia = $"AJU-{ajuste.Fecha:yyyy-MM-dd}";
+
+            var movimiento = this.Producto.Movimiento(-cantidad, TipoMovimientos.Ajuste.ToString(), Referencia, Stock_actual, costo);
+
+            return movimiento;
+        }
+
+        [GraphQLIgnore] 
+        public ProductoMovimiento Venta(int cantidad, string Codigo, decimal costo)
+        {
+            Stock_actual -= cantidad;
+
+            var movimiento = this.Producto.Movimiento(-cantidad, TipoMovimientos.Venta.ToString(), Codigo, Stock_actual, costo);
+
+            return movimiento;
+        }
     }
 }

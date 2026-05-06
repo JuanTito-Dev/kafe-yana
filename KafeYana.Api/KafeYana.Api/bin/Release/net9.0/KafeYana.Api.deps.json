@@ -1402,6 +1402,7 @@
       },
       "KafeYana.Domain/1.0.0": {
         "dependencies": {
+          "HotChocolate.Abstractions": "15.1.12",
           "Microsoft.Extensions.Identity.Stores": "9.0.8"
         },
         "runtime": {

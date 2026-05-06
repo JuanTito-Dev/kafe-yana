@@ -28,6 +28,10 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public string Nota { get; set; } = string.Empty;
 
-        public required string Usuario { get; set; } 
+        public required string Usuario { get; set; }
+
+        public Stock_Ajuste() { }
+
+
     }
 }

@@ -25,7 +25,7 @@ namespace KafeYana.Api.GraphQLMap.Types
 
             descriptor.Field(x => x.Disponible);
 
-            descriptor.Field(x => x.Id_Producto).Ignore();
+            descriptor.Field(x => x.Id_Producto);
 
             descriptor.Field(x => x.Producto).Type<ProductoType>();
         }

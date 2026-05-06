@@ -36,6 +36,8 @@ namespace KafeYana.Application.IRepositorio
 
         IVariacionReposiotorio variaciones { get; }
 
+        IProductoMovimientoRepositorio movimientos { get; }
+
         Task<int> SaveUnitWork();
     }
 }

@@ -9,6 +9,6 @@ namespace KafeYana.Application.IServicios
 {
     public interface IVentaServices
     {
-        Task<Venta> ProcesarVenta(int Id_Pedido, int? Id_Cliente, string cajero, string tipoPago);
+        Task<Venta> ProcesarVenta(int Id_Pedido, int Id_Cliente, string cajero, string tipoPago);
     }
 }
