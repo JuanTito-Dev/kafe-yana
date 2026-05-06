@@ -26,7 +26,7 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public Categoria Categoria { get; set; } 
 
-        public Comprado Comprado { get; set; }
+        public Comprado? Comprado { get; set; }
 
         public Elaborado Elaborado { get; set; }
 
@@ -35,6 +35,16 @@ namespace KafeYana.Domain.Entities.Inventario
         public ICollection<PromocionDetalle> Detalles { get; set; } = new List<PromocionDetalle>();
 
         public List<Detalle_ronda> Detalle_Rondas { get; set; } = new List<Detalle_ronda>();
+
+        public List<ProductoMovimiento> Movimientos { get; set; } = new List<ProductoMovimiento>();
+
+        internal ProductoMovimiento Movimiento(int Cantidad, string Tipo, string referencia, int StockResultado, decimal costo)
+        { 
+            var NuevoMovimiento = new ProductoMovimiento(Id, Tipo, referencia, Cantidad, costo, StockResultado);
+
+            return NuevoMovimiento;
+        }
+
 
     }
 }

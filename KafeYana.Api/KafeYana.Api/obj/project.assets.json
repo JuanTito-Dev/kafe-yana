@@ -2245,6 +2245,7 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
         "dependencies": {
+          "HotChocolate.Abstractions": "15.1.12",
           "Microsoft.Extensions.Identity.Stores": "9.0.4"
         },
         "compile": {

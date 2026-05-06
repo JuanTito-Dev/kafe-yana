@@ -19,5 +19,12 @@ namespace KafeYana.Infrastructure.Data.Repositorio
         {
             return _db.Ventas.AsNoTracking().AsQueryable();
         }
+
+        public async Task<int> ContarVentasDelAnio(int anio)
+        {
+            return await _db.Ventas
+                .Where(x => x.Fecha.Year == anio)
+                .CountAsync();
+        }
     }
 }

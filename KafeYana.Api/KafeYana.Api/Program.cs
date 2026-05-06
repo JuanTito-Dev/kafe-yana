@@ -132,6 +132,7 @@ builder.Services.AddGraphQLServer()
     .AddTypeExtension<UsuarioQuery>()
     .AddTypeExtension<MesaQuery>()
     .AddTypeExtension<VentaQuery>()
+    .AddTypeExtension<ProductoMovimientosQuery>()
     .AddType<AjusteType>()
     .AddType<CategoriaType>()
     .AddType<ClienteType>()
@@ -152,6 +153,7 @@ builder.Services.AddGraphQLServer()
     .AddType<VentaType>()
     .AddType<DetalleVentaType>()
     .AddType<CategoriaForProductosType>()
+    .AddType<ProductoMovientosType>()
     .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = true)
     .AddFiltering()
     .AddProjections()
@@ -186,6 +188,7 @@ builder.Services.AddScoped<IUnitWork, UnitWork>();
 builder.Services.AddScoped<IProveedorRepositorio, ProveedorRepositorio>();
 builder.Services.AddScoped<IDetalle_RondaRepositorio, Detalle_RondaRepositorio>();
 builder.Services.AddScoped<Detalle_RondaService>();
+builder.Services.AddScoped<IProductoMovimientoRepositorio, ProductoMovimientoRepositorio>();
 
 builder.Services.AddEndpointsApiExplorer();
 

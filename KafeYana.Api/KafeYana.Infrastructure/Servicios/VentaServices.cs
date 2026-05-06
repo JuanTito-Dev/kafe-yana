@@ -15,7 +15,7 @@ namespace KafeYana.Infrastructure.Servicios
 {
     public class VentaServices(IUnitWork _db) : IVentaServices
     {
-        public async Task<Venta> ProcesarVenta(int Id_Pedido, int? Id_Cliente, string cajero, string tipoPago)
+        public async Task<Venta> ProcesarVenta(int Id_Pedido, int Id_Cliente, string cajero, string tipoPago)
         {
             var pedido = await _db.Pedidos.TraerPedido(Id_Pedido);
             if (pedido == null) 
@@ -24,7 +24,7 @@ namespace KafeYana.Infrastructure.Servicios
             var cliente = pedido.Cliente;
             if (pedido.Id_Cliente == null || pedido.Id_Cliente != Id_Cliente)
             {
-                cliente = await _db.clientes.FindByIdAsync(Id_Cliente ?? 0);
+                cliente = await _db.clientes.FindByIdAsync(Id_Cliente );
                 if (cliente == null) 
                     throw new InventarioException("Cliente no encontrado");
             }
@@ -32,6 +32,10 @@ namespace KafeYana.Infrastructure.Servicios
             int productosCount = 0;
             var detalleVenta = new List<Detalle_venta>();
             decimal subtotal = 0.00m;
+
+            var anio = DateTime.UtcNow.Year;
+            var numeroVenta = await _db.ventas.ContarVentasDelAnio(anio) + 1;
+            var codigoVenta = $"VTA-{anio}-{numeroVenta:D3}";
 
             // Procesar todas las rondas y detalles de forma optimizada
             foreach (var ronda in pedido.Rondas)
@@ -47,7 +51,7 @@ namespace KafeYana.Infrastructure.Servicios
                     try
                     {
                         // Descontar stock según tipo de producto
-                        await ProcesarDescount(detalle.Id_Producto, detalle.Cantidad, detalle.producto.Tipo, opciones);
+                        await ProcesarDescount(detalle.Id_Producto, detalle.Cantidad, detalle.producto.Tipo, opciones, codigoVenta);
 
                         productosCount++;
                         
@@ -74,6 +78,7 @@ namespace KafeYana.Infrastructure.Servicios
 
             return new Venta
             {
+                Codigo = codigoVenta,
                 Fecha = DateTime.UtcNow,
                 Cliente = cliente!.Nombre,
                 Cajero = cajero,
@@ -89,20 +94,20 @@ namespace KafeYana.Infrastructure.Servicios
         /// <summary>
         /// Procesa el descuento según el tipo de producto y opciones
         /// </summary>
-        private async Task ProcesarDescount(int idProducto, int cantidad, string tipoProducto, List<Detalle_Ronda_Opcion> opciones)
+        private async Task ProcesarDescount(int idProducto, int cantidad, string tipoProducto, List<Detalle_Ronda_Opcion> opciones, string Codigo)
         {
             switch (tipoProducto)
             {
                 case TiposProductos.Comprado:
-                    await DescontarComprado(idProducto, cantidad);
+                    await DescontarComprado(idProducto, cantidad, Codigo);
                     break;
 
                 case TiposProductos.Elaborado:
-                    await DescontarElaborado(idProducto, cantidad, opciones);
+                    await DescontarElaborado(idProducto, cantidad, opciones, Codigo);
                     break;
 
                 case TiposProductos.Promocion:
-                    await DescontarPromocion(idProducto, cantidad);
+                    await DescontarPromocion(idProducto, cantidad, Codigo);
                     break;
 
                 default:
@@ -128,20 +133,22 @@ namespace KafeYana.Infrastructure.Servicios
                 : detalle.Nombre_Producto;
         }
 
-        public async Task DescontarComprado(int id, int cantidad)
+        public async Task DescontarComprado(int id, int cantidad, string Codigo)
         {
             var producto = await _db.productos.TraerProducto(id, comprado: true);
 
-            if (producto is null) 
+            if (producto is null || producto.Comprado is null) 
                 throw new InventarioException($"Producto comprado no encontrado: {id}");
 
             if (producto.Comprado.Stock_actual < cantidad) 
                 throw new InventarioException($"Stock insuficiente para {producto.Nombre}. Disponible: {producto.Comprado.Stock_actual}, Solicitado: {cantidad}");
 
-            producto.Comprado.Stock_actual -= cantidad;
+            var movimiento = producto.Comprado.Venta(cantidad, Codigo);
+
+            await _db.movimientos.Crear(movimiento);
         }
 
-        public async Task DescontarElaborado(int id, int cantidad, List<Detalle_Ronda_Opcion> opciones)
+        public async Task DescontarElaborado(int id, int cantidad, List<Detalle_Ronda_Opcion> opciones, string Codigo)
         {
             var elaborado = await _db.elaborados.TraerElaborado(id, withreceta: true);
             if (elaborado is null)
@@ -151,18 +158,21 @@ namespace KafeYana.Infrastructure.Servicios
             {
                 if(elaborado.Stock_actual >= cantidad)
                 {
-                    elaborado.Stock_actual -= cantidad;
+                    var movimiento = elaborado.Venta(cantidad, Codigo, 0.00M);
+                    await _db.movimientos.Crear(movimiento);
                 }
                 else
                 {
-                    elaborado.Stock_actual = 0;
+                    throw new InventarioException($"{elaborado.Producto.Nombre} cantidad insuficiente en el stock");
                 }
             }
             else
             {
                 
-                if (elaborado.Receta is null) 
+                if (elaborado.Receta is null)
+                {
                     return;
+                }
 
                 // Procesar múltiples opciones
                 var opcionIds = opciones?.Select(x => x.Id_Opcion).ToList() ?? new List<int>();
@@ -180,6 +190,7 @@ namespace KafeYana.Infrastructure.Servicios
                     .Select(x => x.Id_Insumo)
                     .ToHashSet();
 
+                var costo = 0.00M;
                 // Descontar insumos de la receta base
                 foreach (var detalleReceta in elaborado.Receta.Detalles)
                 {
@@ -198,6 +209,9 @@ namespace KafeYana.Infrastructure.Servicios
 
                     if (detalleReceta.Insumo.Stock_actual < cantidadFinal)
                         throw new InventarioException($"Stock insuficiente para insumo {detalleReceta.Insumo.Nombre}");
+                    // calcular costo en el mismo loop
+                    var factor = detalleReceta.Insumo.Factor_conversion > 0 ? detalleReceta.Insumo.Factor_conversion : 1;
+                    costo += (cantidadFinal / factor) * detalleReceta.Insumo.Costo;
 
                     detalleReceta.Insumo.Stock_actual -= (int)cantidadFinal;
                 }
@@ -217,12 +231,17 @@ namespace KafeYana.Infrastructure.Servicios
                     if (insumoNuevo.Stock_actual < cantidadTotalReemplazo)
                         throw new InventarioException($"Stock insuficiente para insumo {insumoNuevo.Nombre}");
 
+                    var factorNuevo = insumoNuevo.Factor_conversion > 0 ? insumoNuevo.Factor_conversion : 1;
+                    costo += (cantidadTotalReemplazo / factorNuevo) * insumoNuevo.Costo;
                     insumoNuevo.Stock_actual -= (int)cantidadTotalReemplazo;
                 }
+
+                var movimiento = elaborado.Venta(cantidad, Codigo, costo);
+                await _db.movimientos.Crear(movimiento);
             }
         }
 
-        public async Task DescontarPromocion(int id, int cantidad)
+        public async Task DescontarPromocion(int id, int cantidad, string Codigo)
         {
             var promocion = await _db.Combo.TraerPromocion(id);
             if (promocion is null) 
@@ -238,11 +257,11 @@ namespace KafeYana.Infrastructure.Servicios
                 switch (detalle.Producto.Tipo)
                 {
                     case TiposProductos.Comprado:
-                        await DescontarComprado(detalle.Id_Producto, cantidadTotal);
+                        await DescontarComprado(detalle.Id_Producto, cantidadTotal, Codigo);
                         break;
 
                     case TiposProductos.Elaborado:
-                        await DescontarElaborado(detalle.Id_Producto, cantidadTotal, new List<Detalle_Ronda_Opcion>());
+                        await DescontarElaborado(detalle.Id_Producto, cantidadTotal, new List<Detalle_Ronda_Opcion>(), Codigo);
                         break;
                 }
             }

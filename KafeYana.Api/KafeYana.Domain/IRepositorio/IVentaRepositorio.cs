@@ -10,5 +10,7 @@ namespace KafeYana.Application.IRepositorio
     public interface IVentaRepositorio : IGenericRepositorio<Venta>
     {
         IQueryable<Venta> VentaQuery();
+
+        Task<int> ContarVentasDelAnio(int anio);
     }
 }

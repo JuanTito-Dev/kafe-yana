@@ -39,6 +39,8 @@ namespace KafeYana.Infrastructure.Data.Repositorio
         public IVentaRepositorio ventas { get; private set; }
 
         public IVariacionReposiotorio variaciones { get; private set; }
+         
+        public IProductoMovimientoRepositorio movimientos { get ; private set; }
 
         public UnitWork(AppDbContext db, IProductoRepositorio productos, IElaboradoRepositorio elaborados,
                 IInsumoRepositorio insumos,
@@ -52,7 +54,8 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                 IOpcionRepositorio opciones,
                 IComboRepositorio combo,
                 IVentaRepositorio ventas,
-                IVariacionReposiotorio variacion
+                IVariacionReposiotorio variacion,
+                IProductoMovimientoRepositorio movimientos
                 )
         {
             _db = db;
@@ -70,6 +73,7 @@ namespace KafeYana.Infrastructure.Data.Repositorio
             Combo = combo;
             this.ventas = ventas;
             variaciones = variacion;
+            this.movimientos = movimientos;
         }
 
         public void Dispose()

@@ -677,6 +677,49 @@ namespace KafeYana.Infrastructure.Migrations
                     b.ToTable("Producto", (string)null);
                 });
 
+            modelBuilder.Entity("KafeYana.Domain.Entities.Inventario.ProductoMovimiento", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Costo_Unitario")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Id_Producto")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Referencia")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Stock_resultante")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Id_Producto");
+
+                    b.ToTable("Movimiento_Producto", (string)null);
+                });
+
             modelBuilder.Entity("KafeYana.Domain.Entities.Inventario.Promocion", b =>
                 {
                     b.Property<int>("Id")
@@ -978,9 +1021,9 @@ namespace KafeYana.Infrastructure.Migrations
 
                     b.Property<string>("Codigo")
                         .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("text")
-                        .HasComputedColumnSql("'VTA-' || CAST(\"Id\" AS VARCHAR)", true);
+                        .HasDefaultValue("VTA-LEGACY");
 
                     b.Property<string>("Estado")
                         .IsRequired()
@@ -1325,6 +1368,18 @@ namespace KafeYana.Infrastructure.Migrations
                     b.Navigation("Categoria");
                 });
 
+            modelBuilder.Entity("KafeYana.Domain.Entities.Inventario.ProductoMovimiento", b =>
+                {
+                    b.HasOne("KafeYana.Domain.Entities.Inventario.Producto", "Producto")
+                        .WithMany("Movimientos")
+                        .HasForeignKey("Id_Producto")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fx_producto_movimientos");
+
+                    b.Navigation("Producto");
+                });
+
             modelBuilder.Entity("KafeYana.Domain.Entities.Inventario.Promocion", b =>
                 {
                     b.HasOne("KafeYana.Domain.Entities.Inventario.Producto", "Producto")
@@ -1494,8 +1549,7 @@ namespace KafeYana.Infrastructure.Migrations
 
             modelBuilder.Entity("KafeYana.Domain.Entities.Inventario.Producto", b =>
                 {
-                    b.Navigation("Comprado")
-                        .IsRequired();
+                    b.Navigation("Comprado");
 
                     b.Navigation("Detalle_Rondas");
 
@@ -1503,6 +1557,8 @@ namespace KafeYana.Infrastructure.Migrations
 
                     b.Navigation("Elaborado")
                         .IsRequired();
+
+                    b.Navigation("Movimientos");
 
                     b.Navigation("Promocion")
                         .IsRequired();

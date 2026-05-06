@@ -22,8 +22,6 @@ namespace KafeYana.Infrastructure.Data.Repositorio
         {
             var entitie = await _Set.FindAsync(Id);
 
-            if (entitie is null) return null;
-
             return entitie;
         }
 

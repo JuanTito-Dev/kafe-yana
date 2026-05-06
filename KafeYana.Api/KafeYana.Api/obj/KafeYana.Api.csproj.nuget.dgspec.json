@@ -164,6 +164,10 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "HotChocolate.Abstractions": {
+              "target": "Package",
+              "version": "[15.1.12, )"
+            },
             "Microsoft.Extensions.Identity.Stores": {
               "target": "Package",
               "version": "[9.0.4, )"

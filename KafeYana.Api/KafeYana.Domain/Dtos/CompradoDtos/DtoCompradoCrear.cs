@@ -61,17 +61,17 @@ namespace KafeYana.Application.Dtos.CompradoDtos
                 Precio = this.Precio,
                 Tipo = TiposProductos.Comprado,
                 Categoria_Id = this.Categoria_Id,
-                Comprado = new Comprado
+                Comprado = new Comprado(Stock_actual)
                 {
                     Codigo_barra = this.Codigo_barra,
                     Unidad_medida = this.Unidad_medida,
                     Marca = this.Marca,
                     Ubicacion = this.Ubicacion,
                     Costo_compra = this.Costo_compra,
-                    Stock_actual = this.Stock_actual,
                     Stock_minimo = this.Stock_minimo,
                     Disponible = this.Disponible,
                 }
+
             };
 
             return proudcto;
@@ -83,14 +83,15 @@ namespace KafeYana.Application.Dtos.CompradoDtos
             datos.Descripcion = this.Descripcion;
             datos.Precio = this.Precio;
             datos.Categoria_Id = this.Categoria_Id;
-            datos.Comprado.Codigo_barra = this.Codigo_barra;
+            datos.Comprado!.Codigo_barra = this.Codigo_barra;
             datos.Comprado.Unidad_medida = this.Unidad_medida;
             datos.Comprado.Marca = this.Marca;
             datos.Comprado.Ubicacion = this.Ubicacion;
             datos.Comprado.Costo_compra = this.Costo_compra;
-            datos.Comprado.Stock_actual = this.Stock_actual;
             datos.Comprado.Stock_minimo = this.Stock_minimo;
             datos.Comprado.Disponible  = this.Disponible;
+
+            datos.Comprado.EditarStock(Stock_actual);
         }
     }
 }
