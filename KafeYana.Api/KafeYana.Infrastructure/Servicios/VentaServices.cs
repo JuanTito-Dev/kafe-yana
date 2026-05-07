@@ -213,7 +213,9 @@ namespace KafeYana.Infrastructure.Servicios
                     var factor = detalleReceta.Insumo.Factor_conversion > 0 ? detalleReceta.Insumo.Factor_conversion : 1;
                     costo += (cantidadFinal / factor) * detalleReceta.Insumo.Costo;
 
-                    detalleReceta.Insumo.Stock_actual -= (int)cantidadFinal;
+                    var movimeinto = detalleReceta.Insumo.AjusteVenta(Codigo, (int)cantidadFinal);
+
+                    await _db.Insumomovientos.Crear(movimeinto);
                 }
 
                 // Descontar insumos nuevos de los reemplazos (optimizado)
@@ -233,11 +235,13 @@ namespace KafeYana.Infrastructure.Servicios
 
                     var factorNuevo = insumoNuevo.Factor_conversion > 0 ? insumoNuevo.Factor_conversion : 1;
                     costo += (cantidadTotalReemplazo / factorNuevo) * insumoNuevo.Costo;
-                    insumoNuevo.Stock_actual -= (int)cantidadTotalReemplazo;
+                    var movimient = insumoNuevo.AjusteVenta(Codigo, (int)cantidadTotalReemplazo) ;
+                    await _db.Insumomovientos.Crear(movimient);
                 }
 
                 var movimiento = elaborado.Venta(cantidad, Codigo, costo);
                 await _db.movimientos.Crear(movimiento);
+                
             }
         }
 

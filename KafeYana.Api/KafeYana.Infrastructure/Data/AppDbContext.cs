@@ -64,6 +64,8 @@ namespace KafeYana.Infrastructure.Data
 
         public DbSet<ProductoMovimiento> Movimientos_Producto { get; set; }
 
+        public DbSet<InsumoMovimiento> InsumoMovimientos {  get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -115,6 +117,8 @@ namespace KafeYana.Infrastructure.Data
             builder.ApplyConfigurationsFromAssembly(typeof(Detalle_Ronda_OpcionConfig).Assembly);
 
             builder.ApplyConfigurationsFromAssembly(typeof(ProductoMovimientoConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(InsumoMovimientoConfig).Assembly);
         }
     }
 }

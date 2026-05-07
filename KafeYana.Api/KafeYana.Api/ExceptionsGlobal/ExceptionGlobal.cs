@@ -170,7 +170,7 @@ namespace KafeYana.Application.Exceptions
                 "fx_pedido_mesa" => "Mesa seleccionada no existe",
                 "fx_pedido_cliente" => "Cliente seleccionado no existe",
                 "fx_producto_movimientos" => "Producto no encontrado para registrar el Movimineto",
-
+                "fx_insumo_movimiento" => "Insumo no encontrado pára registrar el movimiento",
                 _ => "El registro relacionado no existe."
             };
         }

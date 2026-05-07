@@ -5,12 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KafeYana.Domain.TiposDeDatos
+namespace KafeYana.Application.IRepositorio
 {
-    public enum TipoMovimientos
+    public interface IInsumoMovimientoRepositorio : IGenericRepositorio<InsumoMovimiento>
     {
-        Ajuste,
-        Venta,
-        Receta
     }
 }

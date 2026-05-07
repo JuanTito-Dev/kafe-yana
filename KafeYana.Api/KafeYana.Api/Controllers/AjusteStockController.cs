@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Drawing;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace KafeYana.Api.Controllers
 {
@@ -51,32 +52,19 @@ namespace KafeYana.Api.Controllers
 
             var nombre = User.Identity?.Name;
 
-            if (Insumo is null) return BadRequest("Inusmo no encontrado");
+            if (Insumo is null) return NotFound("Inusmo no encontrado");
 
-            if (nombre == null) return BadRequest("Usuario no encontrado");
+            if (nombre == null) return NotFound("Usuario no encontrado");
 
             if (datos.Cantidad > Insumo.Stock_actual && !entrada) return BadRequest(new { message = "No puedes quitar mas insumos del que tienes" });
 
-            var AjusteInfo = new Stock_Ajuste
-            {
-                Nombre = Insumo.Nombre,
-                Tipo = "Insumo",
-                Usuario = nombre,
-                Perdida = 0
-            };
+            var (ajuste, Movimiento) = entrada ?
+                Insumo.AjusteEntrada(nombre, datos.Cantidad, datos.Nota, datos.Motivo)
+                : Insumo.AjusteEntrada(nombre, datos.Cantidad, datos.Nota, datos.Motivo);
 
-            AjusteInfo.StockAnterior = Insumo.Stock_actual;
-            Insumo.Stock_actual += entrada ? datos.Cantidad : (datos.Cantidad * -1);
-            AjusteInfo.StockNuevo = Insumo.Stock_actual;
-            AjusteInfo.Ajuste = AjusteInfo.StockNuevo - AjusteInfo.StockAnterior;
+            await _db.ajustes.Crear(ajuste);
 
-            if (!entrada) AjusteInfo.Perdida = Insumo.Costo * datos.Cantidad;
-
-            AjusteInfo.Nota = datos.Nota;
-            AjusteInfo.Motivo = datos.Motivo;
-            AjusteInfo.Fecha = DateTime.UtcNow;
-
-            await _db.ajustes.Crear(AjusteInfo);
+            await _db.Insumomovientos.Crear(Movimiento);
 
             await _db.SaveUnitWork();
 
@@ -109,7 +97,7 @@ namespace KafeYana.Api.Controllers
             if (entrada)
             {
                 // entrada: descuenta porciones completas
-                var costo = RestarInsumo(receta, datos.Cantidad * receta.Porciones);
+                var costo = await RestarInsumo(receta, datos.Cantidad * receta.Porciones, elaborado.Producto.Nombre);
                 var movimiento = elaborado.AjusteEntrada(datos.Cantidad, receta.Porciones, ajusteInfo, costo);
                 await _db.movimientos.Crear(movimiento);
 
@@ -120,9 +108,9 @@ namespace KafeYana.Api.Controllers
                 if (datos.Cantidad > elaborado.Stock_actual)
                     return BadRequest(new { message = "No puedes quitar más productos de los que tienes" });
 
-                var precio = elaborado.Producto.Precio / receta.Porciones;
+                var precio = elaborado.Producto.Precio;
 
-                ajusteInfo.Perdida = precio;
+                ajusteInfo.Perdida = precio * datos.Cantidad;
 
                 var movimiento = elaborado.AjusteSalida(datos.Cantidad , precio , ajusteInfo);
 
@@ -130,12 +118,7 @@ namespace KafeYana.Api.Controllers
             }
             else
             {
-                
-                if (receta is null)
-                    return NotFound(new { message = "No se encontró receta para este producto" });
-
-                // salida: datos.Cantidad ya son porciones directamente
-                var costo = RestarInsumo(receta, datos.Cantidad);
+                var costo = await RestarInsumo(receta, datos.Cantidad, elaborado.Producto.Nombre);
                 ajusteInfo.Perdida = costo;
                 ajusteInfo.Ajuste = - datos.Cantidad;
                 ajusteInfo.StockNuevo = ajusteInfo.StockAnterior - elaborado.Stock_actual;
@@ -149,9 +132,10 @@ namespace KafeYana.Api.Controllers
             return Ok(new { message = "Ajuste registrado" });
         }
 
-        private decimal RestarInsumo(Receta receta, int porciones)
+        private async Task<decimal> RestarInsumo(Receta receta, int porciones, string Nombre)
         {
             var costo = 0.00M;
+
             foreach (var detalle in receta.Detalles)
             {
                 // cantidad proporcional a las porciones que se van a usar
@@ -162,9 +146,13 @@ namespace KafeYana.Api.Controllers
                 costo += (cantidadFinal * detalle.Insumo.Costo) / factor;
 
                 var resta = (int)cantidadFinal;
-                detalle.Insumo.Stock_actual -= detalle.Insumo.Stock_actual <= resta
+                var cantidad = detalle.Insumo.Stock_actual <= resta
                     ? detalle.Insumo.Stock_actual
                     : resta;
+
+                var movimeinto = detalle.Insumo.AjusteDescuentoporreceta(cantidad, Nombre);
+
+                await _db.Insumomovientos.Crear(movimeinto);
             }
             return costo;
         }
