@@ -37,7 +37,7 @@ namespace KafeYana.Domain.Entities.Inventario
             ajuste.Perdida = 0;
             string Referencia = $"AJU-{ajuste.Fecha:yyyy-MM-dd}";
 
-            var movimiento = this.Producto.Movimiento(Cantidad, TipoMovimientos.Ajuste.ToString(), Referencia, Stock_actual, costo);
+            var movimiento = this.Producto.Movimiento(Cantidad * Porciones, TipoMovimientos.Ajuste.ToString(), Referencia, Stock_actual, costo / Porciones);
 
             return movimiento;
         }

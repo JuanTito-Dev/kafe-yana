@@ -38,6 +38,8 @@ namespace KafeYana.Application.IRepositorio
 
         IProductoMovimientoRepositorio movimientos { get; }
 
+        IInsumoMovimientoRepositorio Insumomovientos { get; }
+
         Task<int> SaveUnitWork();
     }
 }

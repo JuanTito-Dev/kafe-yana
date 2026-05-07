@@ -5,6 +5,7 @@ using KafeYana.Application.Exceptions;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Application.IServicios;
 using KafeYana.Core.Entities.Entity;
+using KafeYana.Domain.Entities.Inventario;
 using KafeYana.Domain.TiposDeDatos;
 using KafeYana.Infrastructure.Data;
 using KafeYana.Infrastructure.Data.Repositorio;
@@ -133,6 +134,7 @@ builder.Services.AddGraphQLServer()
     .AddTypeExtension<MesaQuery>()
     .AddTypeExtension<VentaQuery>()
     .AddTypeExtension<ProductoMovimientosQuery>()
+    .AddTypeExtension<InsumoMovimientosQuery>()
     .AddType<AjusteType>()
     .AddType<CategoriaType>()
     .AddType<ClienteType>()
@@ -154,6 +156,7 @@ builder.Services.AddGraphQLServer()
     .AddType<DetalleVentaType>()
     .AddType<CategoriaForProductosType>()
     .AddType<ProductoMovientosType>()
+    .AddType<InsumoMovimientoType>()
     .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = true)
     .AddFiltering()
     .AddProjections()
@@ -189,6 +192,7 @@ builder.Services.AddScoped<IProveedorRepositorio, ProveedorRepositorio>();
 builder.Services.AddScoped<IDetalle_RondaRepositorio, Detalle_RondaRepositorio>();
 builder.Services.AddScoped<Detalle_RondaService>();
 builder.Services.AddScoped<IProductoMovimientoRepositorio, ProductoMovimientoRepositorio>();
+builder.Services.AddScoped<IInsumoMovimientoRepositorio, InsumoMovimientoRepositorio>();
 
 builder.Services.AddEndpointsApiExplorer();
 
