@@ -7,8 +7,6 @@ namespace KafeYana.Domain.Entities.Inventario
     {
         public int Id_Ronda { get; set; }
 
-        public required int Id_Producto { get; set; }
-
         public required string Nombre_Producto { get; set; }
 
         public required int Cantidad { get; set; }
@@ -16,9 +14,5 @@ namespace KafeYana.Domain.Entities.Inventario
         public decimal Precio { get; set; } = 0.00M;
 
         public Ronda? ronda { get; set; }
-    
-        public Producto? producto { get; set; }
-
-        public List<Detalle_Ronda_Opcion> Opciones { get; set; } = new List<Detalle_Ronda_Opcion>();
     }
 }

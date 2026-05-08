@@ -2,11 +2,6 @@
 using KafeYana.Domain.Entities.Inventario;
 using KafeYana.Domain.TiposDeDatos;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace KafeYana.Infrastructure.Data.Repositorio
 {
@@ -36,6 +31,23 @@ namespace KafeYana.Infrastructure.Data.Repositorio
         public IQueryable<Promocion> GetCombos()
         {
             return _db.Promociones.AsNoTracking().AsSplitQuery().AsQueryable();
+        }
+
+        public async Task<Promocion?> TraerPromocionCompleta(int Id)
+        {
+            return await _db.Promociones
+                .AsSplitQuery()
+                .Include(x => x.Producto)
+                .Include(x => x.Detalles)
+                    .ThenInclude(x => x.Producto)
+                        .ThenInclude(x => x.Comprado)
+                .Include(x => x.Detalles)
+                    .ThenInclude(x => x.Producto)
+                        .ThenInclude(x => x.Elaborado)
+                            .ThenInclude(x => x.Receta!)
+                                .ThenInclude(x => x.Detalles)
+                                    .ThenInclude(x => x.Insumo)
+                .FirstOrDefaultAsync(x => x.Producto_Id == Id);
         }
     }
 }

@@ -138,12 +138,19 @@ namespace KafeYana.Api.Controllers
 
             // Agregar ronda al pedido de la mesa
             await _db.rondas.Crear(ronda);
+
             mesa.pedido.Total += ronda.SubTotal;
 
             // Guardar cambios
             await _db.SaveUnitWork();
 
-            return Ok(new { message = "Ronda agregada correctamente", ronda = new { ronda.Id, ronda.Ronda_Descripcion, ronda.SubTotal, detalles = ronda.Detalle.Count } });
+            return Ok(new { message = "Ronda agregada correctamente", 
+                ronda = new { 
+                    ronda.Id, 
+                    ronda.Ronda_Descripcion, 
+                    ronda.SubTotal, 
+                    detalles = ronda.Detalle.Count 
+            } });
 
         }
 

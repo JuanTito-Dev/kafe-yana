@@ -60,8 +60,6 @@ namespace KafeYana.Infrastructure.Data
 
         public DbSet<Detalle_ronda> Detalle_Rondas { get; set; }
 
-        public DbSet<Detalle_Ronda_Opcion> Detalle_Rondas_Opciones { get; set; }
-
         public DbSet<ProductoMovimiento> Movimientos_Producto { get; set; }
 
         public DbSet<InsumoMovimiento> InsumoMovimientos {  get; set; }
@@ -113,8 +111,6 @@ namespace KafeYana.Infrastructure.Data
             builder.ApplyConfigurationsFromAssembly(typeof(ProveedorConfig).Assembly);
 
             builder.ApplyConfigurationsFromAssembly(typeof(Detalle_RondaConfig).Assembly);
-
-            builder.ApplyConfigurationsFromAssembly(typeof(Detalle_Ronda_OpcionConfig).Assembly);
 
             builder.ApplyConfigurationsFromAssembly(typeof(ProductoMovimientoConfig).Assembly);
 

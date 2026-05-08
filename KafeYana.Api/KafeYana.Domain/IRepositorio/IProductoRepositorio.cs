@@ -19,6 +19,8 @@ namespace KafeYana.Application.IRepositorio
 
         public Task<Producto?> GetComprado(int Id);
 
+        Task<string?> TraerTipoProducto(int Id);
+
         public Task<Comprado?> GetCompradowithproducto(int id);
 
     }

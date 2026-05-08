@@ -8,72 +8,55 @@ using System.Linq;
 using System.Threading.Tasks;
 using KafeYana.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using KafeYana.Domain.TiposDeDatos;
 
 namespace KafeYana.Infrastructure.Servicios
 {
     public class Detalle_RondaService
     {
         private readonly IUnitWork _unitWork;
-        private readonly AppDbContext _db;
 
         public Detalle_RondaService(IUnitWork unitWork, AppDbContext db)
         {
             _unitWork = unitWork;
-            _db = db;
         }
 
         public async Task<Ronda> CrearRondaConDetallesAsync(int idPedido, List<DtoRondadetalle> detallesDto)
         {
             var listaDetalles = new List<Detalle_ronda>();
             var subtotal = 0.00M;
+            var numeroRonda = await _unitWork.rondas.Count(x => x.Id_Pedido == idPedido) + 1;
+            var referencia = $"PED-{numeroRonda}-{DateTime.UtcNow:yyyyMMdd}";
 
 
-            foreach (var i in detallesDto)
+
+            foreach (var item in detallesDto)
             {
-                var opcionesPorDetalle = new List<Detalle_Ronda_Opcion>();
-                var producto = await _unitWork.productos.FindByIdAsync(i.Id_Producto);
-                if (producto is null)
-                    throw new DetalleRondaException($"El producto con ID {i.Id_Producto} no existe.");
 
-                var precioAjuste = 0.00M;
+                var tipo = await _unitWork.productos.TraerTipoProducto(item.Id_Producto);
 
-                if (i.Ids_Opcion != null && i.Ids_Opcion.Count > 0)
+                if (tipo is null)
+                    throw new DetalleRondaException($"El producto con ID {item.Id_Producto} no existe.");
+
+                Detalle_ronda detalle = tipo switch
                 {
-                    foreach (var idOpcion in i.Ids_Opcion)
-                    {
-                        bool opcionValida = await _unitWork.opciones.Opciondeproducto(i.Id_Producto, idOpcion);
-                        if (!opcionValida)
-                            throw new OpcionProductoException($"La opción {idOpcion} no pertenece al producto {i.Id_Producto}.");
+                    TiposProductos.Comprado => await ProcesarComprado(item.Id_Producto, item.Cantidad, referencia),
+                    TiposProductos.Elaborado => await ProcesarElaborado(item.Id_Producto, item.Cantidad, item.Ids_Opcion ?? new List<int>(), referencia),
+                    TiposProductos.Promocion => await ProcesarCombo(item.Id_Producto, item.Cantidad, referencia),
 
-                        var opcion = await _unitWork.opciones.FindByIdAsync(idOpcion);
-                        if (opcion is null)
-                            throw new OpcionProductoException($"La opción con ID {idOpcion} no existe.");
-
-                        precioAjuste += opcion.AjustePrecio;
-
-                        var detalleopcion = new Detalle_Ronda_Opcion(idOpcion, producto.Precio.ToString(), opcion.AjustePrecio);
-                        opcionesPorDetalle.Add(detalleopcion);
-                    }
-                }
-
-                var detalle = new Detalle_ronda
-                {
-                    Id_Producto = producto.Id,
-                    Nombre_Producto = producto.Nombre,
-                    Cantidad = i.Cantidad,
-                    Precio = producto.Precio + precioAjuste,
-                    Opciones = opcionesPorDetalle
-
+                    _ => throw new DetalleRondaException($"Tipo de producto desconocido: {tipo}")
                 };
 
+
                 subtotal += detalle.Precio * detalle.Cantidad;
+
                 listaDetalles.Add(detalle);
             }
 
             if (listaDetalles.Count == 0)
                 throw new DetalleRondaException("No se han agregado productos a la ronda.");
 
-            var numeroRonda = await _unitWork.rondas.Count(x => x.Id_Pedido == idPedido) + 1;
+           
 
             var ronda = new Ronda
             {
@@ -84,6 +67,239 @@ namespace KafeYana.Infrastructure.Servicios
             };
 
             return ronda;
+        }
+
+        private async Task<Detalle_ronda> ProcesarComprado(int idProducto, int cantidad, string referencia)
+        {
+            var producto = await _unitWork.productos.TraerProducto(idProducto, comprado: true);
+
+            if (producto?.Comprado is null)
+                throw new DetalleRondaException($"Producto comprado no encontrado: {idProducto}");
+
+            if (producto.Comprado.Stock_actual < cantidad)
+                throw new DetalleRondaException($"Stock insuficiente para {producto.Nombre}. Disponible: {producto.Comprado.Stock_actual}, Solicitado: {cantidad}");
+
+            var movimiento = producto.Comprado.Venta(cantidad, referencia);
+            await _unitWork.movimientos.Crear(movimiento);
+
+            return new Detalle_ronda
+            {
+                Nombre_Producto = producto.Nombre,
+                Cantidad = cantidad,
+                Precio = producto.Precio
+            };
+        }
+
+        private async Task<Detalle_ronda> ProcesarElaborado(int idProducto, int cantidad, List<int> idsOpciones, string referencia)
+        {
+            var elaborado = await _unitWork.elaborados.TraerElaborado(idProducto, withreceta: true);
+
+            if (elaborado is null)
+                throw new DetalleRondaException($"Elaborado no encontrado: {idProducto}");
+
+            if (elaborado.Producible)
+            {
+                if (elaborado.Receta is not null)
+                {
+                    if (elaborado.Stock_actual < cantidad)
+                        throw new DetalleRondaException($"Stock insuficiente para {elaborado.Producto.Nombre}. Disponible: {elaborado.Stock_actual}, Solicitado: {cantidad}");
+
+                    var movimiento = elaborado.Venta(cantidad, referencia, 0.00M);
+                    await _unitWork.movimientos.Crear(movimiento);
+                }
+
+                return new Detalle_ronda
+                {
+                    Nombre_Producto = elaborado.Producto.Nombre,
+                    Cantidad = cantidad,
+                    Precio = elaborado.Producto.Precio
+                };
+            }
+
+            return await ProcesarNoProducible(idProducto, cantidad, idsOpciones, referencia, elaborado);
+        }
+
+        private async Task<Detalle_ronda> ProcesarNoProducible(int idProducto, int cantidad, List<int> idsOpciones, string referencia, Elaborado elaborado)
+        {
+            var precioAjuste = 0.00M;
+            var nombresOpciones = new List<string>();
+            var opcionesEntity = new List<Opcion>();
+
+            if (idsOpciones.Count > 0)
+            {
+                // Validar que todas las opciones pertenecen al producto
+                foreach (var idOpcion in idsOpciones)
+                {
+                    var valida = await _unitWork.opciones.Opciondeproducto(idProducto, idOpcion);
+                    if (!valida)
+                        throw new DetalleRondaException($"La opción {idOpcion} no pertenece al producto {idProducto}.");
+                }
+
+                opcionesEntity = await _unitWork.opciones.GetOpcionesByIds(idsOpciones);
+
+                foreach (var opcion in opcionesEntity)
+                {
+                    precioAjuste += opcion.AjustePrecio;
+                    nombresOpciones.Add(opcion.Nombre);
+                }
+            }
+
+            // Si no tiene receta solo guardamos
+            if (elaborado.Receta is null)
+            {
+                return new Detalle_ronda
+                {
+                    Nombre_Producto = elaborado.Producto.Nombre,
+                    Cantidad = cantidad,
+                    Precio = elaborado.Producto.Precio + precioAjuste
+                };
+            }
+
+            // Insumos a omitir por reemplazo
+            var insumosOmitidos = opcionesEntity
+                .SelectMany(x => x.Ajustes)
+                .Where(x => x.TipoAjuste == TiposAjuste.Reemplazo)
+                .Select(x => x.Id_Insumo)
+                .ToHashSet();
+
+            var costo = 0.00M;
+
+            // Descontar insumos base
+            foreach (var detalleReceta in elaborado.Receta.Detalles)
+            {
+                if (insumosOmitidos.Contains(detalleReceta.Id_insumo))
+                    continue;
+
+                var cantidadPorPorcion = detalleReceta.Cantidad / elaborado.Receta.Porciones;
+                var cantidadFinal = cantidadPorPorcion * cantidad * (1 + detalleReceta.Merma / 100);
+
+                // Aplicar modificaciones
+                var totalModificaciones = opcionesEntity
+                    .SelectMany(x => x.Ajustes)
+                    .Where(x => x.Id_Insumo == detalleReceta.Id_insumo && x.TipoAjuste == TiposAjuste.Modificacion)
+                    .Sum(x => x.Cantidad);
+
+                cantidadFinal += (totalModificaciones / elaborado.Receta.Porciones) * cantidad;
+
+                if (detalleReceta.Insumo.Stock_actual < (int)cantidadFinal)
+                    throw new DetalleRondaException($"Stock insuficiente para insumo {detalleReceta.Insumo.Nombre}. Disponible: {detalleReceta.Insumo.Stock_actual}, Solicitado: {(int)cantidadFinal}");
+
+                var factor = detalleReceta.Insumo.Factor_conversion > 0 ? detalleReceta.Insumo.Factor_conversion : 1;
+                costo += (cantidadFinal * detalleReceta.Insumo.Costo) / factor;
+
+                var movimiento = detalleReceta.Insumo.AjusteVenta(referencia, (int)cantidadFinal);
+                await _unitWork.Insumomovientos.Crear(movimiento);
+            }
+
+            // Descontar insumos de reemplazos
+            var reemplazos = opcionesEntity
+                .SelectMany(x => x.Ajustes)
+                .Where(x => x.TipoAjuste == TiposAjuste.Reemplazo)
+                .GroupBy(x => x.Id_InsumoNuevo)
+                .ToList();
+
+            foreach (var grupo in reemplazos)
+            {
+                var cantidadReemplazo = (grupo.Sum(x => x.Cantidad) / elaborado.Receta.Porciones) * cantidad;
+                var insumoNuevo = grupo.First().InsumoNuevo;
+
+                if (insumoNuevo.Stock_actual < (int)cantidadReemplazo)
+                    throw new DetalleRondaException($"Stock insuficiente para insumo {insumoNuevo.Nombre}. Disponible: {insumoNuevo.Stock_actual}, Solicitado: {(int)cantidadReemplazo}");
+
+                var factorNuevo = insumoNuevo.Factor_conversion > 0 ? insumoNuevo.Factor_conversion : 1;
+                costo += (cantidadReemplazo * insumoNuevo.Costo) / factorNuevo;
+
+                var movimiento = insumoNuevo.AjusteVenta(referencia, (int)cantidadReemplazo);
+                await _unitWork.Insumomovientos.Crear(movimiento);
+            }
+
+            var nombre = nombresOpciones.Count > 0
+                ? $"{elaborado.Producto.Nombre} ({string.Join(", ", nombresOpciones)})"
+                : elaborado.Producto.Nombre;
+
+            return new Detalle_ronda
+            {
+                Nombre_Producto = nombre,
+                Cantidad = cantidad,
+                Precio = elaborado.Producto.Precio + precioAjuste
+            };
+        }
+
+        private async Task<Detalle_ronda> ProcesarCombo(int idProducto, int cantidad, string referencia)
+        {
+            var combo = await _unitWork.Combo.TraerPromocionCompleta(idProducto);
+
+            if (combo is null)
+                throw new DetalleRondaException($"Combo no encontrado: {idProducto}");
+
+            if (combo.Producto is null)
+                throw new DetalleRondaException($"Producto del combo no encontrado: {idProducto}");
+
+            foreach (var detalle in combo.Detalles)
+            {
+                if (detalle.Producto is null)
+                    throw new DetalleRondaException($"Producto no encontrado en combo {idProducto}");
+
+                var cantidadTotal = detalle.Cantidad * cantidad;
+                var referenciaCombo = $"{referencia}-{detalle.Producto.Nombre}";
+
+                switch (detalle.Producto.Tipo)
+                {
+                    case TiposProductos.Comprado:
+                        var comprado = detalle.Producto.Comprado;
+                        if (comprado is null)
+                            throw new DetalleRondaException($"Producto comprado no encontrado en combo: {detalle.Id_Producto}");
+
+                        if (comprado.Stock_actual < cantidadTotal)
+                            throw new DetalleRondaException($"Stock insuficiente para {detalle.Producto.Nombre}. Disponible: {comprado.Stock_actual}, Solicitado: {cantidadTotal}");
+
+                        var movimientoComprado = comprado.Venta(cantidadTotal, referenciaCombo);
+                        await _unitWork.movimientos.Crear(movimientoComprado);
+                        break;
+
+                    case TiposProductos.Elaborado:
+                        var elaborado = detalle.Producto.Elaborado;
+                        if (elaborado is null)
+                            throw new DetalleRondaException($"Elaborado no encontrado en combo: {detalle.Id_Producto}");
+
+                        if (elaborado.Producible)
+                        {
+                            if (elaborado.Receta is not null)
+                            {
+                                if (elaborado.Stock_actual < cantidadTotal)
+                                    throw new DetalleRondaException($"Stock insuficiente para {detalle.Producto.Nombre}. Disponible: {elaborado.Stock_actual}, Solicitado: {cantidadTotal}");
+
+                                var movimientoElaborado = elaborado.Venta(cantidadTotal, referenciaCombo, 0.00M);
+                                await _unitWork.movimientos.Crear(movimientoElaborado);
+                            }
+                        }
+                        else
+                        {
+                            if (elaborado.Receta is not null)
+                            {
+                                foreach (var detalleReceta in elaborado.Receta.Detalles)
+                                {
+                                    var cantidadPorPorcion = detalleReceta.Cantidad / elaborado.Receta.Porciones;
+                                    var cantidadFinal = cantidadPorPorcion * cantidadTotal * (1 + detalleReceta.Merma / 100);
+
+                                    if (detalleReceta.Insumo.Stock_actual < (int)cantidadFinal)
+                                        throw new DetalleRondaException($"Stock insuficiente para insumo {detalleReceta.Insumo.Nombre}. Disponible: {detalleReceta.Insumo.Stock_actual}, Solicitado: {(int)cantidadFinal}");
+
+                                    var movimientoInsumo = detalleReceta.Insumo.AjusteVenta(referenciaCombo, (int)cantidadFinal);
+                                    await _unitWork.Insumomovientos.Crear(movimientoInsumo);
+                                }
+                            }
+                        }
+                        break;
+                }
+            }
+
+            return new Detalle_ronda
+            {
+                Nombre_Producto = combo.Producto.Nombre,
+                Cantidad = cantidad,
+                Precio = combo.Producto.Precio
+            };
         }
     }
 }

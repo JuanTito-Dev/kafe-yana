@@ -14,5 +14,7 @@ namespace KafeYana.Application.IRepositorio
         IQueryable<Promocion> GetCombos();
 
         Task<Promocion?> TraerPromocion(int Id);
+
+        Task<Promocion?> TraerPromocionCompleta(int Id);
     }
 }
