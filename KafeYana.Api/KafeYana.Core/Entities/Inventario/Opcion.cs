@@ -22,7 +22,5 @@ namespace KafeYana.Domain.Entities.Inventario
         public Variacion Variacion { get; set; }
 
         public ICollection<Ajuste> Ajustes { get; set; } = new List<Ajuste>();
-
-        public List<Detalle_Ronda_Opcion> Detalle_Ronda_Opcions { get; set; } = new List<Detalle_Ronda_Opcion>();
     }
 }

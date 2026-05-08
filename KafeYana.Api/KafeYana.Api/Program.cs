@@ -157,7 +157,12 @@ builder.Services.AddGraphQLServer()
     .AddType<CategoriaForProductosType>()
     .AddType<ProductoMovientosType>()
     .AddType<InsumoMovimientoType>()
-    .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = true)
+    .ModifyRequestOptions(opt => 
+    { 
+        opt.IncludeExceptionDetails = true;
+
+    })
+    .ModifyCostOptions(o => o.EnforceCostLimits = false)
     .AddFiltering()
     .AddProjections()
     .AddSorting()

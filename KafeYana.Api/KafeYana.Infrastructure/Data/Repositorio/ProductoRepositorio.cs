@@ -38,6 +38,14 @@ namespace KafeYana.Infrastructure.Data.Repositorio
             return comprado;
         }
 
+        public async Task<string?> TraerTipoProducto(int Id)
+        {
+            return await _db.Productos
+                .Where(x => x.Id == Id)
+                .Select(x => x.Tipo)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<IReadOnlyList<Producto>> GetProductos(string? tipo = null, string? categoria = null, string? Nombre = null)
         {
             var query = _db.Productos

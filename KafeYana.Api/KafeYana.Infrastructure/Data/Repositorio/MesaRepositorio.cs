@@ -24,17 +24,6 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                 .Include(x => x.pedido)
                     .ThenInclude(p => p.Rondas)
                         .ThenInclude(r => r.Detalle)
-                            .ThenInclude(d => d.Opciones)
-                                .ThenInclude(o => o.Opcion)
-                                    .ThenInclude(op => op.Ajustes)
-                                        .ThenInclude(a => a.InsumoBase)
-                .Include(x => x.pedido)
-                    .ThenInclude(p => p.Rondas)
-                        .ThenInclude(r => r.Detalle)
-                            .ThenInclude(d => d.Opciones)
-                                .ThenInclude(o => o.Opcion)
-                                    .ThenInclude(op => op.Ajustes)
-                                        .ThenInclude(a => a.InsumoNuevo)
                 .AsQueryable();
         }
 
