@@ -20,7 +20,11 @@ namespace KafeYana.Domain.Entities
 
         public required int Productos { get; set; } = 0;
 
-        public required string Pago {  get; set; }
+        public decimal PagoEfectivo { get; set; } = 0;
+
+        public decimal PagoTarjeta { get; set; } = 0;
+
+        public decimal PagoQr { get; set; } = 0;
 
         public required string Estado {  get; set; }
 
@@ -29,5 +33,12 @@ namespace KafeYana.Domain.Entities
         public required decimal Total { get; set; }
 
         public List<Detalle_venta> Detalles { get; set; } = new List<Detalle_venta>();
+
+        public CajaMovimiento Reembolso(Caja caja, decimal monto, string nota)
+        {
+
+            Estado = "Reembolsado";
+            return caja.CajaEgresos(monto, "Reembolso", nota, Codigo, $"Venta {Codigo}");
+        }
     }
 }

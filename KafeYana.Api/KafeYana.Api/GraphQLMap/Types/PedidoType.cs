@@ -7,6 +7,8 @@ namespace KafeYana.Api.GraphQLMap.Types
     {
         protected override void Configure(IObjectTypeDescriptor<Pedido> descriptor)
         {
+            descriptor.Field(x => x.Mesa).Ignore();
+            descriptor.Field(x => x.ParaLlevar).Ignore();
             descriptor.Field(p => p.Cliente).Type<ClienteType>();
             descriptor.Field(p => p.Rondas).Type<ListType<RondaType>>();
         }

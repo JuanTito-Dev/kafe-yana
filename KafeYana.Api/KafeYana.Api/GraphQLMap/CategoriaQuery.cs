@@ -3,6 +3,7 @@ using KafeYana.Api.GraphQLMap.Types;
 using KafeYana.Application.Dtos.Categoria;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Core.Entities.Inventario;
+using KafeYana.Domain.TiposDeDatos;
 using KafeYana.Infrastructure.Data;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,7 @@ namespace KafeYana.Api.GraphQLMap
         [UseProjection]
         [UseFiltering]   // 👈 filtering antes
         [UseSorting]     // 👈 sorting después
-        [Authorize(Roles = new[] { "Admin" })]
+        [Authorize(Roles = new[] { RolesKafe.Admin, RolesKafe.Mesero, RolesKafe.Cajero })]
         [GraphQLType(typeof(ListType<CategoriaType>))]
         public IQueryable<Categoria> Categorias([Service] ICategoriaRepositorio _db)
         {

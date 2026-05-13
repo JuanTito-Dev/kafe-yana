@@ -15,7 +15,7 @@ namespace KafeYana.Infrastructure.Servicios
 {
     public class VentaServices(IUnitWork _db) : IVentaServices
     {
-        public async Task<Venta> ProcesarVenta(int Id_Pedido, int Id_Cliente, string cajero, string tipoPago)
+        public async Task<Venta> ProcesarVenta(int Id_Pedido, int Id_Cliente, string cajero, DtoPagos pagos)
         {
             var pedido = await _db.Pedidos.TraerPedido(Id_Pedido);
             if (pedido is null)
@@ -65,7 +65,9 @@ namespace KafeYana.Infrastructure.Servicios
                 Cliente = cliente!.Nombre,
                 Cajero = cajero,
                 Productos = productosCount,
-                Pago = tipoPago,
+                PagoEfectivo = pagos.Efectivo,
+                PagoTarjeta = pagos.Tarjeta,
+                PagoQr = pagos.Qr,
                 Estado = "Finalizada",
                 Subtotal = subtotal,
                 Total = subtotal,

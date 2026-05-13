@@ -18,8 +18,8 @@ namespace KafeYana.Core.Entities.Entity
         {
             return new Usuario
             {
-                Email = email,
-                UserName = email,
+                Email = email.ToLower(),
+                UserName = email.ToLower(),
                 Nombre = nombre,
                 Apellido = Apellido,
                 PhoneNumber = Numero

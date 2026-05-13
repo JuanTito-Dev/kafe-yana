@@ -1,4 +1,5 @@
-﻿using KafeYana.Application.IRepositorio;
+﻿using KafeYana.Application.Exceptions.Usuarios;
+using KafeYana.Application.IRepositorio;
 using KafeYana.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;

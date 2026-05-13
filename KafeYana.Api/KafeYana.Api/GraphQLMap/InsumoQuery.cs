@@ -1,6 +1,7 @@
 ﻿using HotChocolate.Authorization;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Domain.Entities.Inventario;
+using KafeYana.Domain.TiposDeDatos;
 
 namespace KafeYana.Api.GraphQLMap
 {
@@ -11,7 +12,7 @@ namespace KafeYana.Api.GraphQLMap
         [UseProjection]
         [UseSorting]
         [UseFiltering]
-        [Authorize(Roles = new[] { "Admin" })]
+        [Authorize(Roles = new[] { RolesKafe.Admin, RolesKafe.Mesero, RolesKafe.Cajero })]
         public IQueryable<Insumo> Insumos([Service] IInsumoRepositorio _db)
         {
             return _db.GetInsumos();

@@ -40,6 +40,17 @@ namespace KafeYana.Application.IRepositorio
 
         IInsumoMovimientoRepositorio Insumomovientos { get; }
 
+        IParaLlevarRepositorio parallevar {  get; }
+
+        ICajaRepositorio cajas { get;  }
+
+        public ICajaMovimientoRepositorio cajamovimientos { get; }
+
+        ICajaHistorialRepositorio cajahistorial {  get; }
+
+        IProveedorRepositorio proveedores { get; }
+
+        public IOrdenCompraRepositorio ordenes { get;  }
         Task<int> SaveUnitWork();
     }
 }

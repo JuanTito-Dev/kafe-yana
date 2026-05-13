@@ -1,4 +1,5 @@
-﻿using KafeYana.Application.Dtos.MesaDtos;
+﻿using KafeYana.Api.Filters;
+using KafeYana.Application.Dtos.MesaDtos;
 using KafeYana.Application.Dtos.PedidoDtos;
 using KafeYana.Application.Dtos.VentaDtos;
 using KafeYana.Application.Exceptions;
@@ -17,7 +18,7 @@ namespace KafeYana.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = RolesKafe.Admin)]
+    [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}, {RolesKafe.Mesero}")]
     public class MesaController(IMesaRepositorio _Mesa, IUnitWork _db, IVentaServices _venta, Detalle_RondaService _detalleRondaService) : ControllerBase
     {
         [HttpPost]
@@ -58,6 +59,8 @@ namespace KafeYana.Api.Controllers
 
             if (mesadb is null) return NotFound(new { message = "Mesa no existe" });
 
+            if (mesadb.Id_Pedido is not null) return BadRequest("No puedes eliminar esta mesa hasta terminar el pedido"); 
+
             await _Mesa.Remove(mesadb);
 
             await _Mesa.SaveAsync();
@@ -66,6 +69,7 @@ namespace KafeYana.Api.Controllers
         }
 
         [HttpPost("Ocupar/{Id:int}")]
+        [ServiceFilter(typeof(CajaAbiertaFilter))]
         public async Task<ActionResult<DtoMesaRespuesta>> Iniciar(int Id, DtoniciarMesa datos)
         {
             var mesa = await _db.mesas.FindByIdAsync(Id);
@@ -115,6 +119,7 @@ namespace KafeYana.Api.Controllers
         }
 
         [HttpPost("ronda/{Id:int}")]
+        [ServiceFilter(typeof(CajaAbiertaFilter))]
         public async Task<IActionResult> AgregarRonda(int Id, DtoRondaAgregar datos)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -155,6 +160,7 @@ namespace KafeYana.Api.Controllers
         }
 
         [HttpPost("cobrar/{Id:int}")]
+        [ServiceFilter(typeof(CajaAbiertaFilter))]
         public async Task<IActionResult> Cobrar(int Id, DtoVentaPedido datos)
         {
             if (!ModelState.IsValid) 
@@ -174,14 +180,25 @@ namespace KafeYana.Api.Controllers
             if (string.IsNullOrEmpty(nombreUsuario))
                 return Unauthorized(new { message = "Usuario no identificado" });
 
+            // Validar que el total de pagos coincide con el total del pedido
+            var pedido = await _db.Pedidos.FindByIdAsync(datos.Id_Pedido);
+            if (pedido is null)
+                return NotFound(new { message = "Pedido no encontrado" });
+
+            if (datos.Pagos.Total != pedido.Total)
+                return BadRequest(new { message = "El total de los pagos no coincide con el total del pedido." });
+
             // Procesar venta
-            var venta = await _venta.ProcesarVenta(datos.Id_Pedido, datos.Id_Cliente, nombreUsuario, datos.TipoPago.ToString());
+            var venta = await _venta.ProcesarVenta(datos.Id_Pedido, datos.Id_Cliente, nombreUsuario, datos.Pagos);
 
             // Guardar venta
             await _db.ventas.Crear(venta);
 
             // Liberar mesa
             mesa.Disponible = true;
+
+            var caja = (Caja)HttpContext.Items["Caja"]!;
+            caja.RegistrarVenta(datos.Pagos.Efectivo, datos.Pagos.Tarjeta, datos.Pagos.Qr);
 
             // Guardar todos los cambios (transaccional)
             await _db.SaveUnitWork();
@@ -192,5 +209,7 @@ namespace KafeYana.Api.Controllers
                 message = "Venta procesada correctamente",
             });
         }
+
+
     }
 }

@@ -60,9 +60,21 @@ namespace KafeYana.Infrastructure.Data
 
         public DbSet<Detalle_ronda> Detalle_Rondas { get; set; }
 
+        public DbSet<Detalle_Ronda_ComboItem> Detalle_Ronda_Combo_Items { get; set; }
+
         public DbSet<ProductoMovimiento> Movimientos_Producto { get; set; }
 
         public DbSet<InsumoMovimiento> InsumoMovimientos {  get; set; }
+
+        public DbSet<ParaLlevar> ParaLlevar {  get; set; }
+
+        public DbSet<Caja> Cajas { get; set; }
+
+        public DbSet<CajaMovimiento> CajaMovimientos { get; set; }
+
+        public DbSet<CajaHistorial> CajaHistorial {  get; set; }
+
+        public DbSet<CajaHistorialMovimiento> CajaHistorialMovimientos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -115,6 +127,16 @@ namespace KafeYana.Infrastructure.Data
             builder.ApplyConfigurationsFromAssembly(typeof(ProductoMovimientoConfig).Assembly);
 
             builder.ApplyConfigurationsFromAssembly(typeof(InsumoMovimientoConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(ParaLlevarConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CajaConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CajaMovimientoConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CajaHistorialConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CajaHistorialMovimientoConfig).Assembly);
         }
     }
 }

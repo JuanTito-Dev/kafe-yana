@@ -1,14 +1,15 @@
-using KafeYana.Application.IRepositorio;
 using KafeYana.Application.Exceptions;
+using KafeYana.Application.IRepositorio;
 using KafeYana.Domain.Dtos.Detalle_RondaDtos;
 using KafeYana.Domain.Dtos.RondaDtos;
+using KafeYana.Domain.Entities;
 using KafeYana.Domain.Entities.Inventario;
+using KafeYana.Domain.TiposDeDatos;
+using KafeYana.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using KafeYana.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
-using KafeYana.Domain.TiposDeDatos;
 
 namespace KafeYana.Infrastructure.Servicios
 {
@@ -47,6 +48,8 @@ namespace KafeYana.Infrastructure.Servicios
                     _ => throw new DetalleRondaException($"Tipo de producto desconocido: {tipo}")
                 };
 
+                detalle.Id_Producto = item.Id_Producto;
+                detalle.Nota = item.Nota ?? string.Empty;
 
                 subtotal += detalle.Precio * detalle.Cantidad;
 
@@ -217,11 +220,18 @@ namespace KafeYana.Infrastructure.Servicios
                 ? $"{elaborado.Producto.Nombre} ({string.Join(", ", nombresOpciones)})"
                 : elaborado.Producto.Nombre;
 
+            var movimientoElaborado = elaborado.Venta(cantidad, referencia, costo);
+            await _unitWork.movimientos.Crear(movimientoElaborado);
+
             return new Detalle_ronda
             {
                 Nombre_Producto = nombre,
                 Cantidad = cantidad,
-                Precio = elaborado.Producto.Precio + precioAjuste
+                Precio = elaborado.Producto.Precio + precioAjuste,
+                Opciones = opcionesEntity.Select(x => new Detalle_Ronda_Opcion
+                {
+                    Id_Opcion = x.Id
+                }).ToList()
             };
         }
 
@@ -292,13 +302,38 @@ namespace KafeYana.Infrastructure.Servicios
                         }
                         break;
                 }
+
+                var movimiento = combo.Venta(cantidad, referencia);
+                await _unitWork.movimientos.Crear(movimiento);
             }
+
+            var itemsCombo = combo.Detalles
+                .Where(d => d.Producto is not null)
+                .Select(d => new Detalle_Ronda_ComboItem
+                {
+                    Id_Producto = d.Producto!.Id,
+                    Nombre = d.Producto.Nombre,
+                    Cantidad = d.Cantidad * cantidad,
+                    Ubicacion = UbicacionDeProducto(d.Producto),
+                })
+                .ToList();
 
             return new Detalle_ronda
             {
                 Nombre_Producto = combo.Producto.Nombre,
                 Cantidad = cantidad,
-                Precio = combo.Producto.Precio
+                Precio = combo.Producto.Precio,
+                ItemsCombo = itemsCombo,
+            };
+        }
+
+        private static string UbicacionDeProducto(Producto producto)
+        {
+            return producto.Tipo switch
+            {
+                TiposProductos.Comprado => producto.Comprado?.Ubicacion ?? string.Empty,
+                TiposProductos.Elaborado => producto.Elaborado?.Ubicacion ?? string.Empty,
+                _ => string.Empty,
             };
         }
     }

@@ -113,5 +113,14 @@ namespace KafeYana.Domain.Entities.Inventario
 
             return Movimiento;
         }
+
+        [GraphQLIgnore]
+        public ProductoMovimiento Compra(string referencia, int cantidad, decimal precioUnitario)
+        {
+            Stock_actual += cantidad;
+            Costo_compra = precioUnitario;
+            var movimiento = Producto!.Movimiento(cantidad, TipoMovimientos.Compra.ToString(), referencia, Stock_actual, precioUnitario);
+            return movimiento;
+        }
     }
 }

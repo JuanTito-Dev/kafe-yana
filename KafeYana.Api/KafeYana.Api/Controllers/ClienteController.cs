@@ -12,11 +12,12 @@ namespace KafeYana.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    
     public class ClienteController(IClienteRespositorio _clientes) : ControllerBase
     {
 
         [HttpPost]
-        [Authorize (Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
+        [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
         public async Task<IActionResult> Crear(DtoClienteCU datos)
         {
             if(!ModelState.IsValid) return BadRequest(ModelState);
@@ -53,7 +54,7 @@ namespace KafeYana.Api.Controllers
         }
 
         [HttpDelete("{Id:int}")]
-        [Authorize(Roles = RolesKafe.Admin)]
+        [Authorize(Roles = $"{RolesKafe.Admin}")]
         public async Task<IActionResult> Delete(int Id)
         {
 

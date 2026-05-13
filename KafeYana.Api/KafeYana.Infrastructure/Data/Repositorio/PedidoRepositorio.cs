@@ -23,6 +23,10 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                 .AsSplitQuery()
                 .Include(x => x.Rondas)
                     .ThenInclude(x => x.Detalle)
+                        .ThenInclude(d => d.Producto)
+                .Include(x => x.Rondas)
+                    .ThenInclude(x => x.Detalle)
+                        .ThenInclude(d => d.ItemsCombo)
                 .Include(x => x.Cliente)
                 .FirstOrDefaultAsync(x => x.Id == Id);
         }

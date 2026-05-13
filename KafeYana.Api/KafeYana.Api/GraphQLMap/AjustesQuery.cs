@@ -1,6 +1,7 @@
 ﻿using HotChocolate.Authorization;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Domain.Entities.Inventario;
+using KafeYana.Domain.TiposDeDatos;
 using Microsoft.EntityFrameworkCore;
 
 namespace KafeYana.Api.GraphQLMap
@@ -13,7 +14,7 @@ namespace KafeYana.Api.GraphQLMap
         [UseProjection]
         [UseSorting]
         [UseFiltering]
-        [Authorize(Roles = new[] { "Admin" })]
+        [Authorize(Roles = new[] { RolesKafe.Admin, RolesKafe.Mesero, RolesKafe.Cajero })]
         public IQueryable<Stock_Ajuste> Ajustes([Service]IAjusteStockRepositorio _db)
         {
             return _db.Stock_AjusteQuery().AsNoTracking();

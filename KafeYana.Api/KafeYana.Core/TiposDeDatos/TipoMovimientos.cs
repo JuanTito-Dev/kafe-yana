@@ -11,6 +11,7 @@ namespace KafeYana.Domain.TiposDeDatos
     {
         Ajuste,
         Venta,
-        Receta
+        Receta,
+        Compra
     }
 }

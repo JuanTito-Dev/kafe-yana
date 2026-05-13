@@ -36,6 +36,8 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public List<InsumoMovimiento> Movimientos { get; set; } = new List<InsumoMovimiento>();
 
+        public List<OrdenItemInsumo> OrdenesInsumo { get; set; } = new List<OrdenItemInsumo>();
+ 
         private InsumoMovimiento RegistrarMovimiento(string Tipo, string referencia, int Cantidad, int Stock )
         {
             return new InsumoMovimiento(Id, Tipo, referencia, Cantidad, Costo/Factor_conversion, Stock);
@@ -107,6 +109,14 @@ namespace KafeYana.Domain.Entities.Inventario
         {
             Stock_actual -= cantidad;
             return RegistrarMovimiento(TipoMovimientos.Receta.ToString(), $"Receta-{nombre}", -cantidad, Stock_actual);
+        }
+
+        [GraphQLIgnore]
+        public InsumoMovimiento Compra(string referencia, int cantidad, decimal precioUnitario)
+        {
+            Stock_actual += (int)(cantidad * Factor_conversion);
+            Costo = precioUnitario;
+            return RegistrarMovimiento(TipoMovimientos.Compra.ToString(), referencia, cantidad, Stock_actual);
         }
     }
 }

@@ -12,8 +12,6 @@ namespace KafeYana.Domain.TiposDeDatos
 
         public const string Mesero = "Mesero";
 
-        public const string Cocinero = "Cocinero";
-
         public const string Cajero = "Cajero";
     }
 }

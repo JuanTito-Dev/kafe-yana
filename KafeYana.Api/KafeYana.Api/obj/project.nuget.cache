@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Sdbg1CLNZm4=",
+  "dgSpecHash": "3c/9rAqMXoU=",
   "success": true,
   "projectFilePath": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\KafeYana.Api.csproj",
   "expectedPackageFiles": [
@@ -102,6 +102,7 @@
     "C:\\Users\\HP\\.nuget\\packages\\mono.texttemplating\\3.0.0\\mono.texttemplating.3.0.0.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\npgsql\\9.0.3\\npgsql.9.0.3.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\npgsql.entityframeworkcore.postgresql\\9.0.4\\npgsql.entityframeworkcore.postgresql.9.0.4.nupkg.sha512",
+    "C:\\Users\\HP\\.nuget\\packages\\questpdf\\2025.4.4\\questpdf.2025.4.4.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\scalar.aspnetcore\\2.13.13\\scalar.aspnetcore.2.13.13.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\system.buffers\\4.6.0\\system.buffers.4.6.0.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\system.codedom\\6.0.0\\system.codedom.6.0.0.nupkg.sha512",

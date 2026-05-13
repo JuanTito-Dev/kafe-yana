@@ -12,5 +12,8 @@ namespace KafeYana.Domain.Dtos.RondaDtos
 
         [Range(1, int.MaxValue, ErrorMessage = "La cantidad debe ser mayor que cero.")]
         public int Cantidad { get; set; }
+
+        [MaxLength(500)]
+        public string Nota { get; set; } = string.Empty;
     }
 }

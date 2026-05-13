@@ -1,10 +1,15 @@
-﻿using KafeYana.Application.Dtos.VentaDtos;
+﻿using KafeYana.Api.Filters;
+using KafeYana.Application.Dtos.MesaDtos;
+using KafeYana.Application.Dtos.VentaDtos;
 using KafeYana.Application.Exceptions;
 using KafeYana.Application.IRepositorio;
+using KafeYana.Application.IServicios;
 using KafeYana.Domain.Entities;
 using KafeYana.Domain.Entities.Inventario;
 using KafeYana.Domain.TiposDeDatos;
+using KafeYana.Infrastructure.Servicios;
 using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -13,175 +18,172 @@ namespace KafeYana.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class VentaController(IUnitWork _db) : ControllerBase
+    [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}, {RolesKafe.Mesero}")]
+    public class VentaController(IUnitWork _db, Detalle_RondaService _detalleRondaService, IVentaServices _venta) : ControllerBase
     {
-        //[HttpPost()]
-        //public async Task<IActionResult> Venta(DtoVentaPedido datos)
-        //{
-        //    if (!ModelState.IsValid) return BadRequest(ModelState);
+        [HttpPost("pedido")]
+        [ServiceFilter(typeof(CajaAbiertaFilter))]
+        public async Task<IActionResult> CrearPedido(DtoniciarMesa datos)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-        //    var nombre = User.Identity?.Name;
+            var paraLlevar = await _db.parallevar.GetParaLlevarConPedido();
 
-        //    if (nombre is null) return Unauthorized(new { message = "Usuario no identificado" });
+            if (paraLlevar is null)
+                return NotFound(new { message = "Configuración para llevar no encontrada" });
 
-        //    var pedido = await _db.Pedidos.TraerPedido(datos.Id_Pedido); 
+            if (!paraLlevar.Disponible)
+                return BadRequest(new { message = "Ya existe un pedido para llevar activo" });
 
-        //    if (pedido == null) return NotFound("Pedido no encontrado");
+            var nuevoPedido = datos.Adapt<Pedido>();
+            await _db.Pedidos.Crear(nuevoPedido);
 
-        //    var cliente = pedido.Cliente;
+            paraLlevar.Pedido = nuevoPedido;
+            paraLlevar.Disponible = false;
 
-        //    if (pedido.Id_Cliente == null || pedido.Id_Cliente != datos.Id_Cliente)
-        //    {
-        //        cliente = await _db.clientes.FindByIdAsync(datos.Id_Cliente);
+            await _db.SaveUnitWork();
 
-        //        if(cliente == null) return NotFound("Cliente no encontrado");
-        //    }
+            return Ok(new
+            {
+                message = "Pedido para llevar creado",
+                Id_Pedido = nuevoPedido.Id
+            });
+        }
 
-        //    int productoscant = 0;
+        [HttpPost("ronda")]
+        [ServiceFilter(typeof(CajaAbiertaFilter))]
+        public async Task<IActionResult> AgregarRonda(DtoRondaAgregar datos)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-        //    var detalle_venta = new List<Detalle_venta>();
-        //    var subtotal = 0.00m;
+            var paraLlevar = await _db.parallevar.GetParaLlevarConPedido();
 
-        //    foreach (var ronda in pedido.Rondas)
-        //    {
-        //        foreach (var item in ronda.Detalle)
-        //        {
-        //            if (item.producto == null) return BadRequest($" {item.Id_Producto } Producto no encontrado");
+            if (paraLlevar is null)
+                return NotFound(new { message = "Configuración para llevar no encontrada" });
 
-        //            switch (item.producto.Tipo)
-        //            {
-        //                case TiposProductos.Comprado:
-        //                    await DescontarComprado(item.Id_Producto, item.Cantidad);
-        //                    break;
+            if (paraLlevar.Pedido is null)
+                return NotFound(new { message = "No hay un pedido para llevar activo" });
 
-        //                case TiposProductos.Elaborado:
-        //                    await DescontarElaborado(item.Id_Producto, item.Cantidad, item.Id_Opcion);
-        //                    break;
+            if (paraLlevar.Id_Pedido != datos.Id_Pedido)
+                return BadRequest(new { message = "El pedido no corresponde al pedido para llevar activo" });
 
-        //                case TiposProductos.Promocion:
+            if (datos.Detalles.Count <= 0)
+                return BadRequest(new { message = "No se han agregado productos a la ronda" });
 
-        //                    break;
-        //            }
-        //            productoscant++;
+            var ronda = await _detalleRondaService.CrearRondaConDetallesAsync(datos.Id_Pedido, datos.Detalles);
 
-        //            detalle_venta.Add(new Detalle_venta
-        //            {
-        //                Nombre = item.producto.Nombre,
-        //                Cantidad = item.Cantidad,
-        //                Precio = item.Precio,
-        //                Total = item.Precio * item.Cantidad
-        //            });
+            await _db.rondas.Crear(ronda);
+            paraLlevar.Pedido.Total += ronda.SubTotal;
 
-        //            subtotal += item.Precio * item.Cantidad;
-        //        }
-        //    }
+            await _db.SaveUnitWork();
 
-        //    var venta = new Venta
-        //    {
-        //        Fecha = DateTime.Now,
-        //        Cliente = cliente!.Nombre,
-        //        Cajero = nombre,
-        //        Productos = productoscant,
-        //        Pago = datos.TipoPago.ToString(),
-        //        Estado = "Finalizada",
-        //        Subtotal = subtotal,
-        //        Total = subtotal,// Aquí podrías aplicar descuentos o impuestos si es necesario
-        //        Detalles = detalle_venta
-        //    };
+            return Ok(new
+            {
+                message = "Ronda agregada correctamente",
+                ronda = new
+                {
+                    ronda.Id,
+                    ronda.Ronda_Descripcion,
+                    ronda.SubTotal,
+                    detalles = ronda.Detalle.Count
+                }
+            });
+        }
 
-        //    return Ok(new { message = "Venta realizada con éxito", venta });
-        //}
+        [HttpPost("cobrar")]
+        [ServiceFilter(typeof(CajaAbiertaFilter))]
+        public async Task<IActionResult> Cobrar(DtoVentaPedido datos)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-        //public async Task DescontarComprado(int Id, int cantidad)
-        //{
-        //    var producto = await _db.productos.TraerProducto(Id, comprado: true);
+            var paraLlevar = await _db.parallevar.GetParaLlevarConPedido();
 
-        //    if (producto is null) throw new InventarioException($"Producto no encontrado {Id}");
+            if (paraLlevar is null)
+                return NotFound(new { message = "Configuración para llevar no encontrada" });
 
-        //    if (producto.Comprado.Stock_actual < cantidad) throw new InventarioException($"Stock insuficiente para el producto {producto.Nombre}");
+            if (paraLlevar.Pedido is null)
+                return NotFound(new { message = "No hay un pedido para llevar activo" });
 
-        //    producto.Comprado.Stock_actual -= cantidad;
+            if (paraLlevar.Id_Pedido != datos.Id_Pedido)
+                return BadRequest(new { message = "El pedido no corresponde al pedido para llevar activo" });
 
-        //}
+            var nombreUsuario = User.Identity?.Name;
+            if (string.IsNullOrEmpty(nombreUsuario))
+                return Unauthorized(new { message = "Usuario no identificado" });
 
-        //public async Task DescontarElaborado(int Id, int Cantidad, int? Id_Opcion)
-        //{
-        //    if (await _db.elaborados.EsProducible(Id))
-        //    {
-        //        var elaborado = await _db.elaborados.TraerElaborado(Id);
-        //        if (elaborado is null) throw new InventarioException($"Elaborado no encontrado {Id}");
-        //        elaborado.Stock_actual -= Cantidad;
-        //    }
-        //    else
-        //    {
-        //        var elaborado = await _db.elaborados.TraerElaborado(Id, withreceta: true);
-        //        if (elaborado is null) throw new InventarioException($"Elaborado no encontrado {Id}");
-        //        if (elaborado.Receta is null) return; // Sin receta, no se hace nada
+            if (datos.Pagos.Total != (await _db.Pedidos.FindByIdAsync(datos.Id_Pedido))?.Total)
+                return BadRequest(new { message = "El total de los pagos no coincide con el total del pedido." });
 
-        //        var opcion = Id_Opcion is not null ? await _db.opciones.TraerOpcion(Id_Opcion.Value) : null;
+            var venta = await _venta.ProcesarVenta(datos.Id_Pedido, datos.Id_Cliente, nombreUsuario, datos.Pagos);
 
-        //        // Insumos que son REEMPLAZO - se omiten de la receta
-        //        var insumoOmitidos = opcion?.Ajustes
-        //            .Where(x => x.TipoAjuste == TiposAjuste.Reemplazo)
-        //            .Select(x => x.Id_Insumo)
-        //            .ToHashSet() ?? new HashSet<int>();
+            await _db.ventas.Crear(venta);
 
-        //        foreach (var detalle in elaborado.Receta.Detalles)
-        //        {
-        //            // Si este insumo fue reemplazado, se omite
-        //            if (insumoOmitidos.Contains(detalle.Id_insumo)) continue;
+            paraLlevar.Disponible = true;
+            paraLlevar.Pedido = null;
 
-        //            var cantidadFinal = detalle.Cantidad * Cantidad * (1 + (detalle.Merma / 100));
+            var caja = (Caja)HttpContext.Items["Caja"]!;
+            caja.RegistrarVenta(datos.Pagos.Efectivo, datos.Pagos.Tarjeta, datos.Pagos.Qr);
 
-        //            // Si tiene ajuste de MODIFICACION sobre este insumo
-        //            var ajuste = opcion?.Ajustes
-        //                .FirstOrDefault(x => x.Id_Insumo == detalle.Id_insumo
-        //                                  && x.TipoAjuste == TiposAjuste.Modificacion);
+            await _db.SaveUnitWork();
 
-        //            if (ajuste is not null)
-        //            {
-        //                cantidadFinal += ajuste.Cantidad * Cantidad; // puede ser + o -
-        //            }
+            return Ok(new { message = "Venta procesada correctamente" });
+        }
 
-        //            detalle.Insumo.Stock_actual -= (int)cantidadFinal;
-        //        }
+        [HttpPut("liberar")]
+        public async Task<IActionResult> Liberar()
+        {
+            var paraLlevar = await _db.parallevar.GetParaLlevarConPedido();
 
-        //        // Descontar los insumos NUEVOS de los reemplazos
-        //        if (opcion is not null)
-        //        {
-        //            var reemplazos = opcion.Ajustes.Where(x => x.TipoAjuste == TiposAjuste.Reemplazo);
-        //            foreach (var ajuste in reemplazos)
-        //            {
-        //                // InsumoNuevo es el que reemplaza al de la receta
-        //                ajuste.InsumoNuevo.Stock_actual -= (int)(ajuste.Cantidad * Cantidad);
-        //            }
-        //        }
-        //    }
-        //}
+            if (paraLlevar is null)
+                return NotFound(new { message = "Configuración para llevar no encontrada" });
 
-        //public async Task DescontarPromocion(int Id, int Cantidad)
-        //{
-        //    var promocion = await _db.Combo.TraerPromocion(Id); // con Detalles e Include producto
-        //    if (promocion is null) throw new InventarioException($"Promocion no encontrada {Id}");
+            if (paraLlevar.Pedido is null)
+                return BadRequest(new { message = "No hay un pedido para llevar activo" });
 
-        //    foreach (var detalle in promocion.Detalles)
-        //    {
-        //        if (detalle.Producto is null) throw new InventarioException($"Producto no encontrado en promocion {Id}");
+            if (paraLlevar.Pedido.Total > 0)
+                return BadRequest(new { message = "No puedes liberar un pedido sin antes cobrar" });
 
-        //        var cantidadTotal = detalle.Cantidad * Cantidad; // cantidad del detalle x cantidad pedida
+            await _db.Pedidos.Remove(paraLlevar.Pedido);
 
-        //        switch (detalle.Producto.Tipo)
-        //        {
-        //            case TiposProductos.Comprado:
-        //                await DescontarComprado(detalle.Id_Producto, cantidadTotal);
-        //                break;
+            paraLlevar.Disponible = true;
+            paraLlevar.Pedido = null;
 
-        //            case TiposProductos.Elaborado:
-        //                await DescontarElaborado(detalle.Id_Producto, cantidadTotal, null);
-        //                // null porque una promocion no tiene opcion por producto
-        //                break;
-        //        }
-        //    }
-        //}
+            await _db.SaveUnitWork();
+
+            return Ok(new { message = "Pedido para llevar liberado" });
+        }
+
+        [HttpPost("reembolso/{Id:int}")]
+        [ServiceFilter(typeof(CajaAbiertaFilter))]
+        public async Task<IActionResult> Reembolso(int Id, DtoReembolso datos)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var venta = await _db.ventas.FindByIdAsync(Id);
+            if (venta is null)
+                return NotFound(new { message = "Venta no encontrada" });
+
+            if (venta.Estado == "Reembolsado")
+                return BadRequest(new { message = "Esta venta ya fue reembolsada" });
+
+            var caja = await _db.cajas.ObtenerCaja();
+            if (caja is null)
+                return BadRequest(new { message = "No hay una caja abierta" });
+
+
+            if (datos.Monto > venta.Total)
+                throw new VentaException($"El monto a reembolsar no puede ser mayor al total de la venta");
+
+            var movimiento = venta.Reembolso(caja, datos.Monto, datos.Nota);
+
+            await _db.cajamovimientos.Crear(movimiento);
+            await _db.SaveUnitWork();
+
+            return Ok(new { message = "Reembolso procesado correctamente", venta.Codigo });
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using HotChocolate.Authorization;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Domain.Entities;
+using KafeYana.Domain.TiposDeDatos;
 using Microsoft.EntityFrameworkCore;
 
 namespace KafeYana.Api.GraphQLMap
@@ -8,7 +9,7 @@ namespace KafeYana.Api.GraphQLMap
     [ExtendObjectType("Query")]
     public class ClienteQuery
     {
-        [Authorize(Roles = new[] { "Admin" })]
+        [Authorize(Roles = new[] { RolesKafe.Admin, RolesKafe.Mesero, RolesKafe.Cajero })]
         [UsePaging(IncludeTotalCount = true, DefaultPageSize = 20)]
         [UseProjection]
         [UseFiltering]

@@ -12,12 +12,10 @@ namespace KafeYana.Application.Dtos.VentaDtos
     {
         [Required]
         public required int Id_Pedido { get; set; }
-        [Required]  
-        public required int Id_Cliente { get; set; }
-        
         [Required]
-        public required TipoPagos TipoPago { get; set; }
+        public required int Id_Cliente { get; set; }
 
-        public decimal EfecctivoRecibido { get; set; } = 0.00M;
+        [Required]
+        public required DtoPagos Pagos { get; set; }
     }
 }
