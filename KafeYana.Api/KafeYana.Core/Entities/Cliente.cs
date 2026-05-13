@@ -26,7 +26,7 @@ namespace KafeYana.Domain.Entities
 
         public bool Estado { get; set; } = true;
 
-        public Pedido? Pedido { get; set; }
+        public List<Pedido> Pedidos { get; set; } = new();
 
     }
 }

@@ -26,11 +26,25 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
                 .HasColumnType("decimal(10,2)")
                 .HasDefaultValue(0.00M);
 
+            builder.Property(x => x.Nota)
+                .IsRequired()
+                .HasMaxLength(500)
+                .HasDefaultValue(string.Empty);
+
+            builder.Property(x => x.Id_Producto)
+                .IsRequired();
+
             // Relación con Ronda
             builder.HasOne(x => x.ronda)
                 .WithMany(x => x.Detalle)
                 .HasForeignKey(x => x.Id_Ronda)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(x => x.Producto)
+                .WithMany(p => p.Detalle_Rondas)
+                .HasForeignKey(x => x.Id_Producto)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("fk_detalle_ronda_producto");
         }
     }
 }

@@ -3,6 +3,7 @@ using KafeYana.Application.Dtos.CompradoDtos;
 using KafeYana.Application.Dtos.ProductoDtos;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Domain.Entities.Inventario;
+using KafeYana.Domain.TiposDeDatos;
 
 namespace KafeYana.Api.GraphQLMap
 {
@@ -13,7 +14,7 @@ namespace KafeYana.Api.GraphQLMap
         [UseProjection]
         [UseSorting]
         [UseFiltering]
-        [Authorize(Roles = new[] { "Admin" })]
+        [Authorize(Roles = new[] { RolesKafe.Admin, RolesKafe.Mesero, RolesKafe.Cajero })]
         public IQueryable<Comprado> comprados([Service] IProductoRepositorio _db)
         {
             return _db.GetComprados();

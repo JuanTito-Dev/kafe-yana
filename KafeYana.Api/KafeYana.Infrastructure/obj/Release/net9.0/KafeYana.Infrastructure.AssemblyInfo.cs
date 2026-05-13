@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("KafeYana.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c693f9e746414b2b1e15492dbab17c02e42a329e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b28f09d406f8de2e6539b0e30be6abab61cea5fe")]
 [assembly: System.Reflection.AssemblyProductAttribute("KafeYana.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("KafeYana.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

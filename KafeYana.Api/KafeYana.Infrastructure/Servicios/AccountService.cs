@@ -35,13 +35,15 @@ namespace KafeYana.Infrastructure.Servicios
             {
                 var user = Usuario.Crear(email: datos.Email, datos.Nombre, datos.Apellido, datos.NumeroPhone);
 
+                user.LockoutEnabled = datos.Rol != 0;
+
                 var result = await _usuarios.CreateAsync(user, password: datos.Password);
                 if (!result.Succeeded)
                 {
                     throw new RegiterUsuarioFailException(result.Errors.Select(x => x.Description));
                 }
 
-                var rolResult = await _usuarios.AddToRoleAsync(user, RolesKafe.Admin);
+                var rolResult = await _usuarios.AddToRoleAsync(user, datos.Rol.ToString());
                 if (!rolResult.Succeeded)
                 {
                     throw new RegiterUsuarioFailException(rolResult.Errors.Select(x => x.Description));
@@ -63,8 +65,11 @@ namespace KafeYana.Infrastructure.Servicios
 
             if (user == null || !await _usuarios.CheckPasswordAsync(user, datos.Password))
             {
-                throw new LoginFailException(datos.Email);
+                throw new LoginFailException($"Credenciales incorrectas {datos.Email}");
             }
+
+            if (await _usuarios.IsLockedOutAsync(user))
+                throw new LoginFailException("Usuario bloqueado, contacte al administrador");
 
             var role = await _usuarios.GetRolesAsync(user);
 
@@ -129,6 +134,10 @@ namespace KafeYana.Infrastructure.Servicios
                 throw new RefreshTokenExceptions("Refresh token inválido o expirado");
             }
 
+            // Verificar bloqueo
+            if (await _usuarios.IsLockedOutAsync(refreshToken.User))
+                throw new RefreshTokenExceptions("Usuario bloqueado, contacte al administrador");
+
             // 3. Revocar el token actual — no se reutiliza
             refreshToken.IsRevoked = true;
 
@@ -168,22 +177,20 @@ namespace KafeYana.Infrastructure.Servicios
             return respuesta;
         }
 
-        public async Task Logout(string? refreshToken)
+        public async Task Logout(string? email)
         {
-            // Borrar el refresh token de la BD si existe
-            if (!string.IsNullOrEmpty(refreshToken))
+            if (!string.IsNullOrEmpty(email))
             {
-                var token = await _db.RefreshTokens
-                    .FirstOrDefaultAsync(r => r.Token == refreshToken);
-
-                if (token != null)
+                var usuario = await _usuarios.FindByEmailAsync(email);
+                if (usuario != null)
                 {
-                    _db.RefreshTokens.Remove(token);
+                    var tokens = await _db.RefreshTokens
+                        .Where(r => r.UserId == usuario.Id)
+                        .ToListAsync();
+                    _db.RefreshTokens.RemoveRange(tokens);
                     await _db.SaveChangesAsync();
                 }
             }
-
-            // Borrar las cookies
             _loggin.DeleteAuthCookie("ACCESS_TOKEN");
             _loggin.DeleteAuthCookie("REFRESH_TOKEN");
         }

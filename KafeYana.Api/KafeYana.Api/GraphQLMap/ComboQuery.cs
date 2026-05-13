@@ -16,7 +16,7 @@ namespace KafeYana.Api.GraphQLMap
         [UseProjection]
         [UseSorting]
         [UseFiltering]
-        [Authorize(Roles = new[] { "Admin" })]
+        [Authorize(Roles = new[] { RolesKafe.Admin, RolesKafe.Mesero, RolesKafe.Cajero })]
 
         public IQueryable<Promocion> Combos([Service] IComboRepositorio _db)
         {

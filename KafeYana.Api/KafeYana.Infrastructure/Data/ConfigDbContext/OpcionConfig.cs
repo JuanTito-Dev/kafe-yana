@@ -17,7 +17,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.HasKey(x => x.Id);
 
-            builder.HasIndex(x => x.Nombre).IsUnique().HasDatabaseName("fx_opcion_nombre");
+            builder.HasIndex(x => x.Nombre);
 
             builder.Property(x => x.AjustePrecio).IsRequired().HasColumnType("decimal(10,2)");
 

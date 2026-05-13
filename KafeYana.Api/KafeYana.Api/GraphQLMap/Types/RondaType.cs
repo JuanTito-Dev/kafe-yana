@@ -8,7 +8,7 @@ namespace KafeYana.Api.GraphQLMap.Types
         {
             descriptor.Field(x => x.Id).Type<NonNullType<IdType>>();
             descriptor.Field(x => x.Id_Pedido).Type<IntType>();
-            descriptor.Field(x => x.pedido).Type<PedidoType>();
+            descriptor.Field(x => x.pedido).Type<PedidoType>().Ignore();
             descriptor.Field(x => x.Detalle).Type<ListType<DetalleRondaType>>();
         }
     }

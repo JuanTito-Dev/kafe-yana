@@ -60,12 +60,15 @@ namespace KafeYana.Application.Exceptions
                 InventarioException => (HttpStatusCode.Conflict, exception.Message),
                 DetalleRondaException => (HttpStatusCode.BadRequest, exception.Message),
                 OpcionProductoException => (HttpStatusCode.BadRequest, exception.Message),
+                CajaException => (HttpStatusCode.Conflict, exception.Message),
 
                 // ==================== BASE DE DATOS ====================
                 UniqueConstraintException => (HttpStatusCode.Conflict, exception.Message),
                 ForeignKeyException => (HttpStatusCode.BadRequest, exception.Message),
                 InvalidOperationException ex when ex.Message.Contains("cannot be tracked")
                             => (HttpStatusCode.Conflict, "El registro ya existe."),
+                OrdenCompraException => (HttpStatusCode.BadRequest, exception.Message),
+                VentaException => (HttpStatusCode.Conflict, exception.Message),
 
                 _ => (HttpStatusCode.InternalServerError, $"Ocurrió un error crítico: {exception.Message}")
             };
@@ -81,6 +84,7 @@ namespace KafeYana.Application.Exceptions
             {
                 // ==================== CATEGORIAS ====================
                 "ix_categorias_nombre" => "Ya existe una categoría con ese nombre.",
+                "fx_nombre_usuario_unico" => "Intente con otro email",
 
                 // ==================== PRODUCTOS ====================
                 "id_nombre_producto" => "Ya existe un producto con ese nombre.",
@@ -95,7 +99,6 @@ namespace KafeYana.Application.Exceptions
 
                 //variacion
                 "fx_varicion_nombre" => "Ya existe una variacion no este nombre para el producto",
-                "fx_opcion_nombre" => "Ya existe una opcion con este nombre",
 
                 // ==================== PROVEEDORES ====================
                 "ix_proveedores_razon_social" => "Ya existe un proveedor con esa razón social.",
@@ -142,6 +145,8 @@ namespace KafeYana.Application.Exceptions
                 "fx_producto_comprado" => "Producto comprado relacion error",
                 "fx_producto_elaborado" => "Producto relacion con elaborado",
                 "fx_detallecombo_producto" => "Producto no encontrado",
+                "fk_detallerondaopcion_detalleronda" => "Detalle ronda no encontrada",
+                "fk_detallerondaopcion_opcion" => "Opcion no pertenece al producto",
 
                 //Receta
                 "fx_elaborado_receta" => "El producto elaborado seleccionado no existe.",
@@ -166,11 +171,22 @@ namespace KafeYana.Application.Exceptions
                 "FK_Detalle_Ronda_Opcion_Opcion_Id_Opcion" => "La opción seleccionada no existe.",
 
                 //====Ronda
-                "fx_pedido_ronda" => "Pedido selecionado no existe",
+                "fx_pedido_ronda" => "Pedido seleccionado no existe",
                 "fx_pedido_mesa" => "Mesa seleccionada no existe",
                 "fx_pedido_cliente" => "Cliente seleccionado no existe",
-                "fx_producto_movimientos" => "Producto no encontrado para registrar el Movimineto",
+                "fk_detalle_ronda_producto" => "El producto indicado no existe o no es válido para el detalle de la ronda.",
+                "FK_Detalle_Ronda_Producto_ProductoId" => "El producto indicado no existe o no es válido para el detalle de la ronda.",
+                "fk_detallerondacomboitem_producto" => "El producto del componente de combo no existe.",
+                "fk_detallerondacomboitem_detalleronda" => "El detalle de ronda no existe para el ítem de combo.",
+                "fx_producto_movimientos" => "Producto no encontrado para registrar el movimiento",
                 "fx_insumo_movimiento" => "Insumo no encontrado pára registrar el movimiento",
+                "fx_pedido_parallevar" => "Nose pudo conectar con pedido para llevar",
+                "fk_cajamovimiento_caja" => "Caja no encontrada para registrar el movimiento",
+                "fk_cajahistorialmovimiento_cajahistorial" => "Caja historial no encontrada",
+                "fk_ordencompra_proveedor" => "Proveedor no existe para conectar a la orden",
+                "fk_ordeniteminsumo_insumo" => "Insumo no encontrado para la orden",
+                "fk_ordeniteminsumo_orden" => "Orden de compra no encontrada",
+                "fk_ordenitemproducto_producto" => "Producto no encontrado para la orden",
                 _ => "El registro relacionado no existe."
             };
         }
@@ -185,16 +201,25 @@ namespace KafeYana.Application.Exceptions
             {
                 // ==================== PRODUCTOS ====================
                 "fk_productos_categoria" => "La categoría tiene productos relacionados y no puede eliminarse.",
+                "fk_detalle_ronda_producto" => "No se puede eliminar el producto porque está en uno o más pedidos (detalles de ronda).",
+                "FK_Detalle_Ronda_Producto_ProductoId" => "No se puede eliminar el producto porque está en uno o más pedidos (detalles de ronda).",
+                "fk_detallerondacomboitem_producto" => "No se puede eliminar el producto porque figura en el desglose de un combo en un pedido.",
                 "id_Pedido_compra" => "El producto está en un pedido activo y no puede eliminarse.",
+
+                // ==================== CLIENTES ====================
+                "fx_pedido_cliente" => "No se puede eliminar el cliente porque tiene pedidos asociados.",
 
                 // ==================== PEDIDO ====================
                 "FK_Mesa_Pedido_Id_Pedido" => "El pedido asignado no puede eliminarse.",
 
                 // ==================== DETALLE RONDA ====================
                 "FK_Detalle_Ronda_Opcion_Opcion_Id_Opcion" => "La opción no puede ser eliminada.",
+                "fk_detallerondaopcion_opcion" => "No puedes eliminar esta opcion esta en un pedido",
 
                 // ==================== VENTAS ====================
                 "Producto asociado a una venta" => "El producto está asociado a una venta y no puede eliminarse.",
+                "fk_ordeniteminsumo_insumo"=> "No puede eliminar el insumo esta en una orden de compra",
+                "fk_ordenitemproducto_producto" => "No puedes eliminar el producto esta en un orden",
 
                 _ => "El registro pertenece a otro y no puede eliminarse."
             };

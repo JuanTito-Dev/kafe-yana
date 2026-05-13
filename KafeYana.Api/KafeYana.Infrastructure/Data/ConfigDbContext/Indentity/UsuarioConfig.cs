@@ -11,6 +11,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext.Indentity
             builder.ToTable("usuario");
 
             builder.HasKey(x => x.Id);
+
             builder.HasIndex(x => x.Id);
 
             builder.Property(x => x.Email).IsRequired().HasMaxLength(128);
@@ -24,6 +25,8 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext.Indentity
             builder.Property(x => x.Nombre).HasMaxLength(50).IsRequired() ;
 
             builder.Property(x => x.Apellido).HasMaxLength(50).IsRequired();
+
+            builder.HasIndex(x => x.Email).IsUnique().HasDatabaseName("fx_nombre_usuario_unico");
         }
     }
 }

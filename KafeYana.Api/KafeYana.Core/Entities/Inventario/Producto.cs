@@ -18,6 +18,8 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public string Tipo { get; set; } = string.Empty;
 
+        public string Imagen { get; set; } = string.Empty;
+
         //Fk for categoria 
 
         public required int Categoria_Id { get; set; }
@@ -37,6 +39,8 @@ namespace KafeYana.Domain.Entities.Inventario
         public List<Detalle_ronda> Detalle_Rondas { get; set; } = new List<Detalle_ronda>();
 
         public List<ProductoMovimiento> Movimientos { get; set; } = new List<ProductoMovimiento>();
+
+        public List<OrdenItemProducto> OrdenesProducto { get; set; } = new List<OrdenItemProducto>();
 
         internal ProductoMovimiento Movimiento(int Cantidad, string Tipo, string referencia, int StockResultado, decimal costo)
         { 

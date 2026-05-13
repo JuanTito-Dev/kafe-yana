@@ -16,6 +16,8 @@ namespace KafeYana.Domain.Entities
 
         public Mesa? Mesa { get; set; }
 
+        public ParaLlevar? ParaLlevar { get; set; }
+
         public Cliente? Cliente { get; set; }
 
         public List<Ronda> Rondas { get; set; } = new List<Ronda>();

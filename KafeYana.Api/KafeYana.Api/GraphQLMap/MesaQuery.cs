@@ -12,7 +12,7 @@ namespace KafeYana.Api.GraphQLMap
         [UseProjection]
         [UseSorting]
         [UseFiltering]
-        [Authorize(Roles = new[] { RolesKafe.Admin })]
+        [Authorize(Roles = new[] { RolesKafe.Admin, RolesKafe.Mesero, RolesKafe.Cajero })]
         public IQueryable<Mesa> Mesas([Service] IMesaRepositorio _Mesa)
         {
             return _Mesa.MesaQuery();

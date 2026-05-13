@@ -2,6 +2,7 @@
 using KafeYana.Application.Exceptions;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Domain.Entities.Inventario;
+using KafeYana.Domain.TiposDeDatos;
 using KafeYana.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -11,7 +12,7 @@ namespace KafeYana.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = $"{RolesKafe.Admin}")]
     public class ElaboradoController(IElaboradoRepositorio _repo) : ControllerBase
     {
         [HttpPost]

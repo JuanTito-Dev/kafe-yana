@@ -13,6 +13,18 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public decimal Precio { get; set; } = 0.00M;
 
+        /// <summary>Clave foránea hacia <see cref="Producto"/> (tabla Producto).</summary>
+        public int Id_Producto { get; set; }
+
+        public Producto? Producto { get; set; }
+
+        public string Nota { get; set; } = string.Empty;
+
         public Ronda? ronda { get; set; }
+
+        public List<Detalle_Ronda_Opcion> Opciones { get; set; } = new List<Detalle_Ronda_Opcion>();
+
+        /// <summary>Solo se rellena cuando la línea es un combo (promoción): un registro por producto del combo.</summary>
+        public List<Detalle_Ronda_ComboItem> ItemsCombo { get; set; } = new List<Detalle_Ronda_ComboItem>();
     }
 }

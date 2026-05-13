@@ -59,7 +59,10 @@ namespace KafeYana.Domain.Entities.Inventario
         [GraphQLIgnore] 
         public ProductoMovimiento Venta(int cantidad, string Codigo, decimal costo)
         {
-            Stock_actual -= cantidad;
+            if (Producible)
+            {
+                Stock_actual -= cantidad;
+            }
 
             var movimiento = this.Producto.Movimiento(-cantidad, TipoMovimientos.Venta.ToString(), Codigo, Stock_actual, costo);
 

@@ -1,4 +1,5 @@
 ﻿using KafeYana.Domain.Entities.BaseEntidades;
+using KafeYana.Domain.TiposDeDatos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,5 +15,10 @@ namespace KafeYana.Domain.Entities.Inventario
         public Producto Producto { get; set; }
 
         public ICollection<PromocionDetalle> Detalles { get; set; } = new List<PromocionDetalle>();
+
+        public ProductoMovimiento Venta(int cantidad, string codigo)
+        {
+            return Producto.Movimiento(cantidad, TipoMovimientos.Venta.ToString(), codigo, 0, Producto.Precio);
+        }
     }
 }

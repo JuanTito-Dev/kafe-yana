@@ -1,6 +1,9 @@
 using KafeYana.Api.DataLoaders;
+using QuestPDF.Infrastructure;
+using KafeYana.Api.Filters;
 using KafeYana.Api.GraphQLMap;
 using KafeYana.Api.GraphQLMap.Types;
+using KafeYana.Api.Middlewares;
 using KafeYana.Application.Exceptions;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Application.IServicios;
@@ -20,6 +23,8 @@ using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using System.Text;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +61,7 @@ builder.Services.AddIdentityCore<Usuario>(options =>
     options.Password.RequireLowercase = false;
     options.Password.RequireUppercase = false;
     options.User.RequireUniqueEmail = true;
+    options.Lockout.AllowedForNewUsers = false;
 }).AddRoles<IdentityRole<Guid>>()
 .AddEntityFrameworkStores<AppDbContext>()
 .AddSignInManager()
@@ -135,6 +141,10 @@ builder.Services.AddGraphQLServer()
     .AddTypeExtension<VentaQuery>()
     .AddTypeExtension<ProductoMovimientosQuery>()
     .AddTypeExtension<InsumoMovimientosQuery>()
+    .AddTypeExtension<ParaLlevarQuery>()
+    .AddTypeExtension<CajaQuery>()
+    .AddTypeExtension<CajaHistorialQuery>()
+    .AddTypeExtension<OrdenCompraQuery>()
     .AddType<AjusteType>()
     .AddType<CategoriaType>()
     .AddType<ClienteType>()
@@ -152,11 +162,18 @@ builder.Services.AddGraphQLServer()
     .AddType<PedidoType>()
     .AddType<RondaType>()
     .AddType<DetalleRondaType>()
+    .AddType<DetalleRondaComboItemType>()
     .AddType<VentaType>()
     .AddType<DetalleVentaType>()
     .AddType<CategoriaForProductosType>()
     .AddType<ProductoMovientosType>()
     .AddType<InsumoMovimientoType>()
+    .AddType<ParaLlevarType>()
+    .AddType<CajaType>()
+    .AddType<CajaMovimientoType>()
+    .AddType<CajaHistorialType>()
+    .AddType<CajaHistorialMovimientoType>()
+    .AddType<Detalle_Ronda_OpcionType>()
     .ModifyRequestOptions(opt => 
     { 
         opt.IncludeExceptionDetails = true;
@@ -196,8 +213,19 @@ builder.Services.AddScoped<IUnitWork, UnitWork>();
 builder.Services.AddScoped<IProveedorRepositorio, ProveedorRepositorio>();
 builder.Services.AddScoped<IDetalle_RondaRepositorio, Detalle_RondaRepositorio>();
 builder.Services.AddScoped<Detalle_RondaService>();
+builder.Services.AddScoped<ReporteInventarioService>();
 builder.Services.AddScoped<IProductoMovimientoRepositorio, ProductoMovimientoRepositorio>();
 builder.Services.AddScoped<IInsumoMovimientoRepositorio, InsumoMovimientoRepositorio>();
+builder.Services.AddScoped<IParaLlevarRepositorio, ParaLlevarRepositorio>();
+builder.Services.AddScoped<ICajaRepositorio, CajaRepositorio>();
+builder.Services.AddScoped<ICajaMovimientoRepositorio, CajaMovimientoRepositorio>();
+builder.Services.AddScoped<ICajaHistorialRepositorio, CajaHistorialRepositorio>();
+builder.Services.AddScoped<ICajaHistorialMovimientoRepositorio, CajaHistorialMovimientoRepositorio>();
+builder.Services.AddScoped<IOrdenCompraRepositorio, OrdenCompraRepositorio>();
+
+
+///////////////
+builder.Services.AddScoped<CajaAbiertaFilter>();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -224,6 +252,8 @@ app.UseCors("CorsPoliticy");
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.UseMiddleware<VerificarBloqueoMiddleware>();
 
 app.MapControllers();
 

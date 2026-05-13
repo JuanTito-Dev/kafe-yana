@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace KafeYana.Application.Exceptions.Usuarios
 {
-    public class LoginFailException(string email) : Exception($"Credenciales incorrectas {email}");
+    public class LoginFailException(string message) : Exception($"{message}");
 }

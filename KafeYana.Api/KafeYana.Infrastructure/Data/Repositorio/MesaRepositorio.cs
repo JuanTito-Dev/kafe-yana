@@ -24,6 +24,11 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                 .Include(x => x.pedido)
                     .ThenInclude(p => p.Rondas)
                         .ThenInclude(r => r.Detalle)
+                            .ThenInclude(d => d.Producto)
+                .Include(x => x.pedido)
+                    .ThenInclude(p => p.Rondas)
+                        .ThenInclude(r => r.Detalle)
+                            .ThenInclude(d => d.ItemsCombo)
                 .AsQueryable();
         }
 
@@ -35,6 +40,11 @@ namespace KafeYana.Infrastructure.Data.Repositorio
         public async Task<bool> MesaConpedido(int Id, int Id_mesa)
         {
             return await _set.AnyAsync(x => x.Id == Id_mesa && x.Id_Pedido == Id);
+        }
+
+        public async Task<bool> HayMesasOcupadas()
+        {
+            return await _set.AnyAsync(x => x.Disponible == false);
         }
     }
 }

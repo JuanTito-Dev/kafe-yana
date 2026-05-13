@@ -1,6 +1,7 @@
 using KafeYana.Application.Dtos.ProveedorDtos;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Domain.Entities;
+using KafeYana.Domain.TiposDeDatos;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,9 +10,10 @@ namespace KafeYana.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = $"{RolesKafe.Admin}")]
     public class ProveedorController(IProveedorRepositorio _proveedor) : ControllerBase
     {
-        [Authorize(Roles = "Admin")]
+
         [HttpPost]
         public async Task<IActionResult> Crear(DtoProveedorCrear datos)
         {
@@ -25,7 +27,6 @@ namespace KafeYana.Api.Controllers
             return Created();
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Actualizar(int id, DtoProveedorUpdate datos)
         {
@@ -42,7 +43,6 @@ namespace KafeYana.Api.Controllers
             return Ok(new { message = "Proveedor actualizado" });
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Eliminar(int id)
         {

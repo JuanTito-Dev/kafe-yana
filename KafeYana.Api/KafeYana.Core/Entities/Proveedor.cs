@@ -1,4 +1,5 @@
 ﻿using KafeYana.Domain.Entities.BaseEntidades;
+using KafeYana.Domain.Entities.Inventario;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,5 +21,7 @@ namespace KafeYana.Domain.Entities
         public string Email { get; set; } = string.Empty;
 
         public string Direccion { get; set; } = string.Empty;
-    }
+
+        public List<OrdenCompra> Ordenes { get; set; } = new List<OrdenCompra>();
+     }
 }

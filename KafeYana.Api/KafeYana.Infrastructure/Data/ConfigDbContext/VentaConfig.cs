@@ -37,6 +37,12 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.Total).IsRequired().HasPrecision(10, 2);
 
+            builder.Property(x => x.PagoEfectivo).HasPrecision(10, 2).HasDefaultValue(0m);
+
+            builder.Property(x => x.PagoTarjeta).HasPrecision(10, 2).HasDefaultValue(0m);
+
+            builder.Property(x => x.PagoQr).HasPrecision(10, 2).HasDefaultValue(0m);
+
             builder.Property(x => x.Codigo)
                 .IsRequired()
                 .HasDefaultValue("VTA-LEGACY");

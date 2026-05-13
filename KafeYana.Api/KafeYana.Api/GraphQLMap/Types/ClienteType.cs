@@ -8,6 +8,7 @@ namespace KafeYana.Api.GraphQLMap.Types
         protected override void Configure(IObjectTypeDescriptor<Cliente> descriptor)
         {
             descriptor.Field(X => X.Correonormalizado).Ignore();
+            descriptor.Field(X => X.Pedidos).Ignore();
         }
     }
 }

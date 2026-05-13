@@ -25,6 +25,8 @@ namespace KafeYana.Api.GraphQLMap.Types
             descriptor.Field(x => x.Elaborado).Ignore();
 
             descriptor.Field(x => x.Comprado).Ignore();
+
+            descriptor.Field(x => x.Detalle_Rondas).Ignore();
         }
     }
 }

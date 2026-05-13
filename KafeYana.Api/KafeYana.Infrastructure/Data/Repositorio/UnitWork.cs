@@ -43,6 +43,18 @@ namespace KafeYana.Infrastructure.Data.Repositorio
         public IProductoMovimientoRepositorio movimientos { get ; private set; }
         public IInsumoMovimientoRepositorio Insumomovientos { get; private set; }
 
+        public IParaLlevarRepositorio parallevar { get; private set; }
+
+        public ICajaRepositorio cajas { get; private set; }
+
+        public ICajaMovimientoRepositorio cajamovimientos { get; private set; }
+
+        public ICajaHistorialRepositorio cajahistorial {  get; private set; }
+
+        public IProveedorRepositorio proveedores { get; private set; }
+
+        public IOrdenCompraRepositorio ordenes {  get; private set; }
+
         public UnitWork(AppDbContext db, IProductoRepositorio productos, IElaboradoRepositorio elaborados,
                 IInsumoRepositorio insumos,
                 IAjusteStockRepositorio ajusteStocks,
@@ -57,7 +69,13 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                 IVentaRepositorio ventas,
                 IVariacionReposiotorio variacion,
                 IProductoMovimientoRepositorio movimientos,
-                IInsumoMovimientoRepositorio insumomovientos
+                IInsumoMovimientoRepositorio insumomovientos,
+                IParaLlevarRepositorio parallevar,
+                ICajaRepositorio cajas,
+                ICajaMovimientoRepositorio cajamovimientos,
+                ICajaHistorialRepositorio cajaHistorial,
+                IProveedorRepositorio proveedores,
+                IOrdenCompraRepositorio orndenes
                 )
         {
             _db = db;
@@ -77,6 +95,12 @@ namespace KafeYana.Infrastructure.Data.Repositorio
             variaciones = variacion;
             this.movimientos = movimientos;
             Insumomovientos = insumomovientos;
+            this.parallevar = parallevar;
+            this.cajas = cajas;
+            this.cajamovimientos = cajamovimientos;
+            this.cajahistorial = cajaHistorial;
+            this.proveedores = proveedores;
+            this.ordenes = orndenes;
         }
 
         public void Dispose()

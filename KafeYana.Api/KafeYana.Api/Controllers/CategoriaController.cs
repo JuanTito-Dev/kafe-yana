@@ -2,6 +2,7 @@
 using KafeYana.Application.Exceptions;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Core.Entities.Inventario;
+using KafeYana.Domain.TiposDeDatos;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -11,10 +12,10 @@ namespace KafeYana.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = $"{RolesKafe.Admin}")]
     public class CategoriaController(ICategoriaRepositorio _Categoria) : ControllerBase
     {
 
-        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Crear(DtoCategoriaCrear datos)
         {
@@ -29,7 +30,6 @@ namespace KafeYana.Api.Controllers
             return Created("", new { message = "Categoria creada"});
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int Id, DtoCategoriaUpdate datos)
         {
@@ -46,7 +46,6 @@ namespace KafeYana.Api.Controllers
             return Ok(new { message = "Categoria actualizada" });
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Eliminar(int Id)
         {
