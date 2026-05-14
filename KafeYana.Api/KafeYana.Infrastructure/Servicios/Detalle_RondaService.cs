@@ -88,8 +88,9 @@ namespace KafeYana.Infrastructure.Servicios
             return new Detalle_ronda
             {
                 Nombre_Producto = producto.Nombre,
-                Cantidad = cantidad,
-                Precio = producto.Precio
+                Cantidad        = cantidad,
+                Precio          = producto.Precio,
+                Ubicacion       = producto.Comprado?.Ubicacion ?? string.Empty
             };
         }
 
@@ -114,8 +115,9 @@ namespace KafeYana.Infrastructure.Servicios
                 return new Detalle_ronda
                 {
                     Nombre_Producto = elaborado.Producto.Nombre,
-                    Cantidad = cantidad,
-                    Precio = elaborado.Producto.Precio
+                    Cantidad        = cantidad,
+                    Precio          = elaborado.Producto.Precio,
+                    Ubicacion       = elaborado.Ubicacion ?? string.Empty
                 };
             }
 
@@ -176,13 +178,14 @@ namespace KafeYana.Infrastructure.Servicios
                 var cantidadPorPorcion = detalleReceta.Cantidad / elaborado.Receta.Porciones;
                 var cantidadFinal = cantidadPorPorcion * cantidad * (1 + detalleReceta.Merma / 100);
 
-                // Aplicar modificaciones
+                // Aplicar modificaciones: si existe, reemplaza el total base en vez de sumar encima
                 var totalModificaciones = opcionesEntity
                     .SelectMany(x => x.Ajustes)
                     .Where(x => x.Id_Insumo == detalleReceta.Id_insumo && x.TipoAjuste == TiposAjuste.Modificacion)
                     .Sum(x => x.Cantidad);
 
-                cantidadFinal += (totalModificaciones / elaborado.Receta.Porciones) * cantidad;
+                if (totalModificaciones > 0)
+                    cantidadFinal = (totalModificaciones / elaborado.Receta.Porciones) * cantidad * (1 + detalleReceta.Merma / 100);
 
                 if (detalleReceta.Insumo.Stock_actual < (int)cantidadFinal)
                     throw new DetalleRondaException($"Stock insuficiente para insumo {detalleReceta.Insumo.Nombre}. Disponible: {detalleReceta.Insumo.Stock_actual}, Solicitado: {(int)cantidadFinal}");
@@ -226,11 +229,13 @@ namespace KafeYana.Infrastructure.Servicios
             return new Detalle_ronda
             {
                 Nombre_Producto = nombre,
-                Cantidad = cantidad,
-                Precio = elaborado.Producto.Precio + precioAjuste,
-                Opciones = opcionesEntity.Select(x => new Detalle_Ronda_Opcion
+                Cantidad        = cantidad,
+                Precio          = elaborado.Producto.Precio + precioAjuste,
+                Ubicacion       = elaborado.Ubicacion ?? string.Empty,
+                Opciones        = opcionesEntity.Select(x => new Detalle_Ronda_Opcion
                 {
-                    Id_Opcion = x.Id
+                    Id_Opcion = x.Id,
+                    Opcion    = x
                 }).ToList()
             };
         }
@@ -321,9 +326,10 @@ namespace KafeYana.Infrastructure.Servicios
             return new Detalle_ronda
             {
                 Nombre_Producto = combo.Producto.Nombre,
-                Cantidad = cantidad,
-                Precio = combo.Producto.Precio,
-                ItemsCombo = itemsCombo,
+                Cantidad        = cantidad,
+                Precio          = combo.Producto.Precio,
+                Ubicacion       = string.Empty, // los ItemsCombo tienen su propia ubicación
+                ItemsCombo      = itemsCombo,
             };
         }
 

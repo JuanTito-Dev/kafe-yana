@@ -149,13 +149,44 @@ namespace KafeYana.Api.Controllers
             // Guardar cambios
             await _db.SaveUnitWork();
 
-            return Ok(new { message = "Ronda agregada correctamente", 
-                ronda = new { 
-                    ronda.Id, 
-                    ronda.Ronda_Descripcion, 
-                    ronda.SubTotal, 
-                    detalles = ronda.Detalle.Count 
-            } });
+            return Ok(new
+            {
+                message      = "Ronda agregada correctamente",
+                nombre_mesa  = mesa.Nombre,
+                numero_orden = mesa.pedido.Id,
+                ronda = new
+                {
+                    ronda.Id,
+                    ronda.Ronda_Descripcion,
+                    ronda.SubTotal,
+                    detalles = ronda.Detalle.Select(d => new
+                    {
+                        nombre    = d.Nombre_Producto,
+                        cantidad  = d.Cantidad,
+                        precio    = d.Precio,
+                        ubicacion = d.Ubicacion,
+                        opciones  = d.Opciones.Select(o => new
+                        {
+                            nombre        = o.Opcion!.Nombre,
+                            ajuste_precio = o.Opcion.AjustePrecio,
+                            cambios       = o.Opcion.Ajustes.Select(a => new
+                            {
+                                tipo    = a.TipoAjuste,
+                                sale    = a.InsumoBase.Nombre,
+                                entra   = a.InsumoNuevo != null ? a.InsumoNuevo.Nombre : (string?)null,
+                                cantidad = a.Cantidad,
+                                unidad  = a.InsumoBase.Unidad_min_uso
+                            })
+                        }),
+                        items_combo = d.ItemsCombo.Select(i => new
+                        {
+                            nombre    = i.Nombre,
+                            cantidad  = i.Cantidad,
+                            ubicacion = i.Ubicacion
+                        })
+                    })
+                }
+            });
 
         }
 

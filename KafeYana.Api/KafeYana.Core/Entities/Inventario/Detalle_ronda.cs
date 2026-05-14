@@ -20,6 +20,9 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public string Nota { get; set; } = string.Empty;
 
+        /// <summary>Ubicación del producto. String.Empty cuando la línea es un combo (los items tienen su propia ubicación).</summary>
+        public string Ubicacion { get; set; } = string.Empty;
+
         public Ronda? ronda { get; set; }
 
         public List<Detalle_Ronda_Opcion> Opciones { get; set; } = new List<Detalle_Ronda_Opcion>();
