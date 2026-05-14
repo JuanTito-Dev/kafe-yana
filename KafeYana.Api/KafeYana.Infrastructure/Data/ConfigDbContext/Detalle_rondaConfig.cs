@@ -31,6 +31,11 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
                 .HasMaxLength(500)
                 .HasDefaultValue(string.Empty);
 
+            builder.Property(x => x.Ubicacion)
+                .IsRequired()
+                .HasMaxLength(200)
+                .HasDefaultValue(string.Empty);
+
             builder.Property(x => x.Id_Producto)
                 .IsRequired();
 
