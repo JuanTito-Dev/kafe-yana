@@ -21,15 +21,18 @@ namespace KafeYana.Application.Exceptions
         /// </summary>
         public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
-            if (exception is DbUpdateException dbEx &&
-                dbEx.InnerException is PostgresException pgEx)
+            if (exception is DbUpdateException dbEx)
             {
-                exception = pgEx.SqlState switch
+                var pgEx = FindPostgresException(dbEx);
+                if (pgEx != null)
                 {
-                    "23505" => new UniqueConstraintException(ResolverUnico(pgEx.ConstraintName)),
-                    "23503" => new ForeignKeyException(ResolverFK(pgEx.ConstraintName, pgEx.MessageText)),
-                    _ => exception
-                };
+                    exception = pgEx.SqlState switch
+                    {
+                        "23505" => new UniqueConstraintException(ResolverUnico(pgEx.ConstraintName)),
+                        "23503" => new ForeignKeyException(ResolverFK(pgEx.ConstraintName, pgEx.MessageText)),
+                        _ => exception
+                    };
+                }
             }
 
             var (statusCode, message) = GetExceptions(exception);
@@ -69,6 +72,7 @@ namespace KafeYana.Application.Exceptions
                             => (HttpStatusCode.Conflict, "El registro ya existe."),
                 OrdenCompraException => (HttpStatusCode.BadRequest, exception.Message),
                 VentaException => (HttpStatusCode.Conflict, exception.Message),
+                DbUpdateException => (HttpStatusCode.Conflict, "El registro no puede eliminarse porque está relacionado con otros datos."),
 
                 _ => (HttpStatusCode.InternalServerError, $"Ocurrió un error crítico: {exception.Message}")
             };
@@ -189,6 +193,16 @@ namespace KafeYana.Application.Exceptions
                 "fk_ordenitemproducto_producto" => "Producto no encontrado para la orden",
                 _ => "El registro relacionado no existe."
             };
+        }
+
+        private static PostgresException? FindPostgresException(Exception? ex)
+        {
+            while (ex != null)
+            {
+                if (ex is PostgresException pgEx) return pgEx;
+                ex = ex.InnerException;
+            }
+            return null;
         }
 
         /// <summary>
