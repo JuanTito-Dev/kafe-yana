@@ -1,4 +1,5 @@
 ﻿using KafeYana.Api.Filters;
+using KafeYana.Api.Hubs;
 using KafeYana.Application.Dtos.MesaDtos;
 using KafeYana.Application.Dtos.VentaDtos;
 using KafeYana.Application.Exceptions;
@@ -19,7 +20,7 @@ namespace KafeYana.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}, {RolesKafe.Mesero}")]
-    public class VentaController(IUnitWork _db, Detalle_RondaService _detalleRondaService, IVentaServices _venta) : ControllerBase
+    public class VentaController(IUnitWork _db, Detalle_RondaService _detalleRondaService, IVentaServices _venta, IKafeYanaNotificador _notificador) : ControllerBase
     {
         [HttpPost("pedido")]
         [ServiceFilter(typeof(CajaAbiertaFilter))]
@@ -43,6 +44,9 @@ namespace KafeYana.Api.Controllers
             paraLlevar.Disponible = false;
 
             await _db.SaveUnitWork();
+
+            await _notificador.NotificarPedidoParaLlevarActualizado(
+                new ParaLlevarPayload(nuevoPedido.Id, Disponible: false));
 
             return Ok(new
             {
@@ -79,42 +83,21 @@ namespace KafeYana.Api.Controllers
 
             await _db.SaveUnitWork();
 
+            var rondaPayload = BuildRondaPayload("Para llevar", paraLlevar.Pedido.Id, ronda);
+
+            await _notificador.NotificarNuevaRonda(rondaPayload);
+
             return Ok(new
             {
                 message      = "Ronda agregada correctamente",
-                nombre_mesa  = "Para llevar",
-                numero_orden = paraLlevar.Pedido.Id,
+                nombre_mesa  = rondaPayload.NombreMesa,
+                numero_orden = rondaPayload.NumeroOrden,
                 ronda = new
                 {
-                    ronda.Id,
-                    ronda.Ronda_Descripcion,
-                    ronda.SubTotal,
-                    detalles = ronda.Detalle.Select(d => new
-                    {
-                        nombre    = d.Nombre_Producto,
-                        cantidad  = d.Cantidad,
-                        precio    = d.Precio,
-                        ubicacion = d.Ubicacion,
-                        opciones  = d.Opciones.Select(o => new
-                        {
-                            nombre        = o.Opcion!.Nombre,
-                            ajuste_precio = o.Opcion.AjustePrecio,
-                            cambios       = o.Opcion.Ajustes.Select(a => new
-                            {
-                                tipo    = a.TipoAjuste,
-                                sale    = a.InsumoBase.Nombre,
-                                entra   = a.InsumoNuevo != null ? a.InsumoNuevo.Nombre : (string?)null,
-                                cantidad = a.Cantidad,
-                                unidad  = a.InsumoBase.Unidad_min_uso
-                            })
-                        }),
-                        items_combo = d.ItemsCombo.Select(i => new
-                        {
-                            nombre    = i.Nombre,
-                            cantidad  = i.Cantidad,
-                            ubicacion = i.Ubicacion
-                        })
-                    })
+                    Id          = rondaPayload.RondaId,
+                    Descripcion = rondaPayload.RondaDescripcion,
+                    rondaPayload.SubTotal,
+                    detalles    = rondaPayload.Detalles
                 }
             });
         }
@@ -156,6 +139,11 @@ namespace KafeYana.Api.Controllers
 
             await _db.SaveUnitWork();
 
+            await _notificador.NotificarVentaProcesada(
+                new VentaPayload("Para llevar", datos.Id_Pedido, datos.Pagos.Total));
+            await _notificador.NotificarPedidoParaLlevarActualizado(
+                new ParaLlevarPayload(IdPedido: null, Disponible: true));
+
             return Ok(new { message = "Venta procesada correctamente" });
         }
 
@@ -180,7 +168,35 @@ namespace KafeYana.Api.Controllers
 
             await _db.SaveUnitWork();
 
+            await _notificador.NotificarPedidoParaLlevarActualizado(
+                new ParaLlevarPayload(IdPedido: null, Disponible: true));
+
             return Ok(new { message = "Pedido para llevar liberado" });
+        }
+
+        // ─── helper ──────────────────────────────────────────────────────────
+        private static NuevaRondaPayload BuildRondaPayload(string nombreMesa, int numeroPedido, KafeYana.Domain.Entities.Inventario.Ronda ronda)
+        {
+            var detalles = ronda.Detalle.Select(d => new RondaDetalleItem(
+                Nombre    : d.Nombre_Producto,
+                Cantidad  : d.Cantidad,
+                Precio    : d.Precio,
+                Ubicacion : d.Ubicacion,
+                Opciones  : d.Opciones.Select(o => new OpcionItem(
+                    Nombre       : o.Opcion!.Nombre,
+                    AjustePrecio : o.Opcion.AjustePrecio,
+                    Cambios      : o.Opcion.Ajustes.Select(a => new CambioItem(
+                        Tipo     : a.TipoAjuste,
+                        Sale     : a.InsumoBase.Nombre,
+                        Entra    : a.InsumoNuevo?.Nombre,
+                        Cantidad : a.Cantidad,
+                        Unidad   : a.InsumoBase.Unidad_min_uso
+                    ))
+                )),
+                ItemsCombo: d.ItemsCombo.Select(i => new ComboItem(i.Nombre, i.Cantidad, i.Ubicacion))
+            ));
+
+            return new NuevaRondaPayload(nombreMesa, numeroPedido, ronda.Id, ronda.Ronda_Descripcion, ronda.SubTotal, detalles);
         }
 
         [HttpPost("reembolso/{Id:int}")]

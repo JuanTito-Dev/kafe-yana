@@ -1,4 +1,5 @@
 using KafeYana.Api.DataLoaders;
+using KafeYana.Api.Hubs;
 using QuestPDF.Infrastructure;
 using KafeYana.Api.Filters;
 using KafeYana.Api.GraphQLMap;
@@ -95,7 +96,6 @@ builder.Services.AddAuthentication(opt =>
     {
         OnMessageReceived = Context =>
         {
-            // ?? Solo leer la cookie si NO es el endpoint de RefreshToken
             if (!Context.Request.Path.StartsWithSegments("/api/Aunth/RefreshToken"))
             {
                 Context.Token = Context.Request.Cookies["ACCESS_TOKEN"];
@@ -104,6 +104,8 @@ builder.Services.AddAuthentication(opt =>
         }
     };
 });
+
+builder.Services.AddSignalR();
 
 builder.Services.AddMapster();
 
@@ -226,6 +228,7 @@ builder.Services.AddScoped<IOrdenCompraRepositorio, OrdenCompraRepositorio>();
 
 ///////////////
 builder.Services.AddScoped<CajaAbiertaFilter>();
+builder.Services.AddScoped<IKafeYanaNotificador, KafeYanaNotificador>();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -256,6 +259,7 @@ app.UseAuthorization();
 app.UseMiddleware<VerificarBloqueoMiddleware>();
 
 app.MapControllers();
+app.MapHub<KafeYanaHub>("/hubs/kafayana");
 
 using (var scope = app.Services.CreateScope())
 {

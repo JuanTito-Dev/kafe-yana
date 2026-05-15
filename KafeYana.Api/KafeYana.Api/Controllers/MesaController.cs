@@ -1,4 +1,5 @@
 ﻿using KafeYana.Api.Filters;
+using KafeYana.Api.Hubs;
 using KafeYana.Application.Dtos.MesaDtos;
 using KafeYana.Application.Dtos.PedidoDtos;
 using KafeYana.Application.Dtos.VentaDtos;
@@ -19,7 +20,7 @@ namespace KafeYana.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}, {RolesKafe.Mesero}")]
-    public class MesaController(IMesaRepositorio _Mesa, IUnitWork _db, IVentaServices _venta, Detalle_RondaService _detalleRondaService) : ControllerBase
+    public class MesaController(IMesaRepositorio _Mesa, IUnitWork _db, IVentaServices _venta, Detalle_RondaService _detalleRondaService, IKafeYanaNotificador _notificador) : ControllerBase
     {
         [HttpPost]
         public async Task<IActionResult> Crear(DtoMesaCU datos)
@@ -88,6 +89,9 @@ namespace KafeYana.Api.Controllers
 
             await _db.SaveUnitWork();
 
+            await _notificador.NotificarMesaActualizada(new MesaActualizadaPayload(
+                mesa.Id, mesa.Nombre, mesa.Disponible, mesa.pedido?.Id));
+
             var respuesta = new DtoMesaRespuesta
             {
                 Id = mesa.Id,
@@ -114,6 +118,9 @@ namespace KafeYana.Api.Controllers
             mesa.Disponible = true;
 
             await _db.SaveUnitWork();
+
+            await _notificador.NotificarMesaActualizada(new MesaActualizadaPayload(
+                mesa.Id, mesa.Nombre, mesa.Disponible, IdPedido: null));
 
             return Ok(new {message = "Mesa libre"});
         }
@@ -149,42 +156,21 @@ namespace KafeYana.Api.Controllers
             // Guardar cambios
             await _db.SaveUnitWork();
 
+            var rondaPayload = BuildRondaPayload(mesa.Nombre, mesa.pedido.Id, ronda);
+
+            await _notificador.NotificarNuevaRonda(rondaPayload);
+
             return Ok(new
             {
                 message      = "Ronda agregada correctamente",
-                nombre_mesa  = mesa.Nombre,
-                numero_orden = mesa.pedido.Id,
+                nombre_mesa  = rondaPayload.NombreMesa,
+                numero_orden = rondaPayload.NumeroOrden,
                 ronda = new
                 {
-                    ronda.Id,
-                    ronda.Ronda_Descripcion,
-                    ronda.SubTotal,
-                    detalles = ronda.Detalle.Select(d => new
-                    {
-                        nombre    = d.Nombre_Producto,
-                        cantidad  = d.Cantidad,
-                        precio    = d.Precio,
-                        ubicacion = d.Ubicacion,
-                        opciones  = d.Opciones.Select(o => new
-                        {
-                            nombre        = o.Opcion!.Nombre,
-                            ajuste_precio = o.Opcion.AjustePrecio,
-                            cambios       = o.Opcion.Ajustes.Select(a => new
-                            {
-                                tipo    = a.TipoAjuste,
-                                sale    = a.InsumoBase.Nombre,
-                                entra   = a.InsumoNuevo != null ? a.InsumoNuevo.Nombre : (string?)null,
-                                cantidad = a.Cantidad,
-                                unidad  = a.InsumoBase.Unidad_min_uso
-                            })
-                        }),
-                        items_combo = d.ItemsCombo.Select(i => new
-                        {
-                            nombre    = i.Nombre,
-                            cantidad  = i.Cantidad,
-                            ubicacion = i.Ubicacion
-                        })
-                    })
+                    Id           = rondaPayload.RondaId,
+                    Descripcion  = rondaPayload.RondaDescripcion,
+                    rondaPayload.SubTotal,
+                    detalles     = rondaPayload.Detalles
                 }
             });
 
@@ -234,13 +220,35 @@ namespace KafeYana.Api.Controllers
             // Guardar todos los cambios (transaccional)
             await _db.SaveUnitWork();
 
-            // Respuesta con información útil
-            return Ok(new
-            {
-                message = "Venta procesada correctamente",
-            });
+            await _notificador.NotificarVentaProcesada(new VentaPayload(mesa.Nombre, datos.Id_Pedido, pedido.Total));
+            await _notificador.NotificarMesaActualizada(new MesaActualizadaPayload(mesa.Id, mesa.Nombre, mesa.Disponible, IdPedido: null));
+
+            return Ok(new { message = "Venta procesada correctamente" });
         }
 
+        // ─── helper compartido ────────────────────────────────────────────────
+        private static NuevaRondaPayload BuildRondaPayload(string nombreMesa, int numeroPedido, KafeYana.Domain.Entities.Inventario.Ronda ronda)
+        {
+            var detalles = ronda.Detalle.Select(d => new RondaDetalleItem(
+                Nombre    : d.Nombre_Producto,
+                Cantidad  : d.Cantidad,
+                Precio    : d.Precio,
+                Ubicacion : d.Ubicacion,
+                Opciones  : d.Opciones.Select(o => new OpcionItem(
+                    Nombre       : o.Opcion!.Nombre,
+                    AjustePrecio : o.Opcion.AjustePrecio,
+                    Cambios      : o.Opcion.Ajustes.Select(a => new CambioItem(
+                        Tipo     : a.TipoAjuste,
+                        Sale     : a.InsumoBase.Nombre,
+                        Entra    : a.InsumoNuevo?.Nombre,
+                        Cantidad : a.Cantidad,
+                        Unidad   : a.InsumoBase.Unidad_min_uso
+                    ))
+                )),
+                ItemsCombo: d.ItemsCombo.Select(i => new ComboItem(i.Nombre, i.Cantidad, i.Ubicacion))
+            ));
 
+            return new NuevaRondaPayload(nombreMesa, numeroPedido, ronda.Id, ronda.Ronda_Descripcion, ronda.SubTotal, detalles);
+        }
     }
 }
