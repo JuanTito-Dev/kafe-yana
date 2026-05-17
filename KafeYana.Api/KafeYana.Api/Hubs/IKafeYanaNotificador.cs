@@ -6,5 +6,6 @@ namespace KafeYana.Api.Hubs
         Task NotificarNuevaRonda(NuevaRondaPayload payload);
         Task NotificarVentaProcesada(VentaPayload payload);
         Task NotificarPedidoParaLlevarActualizado(ParaLlevarPayload payload);
+        Task NotificarStockActualizado(StockActualizadoPayload payload);
     }
 }

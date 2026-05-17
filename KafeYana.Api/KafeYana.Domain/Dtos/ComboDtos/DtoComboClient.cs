@@ -16,8 +16,6 @@ namespace KafeYana.Application.Dtos.ComboDtos
         [Required(ErrorMessage = "Nombre requerido")]
         public required string Nombre { get; set; }
 
-        public string Imagen { get; set; } = string.Empty;
-
         public string Descripcion { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El precio es requerido")]
@@ -35,7 +33,6 @@ namespace KafeYana.Application.Dtos.ComboDtos
                 Precio = this.Precio,
                 Tipo = TiposProductos.Promocion,
                 Categoria_Id = 4,
-                Imagen = this.Imagen,
                 Promocion = new Promocion
                 {
                     Detalles = this.Productos.Select(p => new PromocionDetalle
@@ -57,7 +54,6 @@ namespace KafeYana.Application.Dtos.ComboDtos
             producto.Nombre = this.Nombre;
             producto.Descripcion = this.Descripcion;
             producto.Precio = this.Precio;
-            producto.Imagen = this.Imagen;
             // Reemplazar los detalles
             producto.Promocion.Detalles = this.Productos.Select(p => new PromocionDetalle
             {

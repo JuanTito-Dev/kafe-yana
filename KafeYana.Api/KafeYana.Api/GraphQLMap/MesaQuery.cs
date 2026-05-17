@@ -8,7 +8,7 @@ namespace KafeYana.Api.GraphQLMap
     [ExtendObjectType("Query")]
     public class MesaQuery
     {
-        [UsePaging(IncludeTotalCount = true, DefaultPageSize = 20)]
+        [UsePaging(IncludeTotalCount = true)]
         [UseProjection]
         [UseSorting]
         [UseFiltering]

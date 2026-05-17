@@ -13,7 +13,7 @@ namespace KafeYana.Api.GraphQLMap
     [ExtendObjectType("Query")]
     public class CategoriaQuery
     {
-        [UsePaging(IncludeTotalCount = true, DefaultPageSize = 20)]
+        [UsePaging(IncludeTotalCount = true)]
         [UseProjection]
         [UseFiltering]   // 👈 filtering antes
         [UseSorting]     // 👈 sorting después

@@ -16,7 +16,7 @@ namespace KafeYana.Api.GraphQLMap
             return await _db.Query().FirstOrDefaultAsync();
         }
 
-        [UsePaging(IncludeTotalCount = true, DefaultPageSize = 20)]
+        [UsePaging(IncludeTotalCount = true)]
         [UseProjection]
         [UseSorting]
         [UseFiltering]

@@ -3,6 +3,138 @@
   "WorkspaceRootPath": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\migrations\\20260517190715_tuyelquehacelascompras123334.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\migrations\\20260517190715_tuyelquehacelascompras123334.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260517155555_tuyelquehacelascompras.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:KafeYana.Infrastructure\\Migrations\\20260517155555_tuyelquehacelascompras.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\clientequery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\clientequery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D39A2C5E-88D3-4F9E-B5AB-31D0937ABC68}|KafeYana.Core\\KafeYana.Domain.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.core\\tiposdedatos\\rolesregistro.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D39A2C5E-88D3-4F9E-B5AB-31D0937ABC68}|KafeYana.Core\\KafeYana.Domain.csproj|solutionrelative:kafeyana.core\\tiposdedatos\\rolesregistro.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D39A2C5E-88D3-4F9E-B5AB-31D0937ABC68}|KafeYana.Core\\KafeYana.Domain.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.core\\tiposdedatos\\roleskafe.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D39A2C5E-88D3-4F9E-B5AB-31D0937ABC68}|KafeYana.Core\\KafeYana.Domain.csproj|solutionrelative:kafeyana.core\\tiposdedatos\\roleskafe.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\servicios\\accountservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\servicios\\accountservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\servicios\\authtokenprocesador.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\servicios\\authtokenprocesador.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\types\\clientetype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\types\\clientetype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\controllers\\puntoscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\controllers\\puntoscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\migrations\\20260516220853_comocuandodondequienporque.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\migrations\\20260516220853_comocuandodondequienporque.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\exceptionsglobal\\exceptionglobal.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\exceptionsglobal\\exceptionglobal.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\productomovimientosquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\productomovimientosquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\proveedorquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\proveedorquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\recetaquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\recetaquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\usuarioquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\usuarioquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\ventaquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\ventaquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\parallevarquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\parallevarquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\ordencompraquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\ordencompraquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\mesaquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\mesaquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\insumoquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\insumoquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\insumomovimientosquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\insumomovimientosquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\elaboradoquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\elaboradoquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\compradoquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\compradoquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\comboquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\comboquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\categoriaquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\categoriaquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\cajaquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\cajaquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\cajahistorialquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\cajahistorialquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\ajustesquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\ajustesquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\data\\configdbcontext\\rondaconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\data\\configdbcontext\\rondaconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\data\\configdbcontext\\detalle_rondaconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\data\\configdbcontext\\detalle_rondaconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\data\\configdbcontext\\detalle_ronda_comboitemconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\data\\configdbcontext\\detalle_ronda_comboitemconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\data\\configdbcontext\\detalle_ronda_opcionconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\data\\configdbcontext\\detalle_ronda_opcionconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
@@ -51,10 +183,6 @@
       "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\data\\configdbcontext\\pedidoconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\exceptionsglobal\\exceptionglobal.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\exceptionsglobal\\exceptionglobal.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\data\\configdbcontext\\opcionconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\data\\configdbcontext\\opcionconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -63,16 +191,8 @@
       "RelativeMoniker": "D:0:0:{D39A2C5E-88D3-4F9E-B5AB-31D0937ABC68}|KafeYana.Core\\KafeYana.Domain.csproj|solutionrelative:kafeyana.core\\entities\\inventario\\opcion.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\data\\configdbcontext\\detalle_ronda_comboitemconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\data\\configdbcontext\\detalle_ronda_comboitemconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{D39A2C5E-88D3-4F9E-B5AB-31D0937ABC68}|KafeYana.Core\\KafeYana.Domain.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.core\\entities\\inventario\\detalle_ronda_comboitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D39A2C5E-88D3-4F9E-B5AB-31D0937ABC68}|KafeYana.Core\\KafeYana.Domain.csproj|solutionrelative:kafeyana.core\\entities\\inventario\\detalle_ronda_comboitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\data\\configdbcontext\\detalle_rondaconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\data\\configdbcontext\\detalle_rondaconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\migrations\\20260512204232_fristdenosequeperodebedarobiamenteperrito.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -99,16 +219,8 @@
       "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\types\\opciontype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\types\\detallerondatype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\types\\detallerondatype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\ordencompraquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\ordencompraquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\types\\mesatype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -125,18 +237,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\types\\pedidotype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\types\\pedidotype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\mesaquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\mesaquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\parallevarquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\parallevarquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\data\\configdbcontext\\detalle_ronda_opcionconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\data\\configdbcontext\\detalle_ronda_opcionconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\data\\repositorio\\pedidorepositorio.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -171,10 +271,6 @@
       "RelativeMoniker": "D:0:0:{BC17BE4C-D08E-4B42-A95E-8730A7C97569}|KafeYana.Domain\\KafeYana.Application.csproj|solutionrelative:kafeyana.domain\\dtos\\autentication\\dtousuariodatou.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\servicios\\accountservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\servicios\\accountservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{BC17BE4C-D08E-4B42-A95E-8730A7C97569}|KafeYana.Domain\\KafeYana.Application.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.domain\\dtos\\autentication\\dtocambiarpassword.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{BC17BE4C-D08E-4B42-A95E-8730A7C97569}|KafeYana.Domain\\KafeYana.Application.csproj|solutionrelative:kafeyana.domain\\dtos\\autentication\\dtocambiarpassword.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -191,24 +287,12 @@
       "RelativeMoniker": "D:0:0:{D39A2C5E-88D3-4F9E-B5AB-31D0937ABC68}|KafeYana.Core\\KafeYana.Domain.csproj|solutionrelative:kafeyana.core\\entities\\inventario\\elaborado.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\servicios\\authtokenprocesador.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\servicios\\authtokenprocesador.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\types\\ventatype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\types\\ventatype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D39A2C5E-88D3-4F9E-B5AB-31D0937ABC68}|KafeYana.Core\\KafeYana.Domain.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.core\\entities\\venta.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D39A2C5E-88D3-4F9E-B5AB-31D0937ABC68}|KafeYana.Core\\KafeYana.Domain.csproj|solutionrelative:kafeyana.core\\entities\\venta.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D39A2C5E-88D3-4F9E-B5AB-31D0937ABC68}|KafeYana.Core\\KafeYana.Domain.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.core\\tiposdedatos\\roleskafe.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D39A2C5E-88D3-4F9E-B5AB-31D0937ABC68}|KafeYana.Core\\KafeYana.Domain.csproj|solutionrelative:kafeyana.core\\tiposdedatos\\roleskafe.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D39A2C5E-88D3-4F9E-B5AB-31D0937ABC68}|KafeYana.Core\\KafeYana.Domain.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.core\\tiposdedatos\\rolesregistro.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D39A2C5E-88D3-4F9E-B5AB-31D0937ABC68}|KafeYana.Core\\KafeYana.Domain.csproj|solutionrelative:kafeyana.core\\tiposdedatos\\rolesregistro.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\data\\configdbcontext\\ajusteconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -239,10 +323,6 @@
       "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\data\\configdbcontext\\indentity\\refreshtokenconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\usuarioquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\usuarioquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{BC17BE4C-D08E-4B42-A95E-8730A7C97569}|KafeYana.Domain\\KafeYana.Application.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.domain\\exceptions\\usuarios\\loginfailexception.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{BC17BE4C-D08E-4B42-A95E-8730A7C97569}|KafeYana.Domain\\KafeYana.Application.csproj|solutionrelative:kafeyana.domain\\exceptions\\usuarios\\loginfailexception.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -265,10 +345,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{BC17BE4C-D08E-4B42-A95E-8730A7C97569}|KafeYana.Domain\\KafeYana.Application.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.domain\\irepositorio\\iunitwork.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{BC17BE4C-D08E-4B42-A95E-8730A7C97569}|KafeYana.Domain\\KafeYana.Application.csproj|solutionrelative:kafeyana.domain\\irepositorio\\iunitwork.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\ventaquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\ventaquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D39A2C5E-88D3-4F9E-B5AB-31D0937ABC68}|KafeYana.Core\\KafeYana.Domain.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.core\\tiposdedatos\\movimientoscaja.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -331,10 +407,6 @@
       "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\types\\combotype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\graphqlmap\\comboquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\graphqlmap\\comboquery.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\migrations\\20260510184806_firstdetbaledancemejornounmasunodos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\migrations\\20260510184806_firstdetbaledancemejornounmasunodos.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -349,6 +421,14 @@
     {
       "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\migrations\\20260513021130_frtisdenadieconfuerazasconcadarinco2punto0.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\migrations\\20260513021130_frtisdenadieconfuerazasconcadarinco2punto0.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\migrations\\20260517021357_comocuandodondequienporque123productoscanjeables.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\migrations\\20260517021357_comocuandodondequienporque123productoscanjeables.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\migrations\\20260516222652_comocuandodondequienporque123.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|solutionrelative:kafeyana.infrastructure\\migrations\\20260516222652_comocuandodondequienporque123.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -358,7 +438,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 186,
-          "SelectedChildIndex": 10,
+          "SelectedChildIndex": 5,
           "Children": [
             {
               "$type": "Bookmark",
@@ -382,68 +462,370 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "DtoReporteInventario.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\Dtos\\ReporteDtos\\DtoReporteInventario.cs",
-              "RelativeDocumentMoniker": "KafeYana.Domain\\Dtos\\ReporteDtos\\DtoReporteInventario.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\Dtos\\ReporteDtos\\DtoReporteInventario.cs",
-              "RelativeToolTip": "KafeYana.Domain\\Dtos\\ReporteDtos\\DtoReporteInventario.cs",
+              "DocumentIndex": 0,
+              "Title": "20260517190715_tuyelquehacelascompras123334.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260517190715_tuyelquehacelascompras123334.cs",
+              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Migrations\\20260517190715_tuyelquehacelascompras123334.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260517190715_tuyelquehacelascompras123334.cs",
+              "RelativeToolTip": "KafeYana.Infrastructure\\Migrations\\20260517190715_tuyelquehacelascompras123334.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-13T04:23:53.872Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "Mesa.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Mesa.cs",
-              "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Inventario\\Mesa.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Mesa.cs",
-              "RelativeToolTip": "KafeYana.Core\\Entities\\Inventario\\Mesa.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-13T02:09:19.876Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "MesaController.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\MesaController.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\MesaController.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\MesaController.cs",
-              "RelativeToolTip": "KafeYana.Api\\Controllers\\MesaController.cs",
-              "ViewState": "AgIAAIIAAAAAAAAAAAAYwIwAAAAbAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-11T18:13:32.439Z",
+              "WhenOpened": "2026-05-17T19:07:16.807Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Detalle_ronda.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Detalle_ronda.cs",
-              "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Inventario\\Detalle_ronda.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Detalle_ronda.cs",
-              "RelativeToolTip": "KafeYana.Core\\Entities\\Inventario\\Detalle_ronda.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAA9AAAAAAAAAA==",
+              "DocumentIndex": 1,
+              "Title": "20260517155555_tuyelquehacelascompras.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260517155555_tuyelquehacelascompras.cs",
+              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Migrations\\20260517155555_tuyelquehacelascompras.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260517155555_tuyelquehacelascompras.cs",
+              "RelativeToolTip": "KafeYana.Infrastructure\\Migrations\\20260517155555_tuyelquehacelascompras.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-12T02:45:48.144Z"
+              "WhenOpened": "2026-05-17T15:55:56.178Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 105,
+              "Title": "20260517021357_comocuandodondequienporque123productoscanjeables.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260517021357_comocuandodondequienporque123productoscanjeables.cs",
+              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Migrations\\20260517021357_comocuandodondequienporque123productoscanjeables.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260517021357_comocuandodondequienporque123productoscanjeables.cs",
+              "RelativeToolTip": "KafeYana.Infrastructure\\Migrations\\20260517021357_comocuandodondequienporque123productoscanjeables.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-17T02:13:58.61Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 7,
-              "Title": "RecetaController.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\RecetaController.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\RecetaController.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\RecetaController.cs",
-              "RelativeToolTip": "KafeYana.Api\\Controllers\\RecetaController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Title": "AuthTokenProcesador.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Servicios\\AuthTokenProcesador.cs",
+              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Servicios\\AuthTokenProcesador.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Servicios\\AuthTokenProcesador.cs",
+              "RelativeToolTip": "KafeYana.Infrastructure\\Servicios\\AuthTokenProcesador.cs",
+              "ViewState": "AgIAAC0AAAAAAAAAAAAYwE4AAABQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-13T04:24:14.147Z"
+              "WhenOpened": "2026-05-11T00:48:20.354Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 3,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Program.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\Program.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Program.cs",
+              "RelativeToolTip": "KafeYana.Api\\Program.cs",
+              "ViewState": "AgIAAPwAAAAAAAAAAAAcwB4BAABQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-10T17:41:10.272Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "AccountService.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Servicios\\AccountService.cs",
+              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Servicios\\AccountService.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Servicios\\AccountService.cs",
+              "RelativeToolTip": "KafeYana.Infrastructure\\Servicios\\AccountService.cs",
+              "ViewState": "AgIAAIgAAAAAAAAAAAAkwKMAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-10T17:18:46.839Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "RolesKafe.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\TiposDeDatos\\RolesKafe.cs",
+              "RelativeDocumentMoniker": "KafeYana.Core\\TiposDeDatos\\RolesKafe.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\TiposDeDatos\\RolesKafe.cs",
+              "RelativeToolTip": "KafeYana.Core\\TiposDeDatos\\RolesKafe.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-11T03:44:41.344Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "RolesRegistro.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\TiposDeDatos\\RolesRegistro.cs",
+              "RelativeDocumentMoniker": "KafeYana.Core\\TiposDeDatos\\RolesRegistro.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\TiposDeDatos\\RolesRegistro.cs",
+              "RelativeToolTip": "KafeYana.Core\\TiposDeDatos\\RolesRegistro.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-11T03:45:04.146Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ClienteQuery.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\ClienteQuery.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\ClienteQuery.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\ClienteQuery.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\ClienteQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAABvAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T01:29:52.07Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "ClienteType.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\ClienteType.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\ClienteType.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\ClienteType.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\Types\\ClienteType.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T22:53:31.8Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "PuntosController.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\PuntosController.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\PuntosController.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\PuntosController.cs",
+              "RelativeToolTip": "KafeYana.Api\\Controllers\\PuntosController.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAACMAAABLAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T22:50:29.645Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 106,
+              "Title": "20260516222652_comocuandodondequienporque123.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260516222652_comocuandodondequienporque123.cs",
+              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Migrations\\20260516222652_comocuandodondequienporque123.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260516222652_comocuandodondequienporque123.cs",
+              "RelativeToolTip": "KafeYana.Infrastructure\\Migrations\\20260516222652_comocuandodondequienporque123.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T22:26:53.037Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "20260516220853_comocuandodondequienporque.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260516220853_comocuandodondequienporque.cs",
+              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Migrations\\20260516220853_comocuandodondequienporque.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260516220853_comocuandodondequienporque.cs",
+              "RelativeToolTip": "KafeYana.Infrastructure\\Migrations\\20260516220853_comocuandodondequienporque.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T22:08:55.311Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "ProductoMovimientosQuery.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\ProductoMovimientosQuery.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\ProductoMovimientosQuery.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\ProductoMovimientosQuery.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\ProductoMovimientosQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T01:31:11.283Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "ProveedorQuery.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\ProveedorQuery.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\ProveedorQuery.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\ProveedorQuery.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\ProveedorQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T01:31:16.049Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "RecetaQuery.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\RecetaQuery.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\RecetaQuery.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\RecetaQuery.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\RecetaQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T01:31:23.28Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "UsuarioQuery.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\UsuarioQuery.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\UsuarioQuery.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\UsuarioQuery.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\UsuarioQuery.cs",
+              "ViewState": "AgIAABkAAAAAAAAAAAAYwEMAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-10T16:47:26.746Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "VentaQuery.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\VentaQuery.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\VentaQuery.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\VentaQuery.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\VentaQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-10T19:01:44.499Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "ExceptionGlobal.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\ExceptionsGlobal\\ExceptionGlobal.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\ExceptionsGlobal\\ExceptionGlobal.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\ExceptionsGlobal\\ExceptionGlobal.cs",
+              "RelativeToolTip": "KafeYana.Api\\ExceptionsGlobal\\ExceptionGlobal.cs",
+              "ViewState": "AgIAAO4AAAAAAAAAAAAAAB4AAABkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-10T19:26:50.947Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "InsumoQuery.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\InsumoQuery.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\InsumoQuery.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\InsumoQuery.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\InsumoQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T01:30:51.936Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "InsumoMovimientosQuery.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\InsumoMovimientosQuery.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\InsumoMovimientosQuery.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\InsumoMovimientosQuery.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\InsumoMovimientosQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T01:30:46.244Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "ElaboradoQuery.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\ElaboradoQuery.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\ElaboradoQuery.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\ElaboradoQuery.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\ElaboradoQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T01:30:33.639Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "MesaQuery.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\MesaQuery.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\MesaQuery.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\MesaQuery.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\MesaQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-12T03:52:20.842Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "OrdenCompraQuery.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\OrdenCompraQuery.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\OrdenCompraQuery.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\OrdenCompraQuery.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\OrdenCompraQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-12T03:52:30.923Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "ParaLlevarQuery.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\ParaLlevarQuery.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\ParaLlevarQuery.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\ParaLlevarQuery.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\ParaLlevarQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-12T03:52:27.161Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "CompradoQuery.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\CompradoQuery.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\CompradoQuery.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\CompradoQuery.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\CompradoQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T01:30:25.124Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "CategoriaQuery.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\CategoriaQuery.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\CategoriaQuery.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\CategoriaQuery.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\CategoriaQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T01:29:46.849Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 26,
+              "Title": "CajaQuery.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\CajaQuery.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\CajaQuery.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\CajaQuery.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\CajaQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T01:29:39.559Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 27,
+              "Title": "CajaHistorialQuery.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\CajaHistorialQuery.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\CajaHistorialQuery.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\CajaHistorialQuery.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\CajaHistorialQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T01:29:30.741Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 28,
+              "Title": "AjustesQuery.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\AjustesQuery.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\AjustesQuery.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\AjustesQuery.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\AjustesQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-16T01:29:23.93Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 33,
               "Title": "appsettings.json",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\appsettings.json",
               "RelativeDocumentMoniker": "KafeYana.Api\\appsettings.json",
@@ -451,120 +833,35 @@
               "RelativeToolTip": "KafeYana.Api\\appsettings.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAnAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-05-12T02:53:46.324Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-12T02:53:46.324Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "ReporteInventarioPdf.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Reportes\\ReporteInventarioPdf.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\Reportes\\ReporteInventarioPdf.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Reportes\\ReporteInventarioPdf.cs",
-              "RelativeToolTip": "KafeYana.Api\\Reportes\\ReporteInventarioPdf.cs",
-              "ViewState": "AgIAAMYAAAAAAAAAAAAIwNEAAAAdAAAAAAAAAA==",
+              "DocumentIndex": 24,
+              "Title": "ComboQuery.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\ComboQuery.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\ComboQuery.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\ComboQuery.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\ComboQuery.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAArAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-13T04:30:57.496Z"
+              "WhenOpened": "2026-05-10T15:45:39.156Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "ReporteController.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\ReporteController.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\ReporteController.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\ReporteController.cs",
-              "RelativeToolTip": "KafeYana.Api\\Controllers\\ReporteController.cs",
-              "ViewState": "AgIAAA4AAAAAAAAAAAAAwAEAAAAAAAAAAAAAAA==",
+              "DocumentIndex": 29,
+              "Title": "RondaConfig.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\RondaConfig.cs",
+              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\RondaConfig.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\RondaConfig.cs",
+              "RelativeToolTip": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\RondaConfig.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-13T04:24:15.083Z"
+              "WhenOpened": "2026-05-15T15:10:58.509Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 85,
-              "Title": "20260513023826_frtisdenadieconfuerazasconcadarinco2punto0contodo.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260513023826_frtisdenadieconfuerazasconcadarinco2punto0contodo.cs",
-              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Migrations\\20260513023826_frtisdenadieconfuerazasconcadarinco2punto0contodo.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260513023826_frtisdenadieconfuerazasconcadarinco2punto0contodo.cs",
-              "RelativeToolTip": "KafeYana.Infrastructure\\Migrations\\20260513023826_frtisdenadieconfuerazasconcadarinco2punto0contodo.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-13T02:38:28.195Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "PedidoConfig.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\PedidoConfig.cs",
-              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\PedidoConfig.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\PedidoConfig.cs",
-              "RelativeToolTip": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\PedidoConfig.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-13T02:16:44.553Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 86,
-              "Title": "20260513021130_frtisdenadieconfuerazasconcadarinco2punto0.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260513021130_frtisdenadieconfuerazasconcadarinco2punto0.cs",
-              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Migrations\\20260513021130_frtisdenadieconfuerazasconcadarinco2punto0.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260513021130_frtisdenadieconfuerazasconcadarinco2punto0.cs",
-              "RelativeToolTip": "KafeYana.Infrastructure\\Migrations\\20260513021130_frtisdenadieconfuerazasconcadarinco2punto0.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-13T02:11:30.725Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "VentaController.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\VentaController.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\VentaController.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\VentaController.cs",
-              "RelativeToolTip": "KafeYana.Api\\Controllers\\VentaController.cs",
-              "ViewState": "AgIAAHIAAAAAAAAAAAArwHQAAAAyAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-11T06:13:59.198Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "Caja.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Caja.cs",
-              "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Caja.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Caja.cs",
-              "RelativeToolTip": "KafeYana.Core\\Entities\\Caja.cs",
-              "ViewState": "AgIAAA8AAAAAAAAAAAAkwB0AAABEAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-11T05:50:11.496Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "AunthController.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\AunthController.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\AunthController.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\AunthController.cs",
-              "RelativeToolTip": "KafeYana.Api\\Controllers\\AunthController.cs",
-              "ViewState": "AgIAADMAAAAAAAAAAAAYwJUAAAANAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-10T17:00:40.317Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 13,
-              "Title": "OpcionConfig.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\OpcionConfig.cs",
-              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\OpcionConfig.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\OpcionConfig.cs",
-              "RelativeToolTip": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\OpcionConfig.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAAsAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-13T02:09:26.111Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 31,
               "Title": "Detalle_Ronda_ComboItemConfig.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\Detalle_Ronda_ComboItemConfig.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\Detalle_Ronda_ComboItemConfig.cs",
@@ -576,235 +873,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
-              "Title": "Detalle_Ronda_ComboItem.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Detalle_Ronda_ComboItem.cs",
-              "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Inventario\\Detalle_Ronda_ComboItem.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Detalle_Ronda_ComboItem.cs",
-              "RelativeToolTip": "KafeYana.Core\\Entities\\Inventario\\Detalle_Ronda_ComboItem.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-13T01:34:21.46Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 17,
-              "Title": "Detalle_rondaConfig.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\Detalle_rondaConfig.cs",
-              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\Detalle_rondaConfig.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\Detalle_rondaConfig.cs",
-              "RelativeToolTip": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\Detalle_rondaConfig.cs",
-              "ViewState": "AgIAABwAAAAAAAAAAAAQwAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-12T20:43:34.901Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 14,
-              "Title": "Opcion.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Opcion.cs",
-              "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Inventario\\Opcion.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Opcion.cs",
-              "RelativeToolTip": "KafeYana.Core\\Entities\\Inventario\\Opcion.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-12T02:50:31.969Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": "ExceptionGlobal.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\ExceptionsGlobal\\ExceptionGlobal.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\ExceptionsGlobal\\ExceptionGlobal.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\ExceptionsGlobal\\ExceptionGlobal.cs",
-              "RelativeToolTip": "KafeYana.Api\\ExceptionsGlobal\\ExceptionGlobal.cs",
-              "ViewState": "AgIAAE0AAAAAAAAAAAAswFkAAABQAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-10T19:26:50.947Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 19,
-              "Title": "Detalle_venta.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Detalle_venta.cs",
-              "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Detalle_venta.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Detalle_venta.cs",
-              "RelativeToolTip": "KafeYana.Core\\Entities\\Detalle_venta.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-12T20:41:33.884Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 18,
-              "Title": "20260512204232_fristdenosequeperodebedarobiamenteperrito.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260512204232_fristdenosequeperodebedarobiamenteperrito.cs",
-              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Migrations\\20260512204232_fristdenosequeperodebedarobiamenteperrito.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260512204232_fristdenosequeperodebedarobiamenteperrito.cs",
-              "RelativeToolTip": "KafeYana.Infrastructure\\Migrations\\20260512204232_fristdenosequeperodebedarobiamenteperrito.cs",
-              "ViewState": "AgIAACsAAAAAAAAAAAAQwAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-12T20:42:33.39Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 22,
-              "Title": "AjusteType.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\AjusteType.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\AjusteType.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\AjusteType.cs",
-              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\Types\\AjusteType.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-12T04:05:20.156Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 26,
-              "Title": "OrdenCompraQuery.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\OrdenCompraQuery.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\OrdenCompraQuery.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\OrdenCompraQuery.cs",
-              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\OrdenCompraQuery.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-12T03:52:30.923Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 30,
-              "Title": "PedidoType.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\PedidoType.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\PedidoType.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\PedidoType.cs",
-              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\Types\\PedidoType.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAJAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-12T01:49:33.219Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 29,
-              "Title": "RondaType.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\RondaType.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\RondaType.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\RondaType.cs",
-              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\Types\\RondaType.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-12T01:49:48.285Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 21,
-              "Title": "Pedido.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Pedido.cs",
-              "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Pedido.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Pedido.cs",
-              "RelativeToolTip": "KafeYana.Core\\Entities\\Pedido.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABoAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-12T02:44:49.484Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 20,
-              "Title": "Detalle_Ronda_Opcion.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Detalle_Ronda_Opcion.cs",
-              "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Detalle_Ronda_Opcion.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Detalle_Ronda_Opcion.cs",
-              "RelativeToolTip": "KafeYana.Core\\Entities\\Detalle_Ronda_Opcion.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAArAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-12T03:14:35.165Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 27,
-              "Title": "MesaType.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\MesaType.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\MesaType.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\MesaType.cs",
-              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\Types\\MesaType.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-12T03:52:48.997Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 28,
-              "Title": "Detalle_Ronda_OpcionType.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\Detalle_Ronda_OpcionType.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\Detalle_Ronda_OpcionType.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\Detalle_Ronda_OpcionType.cs",
-              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\Types\\Detalle_Ronda_OpcionType.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-12T03:56:38.493Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 23,
-              "Title": "OpcionType.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\OpcionType.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\OpcionType.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\OpcionType.cs",
-              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\Types\\OpcionType.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-12T04:05:09.588Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 25,
-              "Title": "DetalleRondaType.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\DetalleRondaType.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\DetalleRondaType.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\DetalleRondaType.cs",
-              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\Types\\DetalleRondaType.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAABZAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-12T01:50:14.915Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 24,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Program.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\Program.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Program.cs",
-              "RelativeToolTip": "KafeYana.Api\\Program.cs",
-              "ViewState": "AgIAAIQAAAAAAAAAAAAcwKsAAAAoAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-10T17:41:10.272Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 31,
-              "Title": "MesaQuery.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\MesaQuery.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\MesaQuery.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\MesaQuery.cs",
-              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\MesaQuery.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAJAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-12T03:52:20.842Z"
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 32,
-              "Title": "ParaLlevarQuery.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\ParaLlevarQuery.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\ParaLlevarQuery.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\ParaLlevarQuery.cs",
-              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\ParaLlevarQuery.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-12T03:52:27.161Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 33,
               "Title": "Detalle_Ronda_OpcionConfig.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\Detalle_Ronda_OpcionConfig.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\Detalle_Ronda_OpcionConfig.cs",
@@ -816,7 +885,343 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 30,
+              "Title": "Detalle_rondaConfig.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\Detalle_rondaConfig.cs",
+              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\Detalle_rondaConfig.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\Detalle_rondaConfig.cs",
+              "RelativeToolTip": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\Detalle_rondaConfig.cs",
+              "ViewState": "AgIAABwAAAAAAAAAAAAQwDMAAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-12T20:43:34.901Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 40,
+              "Title": "RecetaController.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\RecetaController.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\RecetaController.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\RecetaController.cs",
+              "RelativeToolTip": "KafeYana.Api\\Controllers\\RecetaController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-13T04:24:14.147Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 35,
+              "Title": "Detalle_ronda.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Detalle_ronda.cs",
+              "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Inventario\\Detalle_ronda.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Detalle_ronda.cs",
+              "RelativeToolTip": "KafeYana.Core\\Entities\\Inventario\\Detalle_ronda.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAA9AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-12T02:45:48.144Z"
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 34,
+              "Title": "MesaController.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\MesaController.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\MesaController.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\MesaController.cs",
+              "RelativeToolTip": "KafeYana.Api\\Controllers\\MesaController.cs",
+              "ViewState": "AgIAAIIAAAAAAAAAAAAYwIwAAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-11T18:13:32.439Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 38,
+              "Title": "Mesa.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Mesa.cs",
+              "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Inventario\\Mesa.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Mesa.cs",
+              "RelativeToolTip": "KafeYana.Core\\Entities\\Inventario\\Mesa.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-13T02:09:19.876Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 36,
+              "Title": "DtoReporteInventario.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\Dtos\\ReporteDtos\\DtoReporteInventario.cs",
+              "RelativeDocumentMoniker": "KafeYana.Domain\\Dtos\\ReporteDtos\\DtoReporteInventario.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\Dtos\\ReporteDtos\\DtoReporteInventario.cs",
+              "RelativeToolTip": "KafeYana.Domain\\Dtos\\ReporteDtos\\DtoReporteInventario.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-13T04:23:53.872Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 37,
+              "Title": "ReporteInventarioPdf.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Reportes\\ReporteInventarioPdf.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\Reportes\\ReporteInventarioPdf.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Reportes\\ReporteInventarioPdf.cs",
+              "RelativeToolTip": "KafeYana.Api\\Reportes\\ReporteInventarioPdf.cs",
+              "ViewState": "AgIAAMYAAAAAAAAAAAAIwNEAAAAdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-13T04:30:57.496Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 39,
+              "Title": "ReporteController.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\ReporteController.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\ReporteController.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\ReporteController.cs",
+              "RelativeToolTip": "KafeYana.Api\\Controllers\\ReporteController.cs",
+              "ViewState": "AgIAAA4AAAAAAAAAAAAAwAEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-13T04:24:15.083Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 103,
+              "Title": "20260513023826_frtisdenadieconfuerazasconcadarinco2punto0contodo.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260513023826_frtisdenadieconfuerazasconcadarinco2punto0contodo.cs",
+              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Migrations\\20260513023826_frtisdenadieconfuerazasconcadarinco2punto0contodo.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260513023826_frtisdenadieconfuerazasconcadarinco2punto0contodo.cs",
+              "RelativeToolTip": "KafeYana.Infrastructure\\Migrations\\20260513023826_frtisdenadieconfuerazasconcadarinco2punto0contodo.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-13T02:38:28.195Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 44,
+              "Title": "PedidoConfig.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\PedidoConfig.cs",
+              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\PedidoConfig.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\PedidoConfig.cs",
+              "RelativeToolTip": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\PedidoConfig.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-13T02:16:44.553Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 104,
+              "Title": "20260513021130_frtisdenadieconfuerazasconcadarinco2punto0.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260513021130_frtisdenadieconfuerazasconcadarinco2punto0.cs",
+              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Migrations\\20260513021130_frtisdenadieconfuerazasconcadarinco2punto0.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260513021130_frtisdenadieconfuerazasconcadarinco2punto0.cs",
+              "RelativeToolTip": "KafeYana.Infrastructure\\Migrations\\20260513021130_frtisdenadieconfuerazasconcadarinco2punto0.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-13T02:11:30.725Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 43,
+              "Title": "VentaController.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\VentaController.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\VentaController.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\VentaController.cs",
+              "RelativeToolTip": "KafeYana.Api\\Controllers\\VentaController.cs",
+              "ViewState": "AgIAAHIAAAAAAAAAAAArwHQAAAAyAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-11T06:13:59.198Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 42,
+              "Title": "Caja.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Caja.cs",
+              "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Caja.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Caja.cs",
+              "RelativeToolTip": "KafeYana.Core\\Entities\\Caja.cs",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAkwB0AAABEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-11T05:50:11.496Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 41,
+              "Title": "AunthController.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\AunthController.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\AunthController.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\AunthController.cs",
+              "RelativeToolTip": "KafeYana.Api\\Controllers\\AunthController.cs",
+              "ViewState": "AgIAADMAAAAAAAAAAAAYwJUAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-10T17:00:40.317Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 45,
+              "Title": "OpcionConfig.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\OpcionConfig.cs",
+              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\OpcionConfig.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\OpcionConfig.cs",
+              "RelativeToolTip": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\OpcionConfig.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-13T02:09:26.111Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 47,
+              "Title": "Detalle_Ronda_ComboItem.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Detalle_Ronda_ComboItem.cs",
+              "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Inventario\\Detalle_Ronda_ComboItem.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Detalle_Ronda_ComboItem.cs",
+              "RelativeToolTip": "KafeYana.Core\\Entities\\Inventario\\Detalle_Ronda_ComboItem.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-13T01:34:21.46Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 46,
+              "Title": "Opcion.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Opcion.cs",
+              "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Inventario\\Opcion.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Opcion.cs",
+              "RelativeToolTip": "KafeYana.Core\\Entities\\Inventario\\Opcion.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-12T02:50:31.969Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 49,
+              "Title": "Detalle_venta.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Detalle_venta.cs",
+              "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Detalle_venta.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Detalle_venta.cs",
+              "RelativeToolTip": "KafeYana.Core\\Entities\\Detalle_venta.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-12T20:41:33.884Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 48,
+              "Title": "20260512204232_fristdenosequeperodebedarobiamenteperrito.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260512204232_fristdenosequeperodebedarobiamenteperrito.cs",
+              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Migrations\\20260512204232_fristdenosequeperodebedarobiamenteperrito.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260512204232_fristdenosequeperodebedarobiamenteperrito.cs",
+              "RelativeToolTip": "KafeYana.Infrastructure\\Migrations\\20260512204232_fristdenosequeperodebedarobiamenteperrito.cs",
+              "ViewState": "AgIAACsAAAAAAAAAAAAQwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-12T20:42:33.39Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 52,
+              "Title": "AjusteType.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\AjusteType.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\AjusteType.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\AjusteType.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\Types\\AjusteType.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-12T04:05:20.156Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 58,
+              "Title": "PedidoType.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\PedidoType.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\PedidoType.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\PedidoType.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\Types\\PedidoType.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-12T01:49:33.219Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 57,
+              "Title": "RondaType.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\RondaType.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\RondaType.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\RondaType.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\Types\\RondaType.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-12T01:49:48.285Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 51,
+              "Title": "Pedido.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Pedido.cs",
+              "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Pedido.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Pedido.cs",
+              "RelativeToolTip": "KafeYana.Core\\Entities\\Pedido.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-12T02:44:49.484Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 50,
+              "Title": "Detalle_Ronda_Opcion.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Detalle_Ronda_Opcion.cs",
+              "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Detalle_Ronda_Opcion.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Detalle_Ronda_Opcion.cs",
+              "RelativeToolTip": "KafeYana.Core\\Entities\\Detalle_Ronda_Opcion.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-12T03:14:35.165Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 55,
+              "Title": "MesaType.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\MesaType.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\MesaType.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\MesaType.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\Types\\MesaType.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-12T03:52:48.997Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 56,
+              "Title": "Detalle_Ronda_OpcionType.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\Detalle_Ronda_OpcionType.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\Detalle_Ronda_OpcionType.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\Detalle_Ronda_OpcionType.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\Types\\Detalle_Ronda_OpcionType.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-12T03:56:38.493Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 53,
+              "Title": "OpcionType.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\OpcionType.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\OpcionType.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\OpcionType.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\Types\\OpcionType.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-12T04:05:09.588Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 54,
+              "Title": "DetalleRondaType.cs",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\DetalleRondaType.cs",
+              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\DetalleRondaType.cs",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\DetalleRondaType.cs",
+              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\Types\\DetalleRondaType.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAABZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-12T01:50:14.915Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 59,
               "Title": "PedidoRepositorio.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\Repositorio\\PedidoRepositorio.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\Repositorio\\PedidoRepositorio.cs",
@@ -828,7 +1233,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 36,
+              "DocumentIndex": 61,
               "Title": "Ajuste.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Ajuste.cs",
               "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Inventario\\Ajuste.cs",
@@ -840,7 +1245,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 35,
+              "DocumentIndex": 60,
               "Title": "Detalle_RondaService.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Servicios\\Detalle_RondaService.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Servicios\\Detalle_RondaService.cs",
@@ -852,7 +1257,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 39,
+              "DocumentIndex": 64,
               "Title": "DtoVentaPedido.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\Dtos\\VentaDtos\\DtoVentaPedido.cs",
               "RelativeDocumentMoniker": "KafeYana.Domain\\Dtos\\VentaDtos\\DtoVentaPedido.cs",
@@ -864,7 +1269,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 37,
+              "DocumentIndex": 62,
               "Title": "TipoPagos.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\TiposDeDatos\\TipoPagos.cs",
               "RelativeDocumentMoniker": "KafeYana.Core\\TiposDeDatos\\TipoPagos.cs",
@@ -876,7 +1281,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 38,
+              "DocumentIndex": 63,
               "Title": "VentaServices.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Servicios\\VentaServices.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Servicios\\VentaServices.cs",
@@ -888,7 +1293,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 44,
+              "DocumentIndex": 68,
               "Title": "Usuario.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Entity\\Usuario.cs",
               "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Entity\\Usuario.cs",
@@ -900,7 +1305,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 40,
+              "DocumentIndex": 65,
               "Title": "CajaHistorial.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\CajaHistorial.cs",
               "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\CajaHistorial.cs",
@@ -912,7 +1317,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 41,
+              "DocumentIndex": 66,
               "Title": "DtoUsuarioDatoU.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\Dtos\\Autentication\\DtoUsuarioDatoU.cs",
               "RelativeDocumentMoniker": "KafeYana.Domain\\Dtos\\Autentication\\DtoUsuarioDatoU.cs",
@@ -924,7 +1329,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 43,
+              "DocumentIndex": 67,
               "Title": "DtoCambiarPassword.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\Dtos\\Autentication\\DtoCambiarPassword.cs",
               "RelativeDocumentMoniker": "KafeYana.Domain\\Dtos\\Autentication\\DtoCambiarPassword.cs",
@@ -936,19 +1341,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 42,
-              "Title": "AccountService.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Servicios\\AccountService.cs",
-              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Servicios\\AccountService.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Servicios\\AccountService.cs",
-              "RelativeToolTip": "KafeYana.Infrastructure\\Servicios\\AccountService.cs",
-              "ViewState": "AgIAAJoAAAAAAAAAAAAkwCMAAAAoAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-10T17:18:46.839Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 46,
+              "DocumentIndex": 70,
               "Title": "Elaborado.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Elaborado.cs",
               "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Inventario\\Elaborado.cs",
@@ -960,7 +1353,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 45,
+              "DocumentIndex": 69,
               "Title": "CajaController.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\CajaController.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\CajaController.cs",
@@ -972,19 +1365,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 47,
-              "Title": "AuthTokenProcesador.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Servicios\\AuthTokenProcesador.cs",
-              "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Servicios\\AuthTokenProcesador.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Servicios\\AuthTokenProcesador.cs",
-              "RelativeToolTip": "KafeYana.Infrastructure\\Servicios\\AuthTokenProcesador.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFYAAABQAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-11T00:48:20.354Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 48,
+              "DocumentIndex": 71,
               "Title": "VentaType.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\VentaType.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\VentaType.cs",
@@ -996,7 +1377,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 49,
+              "DocumentIndex": 72,
               "Title": "Venta.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Venta.cs",
               "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Venta.cs",
@@ -1008,7 +1389,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 84,
+              "DocumentIndex": 102,
               "Title": "20260511025929_dirstdemalamuertequienparaunfree.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260511025929_dirstdemalamuertequienparaunfree.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Migrations\\20260511025929_dirstdemalamuertequienparaunfree.cs",
@@ -1020,31 +1401,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 50,
-              "Title": "RolesKafe.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\TiposDeDatos\\RolesKafe.cs",
-              "RelativeDocumentMoniker": "KafeYana.Core\\TiposDeDatos\\RolesKafe.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\TiposDeDatos\\RolesKafe.cs",
-              "RelativeToolTip": "KafeYana.Core\\TiposDeDatos\\RolesKafe.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-11T03:44:41.344Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 51,
-              "Title": "RolesRegistro.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\TiposDeDatos\\RolesRegistro.cs",
-              "RelativeDocumentMoniker": "KafeYana.Core\\TiposDeDatos\\RolesRegistro.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\TiposDeDatos\\RolesRegistro.cs",
-              "RelativeToolTip": "KafeYana.Core\\TiposDeDatos\\RolesRegistro.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-11T03:45:04.146Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 52,
+              "DocumentIndex": 73,
               "Title": "AjusteConfig.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\AjusteConfig.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\AjusteConfig.cs",
@@ -1056,7 +1413,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 53,
+              "DocumentIndex": 74,
               "Title": "ProductoMovimientoConfig.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\ProductoMovimientoConfig.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\ProductoMovimientoConfig.cs",
@@ -1068,7 +1425,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 54,
+              "DocumentIndex": 75,
               "Title": "UsuarioConfig.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\Indentity\\UsuarioConfig.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\Indentity\\UsuarioConfig.cs",
@@ -1080,7 +1437,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 55,
+              "DocumentIndex": 76,
               "Title": "ProductoConfig.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\ProductoConfig.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\ProductoConfig.cs",
@@ -1092,7 +1449,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 56,
+              "DocumentIndex": 77,
               "Title": "AjusteStockController.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\AjusteStockController.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\AjusteStockController.cs",
@@ -1104,7 +1461,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 57,
+              "DocumentIndex": 78,
               "Title": "VerificarBloqueoMiddleware.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Middlewares\\VerificarBloqueoMiddleware.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\Middlewares\\VerificarBloqueoMiddleware.cs",
@@ -1116,7 +1473,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 58,
+              "DocumentIndex": 79,
               "Title": "RefreshTokenConfig.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\Indentity\\RefreshTokenConfig.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\Indentity\\RefreshTokenConfig.cs",
@@ -1128,19 +1485,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 59,
-              "Title": "UsuarioQuery.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\UsuarioQuery.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\UsuarioQuery.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\UsuarioQuery.cs",
-              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\UsuarioQuery.cs",
-              "ViewState": "AgIAAAkAAAAAAAAAAAAAwEMAAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-10T16:47:26.746Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 60,
+              "DocumentIndex": 80,
               "Title": "LoginFailException.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\Exceptions\\Usuarios\\LoginFailException.cs",
               "RelativeDocumentMoniker": "KafeYana.Domain\\Exceptions\\Usuarios\\LoginFailException.cs",
@@ -1152,7 +1497,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 61,
+              "DocumentIndex": 81,
               "Title": "RegiterUsuarioFailException.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\Exceptions\\Usuarios\\RegiterUsuarioFailException.cs",
               "RelativeDocumentMoniker": "KafeYana.Domain\\Exceptions\\Usuarios\\RegiterUsuarioFailException.cs",
@@ -1164,7 +1509,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 62,
+              "DocumentIndex": 82,
               "Title": "DtoReembolso.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\Dtos\\VentaDtos\\DtoReembolso.cs",
               "RelativeDocumentMoniker": "KafeYana.Domain\\Dtos\\VentaDtos\\DtoReembolso.cs",
@@ -1176,7 +1521,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 64,
+              "DocumentIndex": 84,
               "Title": "VentaRepositorio.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\Repositorio\\VentaRepositorio.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\Repositorio\\VentaRepositorio.cs",
@@ -1188,7 +1533,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 65,
+              "DocumentIndex": 85,
               "Title": "IUnitWork.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\IRepositorio\\IUnitWork.cs",
               "RelativeDocumentMoniker": "KafeYana.Domain\\IRepositorio\\IUnitWork.cs",
@@ -1200,7 +1545,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 63,
+              "DocumentIndex": 83,
               "Title": "VentaException.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\Exceptions\\VentaException.cs",
               "RelativeDocumentMoniker": "KafeYana.Domain\\Exceptions\\VentaException.cs",
@@ -1212,7 +1557,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 67,
+              "DocumentIndex": 86,
               "Title": "MovimientosCaja.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\TiposDeDatos\\MovimientosCaja.cs",
               "RelativeDocumentMoniker": "KafeYana.Core\\TiposDeDatos\\MovimientosCaja.cs",
@@ -1224,19 +1569,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 66,
-              "Title": "VentaQuery.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\VentaQuery.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\VentaQuery.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\VentaQuery.cs",
-              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\VentaQuery.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-10T19:01:44.499Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 70,
+              "DocumentIndex": 89,
               "Title": "OrdenCompraConfig.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\OrdenCompraConfig.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\OrdenCompraConfig.cs",
@@ -1248,7 +1581,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 69,
+              "DocumentIndex": 88,
               "Title": "OrdenCompra.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\OrdenCompra.cs",
               "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Inventario\\OrdenCompra.cs",
@@ -1260,7 +1593,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 83,
+              "DocumentIndex": 101,
               "Title": "20260510184806_firstdetbaledancemejornounmasunodos.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Migrations\\20260510184806_firstdetbaledancemejornounmasunodos.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Migrations\\20260510184806_firstdetbaledancemejornounmasunodos.cs",
@@ -1272,7 +1605,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 71,
+              "DocumentIndex": 90,
               "Title": "OrdenItemProducto.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\OrdenItemProducto.cs",
               "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Inventario\\OrdenItemProducto.cs",
@@ -1284,7 +1617,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 72,
+              "DocumentIndex": 91,
               "Title": "OrdenItemInsumo.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\OrdenItemInsumo.cs",
               "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Inventario\\OrdenItemInsumo.cs",
@@ -1296,7 +1629,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 68,
+              "DocumentIndex": 87,
               "Title": "OrdenCompraController.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\OrdenCompraController.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\OrdenCompraController.cs",
@@ -1308,7 +1641,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 73,
+              "DocumentIndex": 92,
               "Title": "OrdenItemProductoConfig.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\OrdenItemProductoConfig.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\OrdenItemProductoConfig.cs",
@@ -1320,7 +1653,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 74,
+              "DocumentIndex": 93,
               "Title": "OrdenItemInsumoConfig.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\OrdenItemInsumoConfig.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\OrdenItemInsumoConfig.cs",
@@ -1332,7 +1665,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 75,
+              "DocumentIndex": 94,
               "Title": "DtoUsuarioDatos.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\Dtos\\Autentication\\DtoUsuarioDatos.cs",
               "RelativeDocumentMoniker": "KafeYana.Domain\\Dtos\\Autentication\\DtoUsuarioDatos.cs",
@@ -1344,7 +1677,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 76,
+              "DocumentIndex": 95,
               "Title": "DtoUsuarioAnswer.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\Dtos\\Autentication\\DtoUsuarioAnswer.cs",
               "RelativeDocumentMoniker": "KafeYana.Domain\\Dtos\\Autentication\\DtoUsuarioAnswer.cs",
@@ -1356,7 +1689,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 77,
+              "DocumentIndex": 96,
               "Title": "Promocion.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Promocion.cs",
               "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Inventario\\Promocion.cs",
@@ -1368,7 +1701,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 78,
+              "DocumentIndex": 97,
               "Title": "ElaboradoType.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\ElaboradoType.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\ElaboradoType.cs",
@@ -1380,7 +1713,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 79,
+              "DocumentIndex": 98,
               "Title": "ProductoType.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\ProductoType.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\ProductoType.cs",
@@ -1392,7 +1725,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 80,
+              "DocumentIndex": 99,
               "Title": "PromocionDetalleType.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\PromocionDetalleType.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\PromocionDetalleType.cs",
@@ -1404,7 +1737,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 81,
+              "DocumentIndex": 100,
               "Title": "ComboType.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\ComboType.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\ComboType.cs",
@@ -1413,18 +1746,6 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-05-10T15:45:42.821Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 82,
-              "Title": "ComboQuery.cs",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\ComboQuery.cs",
-              "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\ComboQuery.cs",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\ComboQuery.cs",
-              "RelativeToolTip": "KafeYana.Api\\GraphQLMap\\ComboQuery.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-10T15:45:39.156Z"
             }
           ]
         }

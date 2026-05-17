@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "3c/9rAqMXoU=",
+  "dgSpecHash": "lh7OaqkqXRM=",
   "success": true,
   "projectFilePath": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\KafeYana.Api.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\HP\\.nuget\\packages\\awssdk.core\\3.7.401.12\\awssdk.core.3.7.401.12.nupkg.sha512",
+    "C:\\Users\\HP\\.nuget\\packages\\awssdk.s3\\3.7.414.2\\awssdk.s3.3.7.414.2.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\chillicream.nitro.app\\28.0.7\\chillicream.nitro.app.28.0.7.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\greendonut\\15.1.12\\greendonut.15.1.12.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\greendonut.abstractions\\15.1.12\\greendonut.abstractions.15.1.12.nupkg.sha512",

@@ -14,7 +14,9 @@ namespace KafeYana.Domain.Entities
 
         public DateTime Fecha { get; set; }
 
-        public required string Cliente { get; set; } 
+        public required string Cliente { get; set; }
+
+        public int? Id_Cliente { get; set; }
 
         public required string Cajero { get; set; }
 

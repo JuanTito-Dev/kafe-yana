@@ -184,6 +184,52 @@ namespace KafeYana.Infrastructure.Migrations
                     b.ToTable("Categorias");
                 });
 
+            modelBuilder.Entity("KafeYana.Domain.Entities.AceleradorPuntos", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<decimal>("Cantidad")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<TimeOnly?>("HoraFin")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<TimeOnly?>("HoraInicio")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("TipoAplicacion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<decimal?>("UmbralMonto")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Tipo")
+                        .IsUnique()
+                        .HasDatabaseName("IX_AceleradorPuntos_Tipo_Unique");
+
+                    b.ToTable("AceleradorPuntos", (string)null);
+                });
+
             modelBuilder.Entity("KafeYana.Domain.Entities.Caja", b =>
                 {
                     b.Property<int>("Id")
@@ -470,7 +516,9 @@ namespace KafeYana.Infrastructure.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<int>("Puntos")
-                        .HasColumnType("integer");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.HasKey("Id");
 
@@ -496,7 +544,10 @@ namespace KafeYana.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("unique_nombre_cliente");
 
-                    b.ToTable("Clientes");
+                    b.ToTable("Clientes", t =>
+                        {
+                            t.HasCheckConstraint("CK_Cliente_Puntos_NonNegative", "\"Puntos\" >= 0");
+                        });
                 });
 
             modelBuilder.Entity("KafeYana.Domain.Entities.Detalle_Ronda_Opcion", b =>
@@ -545,6 +596,48 @@ namespace KafeYana.Infrastructure.Migrations
                     b.HasIndex("Id_venta");
 
                     b.ToTable("Detalle_venta", (string)null);
+                });
+
+            modelBuilder.Entity("KafeYana.Domain.Entities.HistorialPuntos", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodigoVenta")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Desglose")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("Fecha")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<int>("Id_Cliente")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PuntosBase")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PuntosFinales")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CodigoVenta")
+                        .HasDatabaseName("IX_HistorialPuntos_CodigoVenta");
+
+                    b.HasIndex("Id_Cliente")
+                        .HasDatabaseName("IX_HistorialPuntos_Cliente");
+
+                    b.ToTable("HistorialPuntos", (string)null);
                 });
 
             modelBuilder.Entity("KafeYana.Domain.Entities.Inventario.Ajuste", b =>
@@ -1099,10 +1192,6 @@ namespace KafeYana.Infrastructure.Migrations
                         .HasColumnType("character varying(255)")
                         .HasDefaultValue("");
 
-                    b.Property<string>("Imagen")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1115,6 +1204,10 @@ namespace KafeYana.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
+
+                    b.Property<string>("UrlImagen")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -1411,6 +1504,116 @@ namespace KafeYana.Infrastructure.Migrations
                     b.ToTable("Pedido", (string)null);
                 });
 
+            modelBuilder.Entity("KafeYana.Domain.Entities.ProductoCanjeable", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Categoria")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Disponible")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<int>("Id_Producto")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("NombreProducto")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<int>("Puntos")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Activo")
+                        .HasDatabaseName("IX_ProductoCanjeable_Activo");
+
+                    b.HasIndex("Disponible")
+                        .HasDatabaseName("IX_ProductoCanjeable_Disponible");
+
+                    b.HasIndex("Id_Producto")
+                        .IsUnique()
+                        .HasDatabaseName("IX_ProductoCanjeable_Producto_Unique");
+
+                    b.ToTable("ProductoCanjeable", (string)null);
+                });
+
+            modelBuilder.Entity("KafeYana.Domain.Entities.PromocionPermanente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasDefaultValue("");
+
+                    b.Property<int?>("Id_ProductoCanjeable")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("TipoCondicion")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("TipoRecompensa")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<int>("ValorCondicion")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ValorRecompensa")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Activo")
+                        .HasDatabaseName("IX_PromocionPermanente_Activo");
+
+                    b.HasIndex("Id_ProductoCanjeable");
+
+                    b.HasIndex("Nombre")
+                        .IsUnique()
+                        .HasDatabaseName("IX_PromocionPermanente_Nombre_Unique");
+
+                    b.HasIndex("TipoCondicion")
+                        .HasDatabaseName("IX_PromocionPermanente_TipoCondicion");
+
+                    b.ToTable("PromocionPermanente", (string)null);
+                });
+
             modelBuilder.Entity("KafeYana.Domain.Entities.Proveedor", b =>
                 {
                     b.Property<int>("Id")
@@ -1480,6 +1683,28 @@ namespace KafeYana.Infrastructure.Migrations
                     b.ToTable("Proveedores", (string)null);
                 });
 
+            modelBuilder.Entity("KafeYana.Domain.Entities.ReglaBasePuntos", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<decimal>("Cantidad")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ReglaBasePuntos", (string)null);
+                });
+
             modelBuilder.Entity("KafeYana.Domain.Entities.Venta", b =>
                 {
                     b.Property<int>("Id")
@@ -1510,6 +1735,9 @@ namespace KafeYana.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("NOW()");
+
+                    b.Property<int?>("Id_Cliente")
+                        .HasColumnType("integer");
 
                     b.Property<decimal>("PagoEfectivo")
                         .ValueGeneratedOnAdd()
@@ -1753,6 +1981,18 @@ namespace KafeYana.Infrastructure.Migrations
                         .HasConstraintName("FK_DetalleVenta_Venta");
 
                     b.Navigation("venta");
+                });
+
+            modelBuilder.Entity("KafeYana.Domain.Entities.HistorialPuntos", b =>
+                {
+                    b.HasOne("KafeYana.Domain.Entities.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("Id_Cliente")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_historialpuntos_cliente");
+
+                    b.Navigation("Cliente");
                 });
 
             modelBuilder.Entity("KafeYana.Domain.Entities.Inventario.Ajuste", b =>
@@ -2067,6 +2307,29 @@ namespace KafeYana.Infrastructure.Migrations
                         .HasConstraintName("fx_pedido_cliente");
 
                     b.Navigation("Cliente");
+                });
+
+            modelBuilder.Entity("KafeYana.Domain.Entities.ProductoCanjeable", b =>
+                {
+                    b.HasOne("KafeYana.Domain.Entities.Inventario.Producto", "Producto")
+                        .WithMany()
+                        .HasForeignKey("Id_Producto")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_productocanjeable_producto");
+
+                    b.Navigation("Producto");
+                });
+
+            modelBuilder.Entity("KafeYana.Domain.Entities.PromocionPermanente", b =>
+                {
+                    b.HasOne("KafeYana.Domain.Entities.ProductoCanjeable", "ProductoCanjeable")
+                        .WithMany()
+                        .HasForeignKey("Id_ProductoCanjeable")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_promocionpermanente_productocanjeable");
+
+                    b.Navigation("ProductoCanjeable");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

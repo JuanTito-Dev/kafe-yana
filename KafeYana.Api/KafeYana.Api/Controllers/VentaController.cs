@@ -20,7 +20,7 @@ namespace KafeYana.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}, {RolesKafe.Mesero}")]
-    public class VentaController(IUnitWork _db, Detalle_RondaService _detalleRondaService, IVentaServices _venta, IKafeYanaNotificador _notificador) : ControllerBase
+    public class VentaController(IUnitWork _db, Detalle_RondaService _detalleRondaService, IVentaServices _venta, IKafeYanaNotificador _notificador, StockPayloadService _stockService) : ControllerBase
     {
         [HttpPost("pedido")]
         [ServiceFilter(typeof(CajaAbiertaFilter))]
@@ -84,8 +84,10 @@ namespace KafeYana.Api.Controllers
             await _db.SaveUnitWork();
 
             var rondaPayload = BuildRondaPayload("Para llevar", paraLlevar.Pedido.Id, ronda);
+            var stockPayload = await _stockService.BuildAsync(ronda);
 
             await _notificador.NotificarNuevaRonda(rondaPayload);
+            await _notificador.NotificarStockActualizado(stockPayload);
 
             return Ok(new
             {

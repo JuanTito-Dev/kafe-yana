@@ -26,5 +26,10 @@ namespace KafeYana.Api.Hubs
             await _hub.Clients.Groups("salon", "caja")
                 .SendAsync("PedidoParaLlevarActualizado", payload);
         }
+
+        public async Task NotificarStockActualizado(StockActualizadoPayload payload)
+        {
+            await _hub.Clients.Group("salon").SendAsync("StockActualizado", payload);
+        }
     }
 }

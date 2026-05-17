@@ -27,7 +27,7 @@ namespace KafeYana.Api.Controllers
 
             await _servicio.Register(datos);
 
-            return Ok(new { mesage = "Usuario Registrado" });
+            return Ok(new { message = "Usuario Registrado" });
         }
 
         [HttpPost("Login")]

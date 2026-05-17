@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace KafeYana.Infrastructure.Servicios
 {
-    public class VentaServices(IUnitWork _db) : IVentaServices
+    public class VentaServices(IUnitWork _db, IPuntosService _puntos) : IVentaServices
     {
         public async Task<Venta> ProcesarVenta(int Id_Pedido, int Id_Cliente, string cajero, DtoPagos pagos)
         {
@@ -30,12 +30,13 @@ namespace KafeYana.Infrastructure.Servicios
             }
 
             var anio = DateTime.UtcNow.Year;
-            var numeroVenta = await _db.ventas.ContarVentasDelAnio(anio) + 1;
+            var numeroVenta = await _db.ventas.SiguienteNumeroVentaAsync();
             var codigoVenta = $"VTA-{anio}-{numeroVenta:D3}";
 
-            var detallesVenta = new List<Detalle_venta>();
-            var subtotal = 0.00M;
+            var detallesVenta  = new List<Detalle_venta>();
+            var subtotal       = 0.00M;
             var productosCount = 0;
+            var tieneCombo     = false;
 
             foreach (var ronda in pedido.Rondas)
             {
@@ -45,34 +46,42 @@ namespace KafeYana.Infrastructure.Servicios
 
                     detallesVenta.Add(new Detalle_venta
                     {
-                        Nombre = detalle.Nombre_Producto,
+                        Nombre   = detalle.Nombre_Producto,
                         Cantidad = detalle.Cantidad,
-                        Precio = detalle.Precio,
-                        Total = totalDetalle
+                        Precio   = detalle.Precio,
+                        Total    = totalDetalle
                     });
 
                     subtotal += totalDetalle;
                     productosCount++;
+
+                    if (detalle.ItemsCombo.Count > 0)
+                        tieneCombo = true;
                 }
             }
 
+            var venta = new Venta
+            {
+                Codigo       = codigoVenta,
+                Fecha        = DateTime.UtcNow,
+                Cliente      = cliente!.Nombre,
+                Id_Cliente   = cliente.Id,
+                Cajero       = cajero,
+                Productos    = productosCount,
+                PagoEfectivo = pagos.Efectivo,
+                PagoTarjeta  = pagos.Tarjeta,
+                PagoQr       = pagos.Qr,
+                Estado       = "Finalizada",
+                Subtotal     = subtotal,
+                Total        = subtotal,
+                Detalles     = detallesVenta
+            };
+
             await _db.Pedidos.Remove(pedido);
 
-            return new Venta
-            {
-                Codigo = codigoVenta,
-                Fecha = DateTime.UtcNow,
-                Cliente = cliente!.Nombre,
-                Cajero = cajero,
-                Productos = productosCount,
-                PagoEfectivo = pagos.Efectivo,
-                PagoTarjeta = pagos.Tarjeta,
-                PagoQr = pagos.Qr,
-                Estado = "Finalizada",
-                Subtotal = subtotal,
-                Total = subtotal,
-                Detalles = detallesVenta
-            };
+            await _puntos.CalcularYAplicarPuntosAsync(cliente, subtotal, tieneCombo, codigoVenta);
+
+            return venta;
         }
     }
 }

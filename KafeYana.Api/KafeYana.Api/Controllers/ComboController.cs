@@ -1,24 +1,26 @@
 ﻿using KafeYana.Application.Dtos.ComboDtos;
-using KafeYana.Application.Dtos.ElaboradosDtos;
-using KafeYana.Application.Exceptions;
 using KafeYana.Application.IRepositorio;
-using KafeYana.Domain.Entities.Inventario;
-using KafeYana.Domain.TiposDeDatos;
+using KafeYana.Application.IServicios;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using KafeYana.Domain.TiposDeDatos;
 
 namespace KafeYana.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = $"{RolesKafe.Admin}")]
-    public class ComboController(IComboRepositorio _db) : ControllerBase
+    public class ComboController(IComboRepositorio _db, IProductoImagenService _imagenService) : ControllerBase
     {
+        private const int CategoriaComboId = 4;
+
         [HttpPost]
-        public async Task<IActionResult> Crear(DtoComboClient datos)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Crear([FromForm] DtoComboClient datos, IFormFile Imagen)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            if (Imagen is null) return BadRequest(new { message = "La imagen es requerida." });
 
             try
             {
@@ -29,16 +31,19 @@ namespace KafeYana.Api.Controllers
                 return BadRequest(new { message = ex.Message });
             }
 
-            await _db.Crear(datos.Crear());
+            var producto = datos.Crear();
 
+            producto.UrlImagen = await _imagenService.ProcesarSubidaAsync(Imagen, datos.Nombre, CategoriaComboId);
+
+            await _db.Crear(producto);
             await _db.SaveAsync();
 
-            return Created("", new { message = "Combo creado"});
+            return Created("", new { message = "Combo creado" });
         }
 
-
         [HttpPut("{Id}")]
-        public async Task<IActionResult> Update(int Id, DtoComboClient datos)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Update(int Id, [FromForm] DtoComboClient datos, IFormFile? Imagen)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -53,14 +58,20 @@ namespace KafeYana.Api.Controllers
 
             var producto = await _db.TraerProducto(Id: Id, combo: true);
 
-            if (producto is null || producto.Promocion is null || producto.Promocion.Detalles is null) return NotFound("Combo no existe");
+            if (producto is null || producto.Promocion is null || producto.Promocion.Detalles is null)
+                return NotFound("Combo no existe");
 
             datos.Actualizar(producto);
 
+            if (Imagen is not null)
+            {
+                await _imagenService.EliminarSiExisteAsync(producto.UrlImagen);
+                producto.UrlImagen = await _imagenService.ProcesarSubidaAsync(Imagen, datos.Nombre, CategoriaComboId);
+            }
+
             await _db.SaveAsync();
 
-            return Ok(new {message = "Combo actualizado"});
+            return Ok(new { message = "Combo actualizado" });
         }
-
     }
 }

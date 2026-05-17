@@ -14,7 +14,6 @@ namespace KafeYana.Application.Dtos.ElaboradosDtos
         [Required(ErrorMessage = "Nombre requerido")]
         public string Nombre { get; set; } = string.Empty;
 
-        public string Imagen { get; set; } = string.Empty;
         public string Descripcion { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Precio requerido")]
@@ -43,7 +42,6 @@ namespace KafeYana.Application.Dtos.ElaboradosDtos
                 Precio = this.Precio,
                 Tipo = TiposProductos.Elaborado,
                 Categoria_Id = this.Categoria_Id,
-                Imagen = this.Imagen,
                 Elaborado = new Elaborado
                 {
                     Ubicacion = this.Ubicacion,

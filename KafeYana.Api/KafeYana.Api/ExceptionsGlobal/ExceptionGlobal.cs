@@ -28,6 +28,8 @@ namespace KafeYana.Application.Exceptions
                 {
                     "23505" => new UniqueConstraintException(ResolverUnico(pgEx.ConstraintName)),
                     "23503" => new ForeignKeyException(ResolverFK(pgEx.ConstraintName, pgEx.MessageText)),
+                    "23001" => new ForeignKeyException(ResolverFK_Eliminacion(pgEx.ConstraintName)),
+
                     _ => exception
                 };
             }
@@ -56,6 +58,7 @@ namespace KafeYana.Application.Exceptions
                 RegiterUsuarioFailException => (HttpStatusCode.BadRequest, exception.Message),
 
                 // ==================== NEGOCIO ====================
+                ImagenException => (HttpStatusCode.BadRequest, exception.Message),
                 CampoYaExistenteFailException => (HttpStatusCode.Conflict, exception.Message),
                 InventarioException => (HttpStatusCode.Conflict, exception.Message),
                 DetalleRondaException => (HttpStatusCode.BadRequest, exception.Message),
@@ -111,6 +114,15 @@ namespace KafeYana.Application.Exceptions
                 "Unique_celular_cliente" => "Ya existe un cliente con ese número",
                 "Unique_correo_cliente" => "Ya existe un cliente con ese correo",
                 "Unique_Dni_cliente" => "Ya existe un cliente con este Dni",
+
+                //======puntos
+                "ix_aceleradorpuntos_tipo_unique" => "Ya existe un acelerador con ese tipo.",
+
+                //======producto canjeable
+                "ix_productocanjeable_producto_unique" => "Este producto ya tiene un registro canjeable.",
+
+                //======promocion permanente
+                "ix_promocionpermanente_nombre_unique" => "Ya existe una promoción con ese nombre.",
 
                 //Mesa
                 "Unique_mesa_nombre" => "Ya existe una mesa con ese nombre",
@@ -187,6 +199,8 @@ namespace KafeYana.Application.Exceptions
                 "fk_ordeniteminsumo_insumo" => "Insumo no encontrado para la orden",
                 "fk_ordeniteminsumo_orden" => "Orden de compra no encontrada",
                 "fk_ordenitemproducto_producto" => "Producto no encontrado para la orden",
+                "fk_productocanjeable_producto" => "El producto seleccionado no existe.",
+                "fk_promocionpermanente_productocanjeable" => "El producto canjeable seleccionado no existe.",
                 _ => "El registro relacionado no existe."
             };
         }
@@ -209,9 +223,11 @@ namespace KafeYana.Application.Exceptions
                 // ==================== CLIENTES ====================
                 "fx_pedido_cliente" => "No se puede eliminar el cliente porque tiene pedidos asociados.",
 
-                // ==================== PEDIDO ====================
-                "FK_Mesa_Pedido_Id_Pedido" => "El pedido asignado no puede eliminarse.",
+                // ==================== PUNTOS ====================
+                "fk_historialpuntos_cliente" => "No se puede eliminar el cliente porque tiene historial de puntos asociados.",
 
+                // ==================== PEDIDO ====================
+                "FK_Mesa_Pedido_Id_Pedido" => "El pedido asignado no puede eliminarse.", 
                 // ==================== DETALLE RONDA ====================
                 "FK_Detalle_Ronda_Opcion_Opcion_Id_Opcion" => "La opción no puede ser eliminada.",
                 "fk_detallerondaopcion_opcion" => "No puedes eliminar esta opcion esta en un pedido",
@@ -220,6 +236,7 @@ namespace KafeYana.Application.Exceptions
                 "Producto asociado a una venta" => "El producto está asociado a una venta y no puede eliminarse.",
                 "fk_ordeniteminsumo_insumo"=> "No puede eliminar el insumo esta en una orden de compra",
                 "fk_ordenitemproducto_producto" => "No puedes eliminar el producto esta en un orden",
+                "fk_promocionpermanente_productocanjeable" => "No puedes eliminar este producto canjeable porque está en una promoción activa.",
 
                 _ => "El registro pertenece a otro y no puede eliminarse."
             };

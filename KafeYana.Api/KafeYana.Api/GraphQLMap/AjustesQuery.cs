@@ -10,7 +10,7 @@ namespace KafeYana.Api.GraphQLMap
     [ExtendObjectType("Query")]
     public class AjustesQuery 
     {
-        [UsePaging(IncludeTotalCount = true, DefaultPageSize = 20)]
+        [UsePaging(IncludeTotalCount = true)]
         [UseProjection]
         [UseSorting]
         [UseFiltering]

@@ -65,6 +65,7 @@ namespace KafeYana.Infrastructure.Procesos
         public void WriteAunthHttpOnlyCookie(string NameToken, string Token, DateTime expiration)
         {
             var context = _http.HttpContext ?? throw new InvalidOperationException("No existe contexto HTTP");
+            var isHttps = context.Request.IsHttps;
 
             context.Response.Cookies.Append(
                 NameToken,
@@ -74,9 +75,8 @@ namespace KafeYana.Infrastructure.Procesos
                     HttpOnly = true,
                     Expires = expiration,
                     IsEssential = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Strict,
-                    // 👇 Si es RefreshToken solo se envía en esa ruta, si no va en todos
+                    Secure = isHttps,
+                    SameSite = isHttps ? SameSiteMode.Strict : SameSiteMode.Lax,
                     Path = NameToken == "REFRESH_TOKEN" ? "/api/Aunth/RefreshToken" : "/"
                 }
                 );

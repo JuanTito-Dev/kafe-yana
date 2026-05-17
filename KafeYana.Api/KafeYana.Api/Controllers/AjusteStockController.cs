@@ -54,7 +54,7 @@ namespace KafeYana.Api.Controllers
 
 
 
-            if (nombre is null) return NotFound(new { message = "Usuario no encontrado" });
+            if (nombre is null) return Unauthorized(new { message = "Usuario no identificado" });
 
 
 
@@ -110,7 +110,7 @@ namespace KafeYana.Api.Controllers
 
 
 
-            if (nombre == null) return NotFound("Usuario no encontrado");
+            if (nombre == null) return Unauthorized(new { message = "Usuario no identificado" });
 
 
 
@@ -172,7 +172,7 @@ namespace KafeYana.Api.Controllers
 
             if (nombre is null)
 
-                return NotFound(new { message = "Usuario no encontrado" });
+                return Unauthorized(new { message = "Usuario no identificado" });
 
 
 

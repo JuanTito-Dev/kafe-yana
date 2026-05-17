@@ -13,7 +13,7 @@ namespace KafeYana.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = $"{RolesKafe.Admin} ")]
+    [Authorize(Roles = $"{RolesKafe.Admin}")]
     public class InsumoController(IInsumoRepositorio _db) : ControllerBase
     {
         [Authorize(Roles = "Admin")]

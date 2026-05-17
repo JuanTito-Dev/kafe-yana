@@ -27,6 +27,8 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.Cliente).IsRequired();
 
+            builder.Property(x => x.Id_Cliente);
+
             builder.Property(x => x.Estado).IsRequired();
 
             builder.Property(x => x.Fecha).HasDefaultValueSql("NOW()");

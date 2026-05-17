@@ -147,6 +147,9 @@ builder.Services.AddGraphQLServer()
     .AddTypeExtension<CajaQuery>()
     .AddTypeExtension<CajaHistorialQuery>()
     .AddTypeExtension<OrdenCompraQuery>()
+    .AddTypeExtension<HistorialPuntosQuery>()
+    .AddTypeExtension<ProductoCanjeableQuery>()
+    .AddTypeExtension<PromocionPermanenteQuery>()
     .AddType<AjusteType>()
     .AddType<CategoriaType>()
     .AddType<ClienteType>()
@@ -188,10 +191,17 @@ builder.Services.AddGraphQLServer()
     .AddAuthorization()
     .AddTypeExtension<ProveedorQuery>()
     .AddType<ProveedorType>()
+    .AddType<HistorialPuntosType>()
+    .AddType<ProductoCanjeableType>()
+    .AddType<PromocionPermanenteType>()
     .AddDataLoader<PromocionCantidadProducibleDataLoader>()
     .AddDataLoader<RecetaCantidadProducibleDataLoader>();
 
-//Servicios 
+//Servicios
+builder.Services.Configure<CloudflareR2Options>(builder.Configuration.GetSection(CloudflareR2Options.Key));
+builder.Services.AddSingleton<IR2StorageService, R2StorageService>();
+builder.Services.AddScoped<IProductoImagenService, ProductoImagenService>();
+
 builder.Services.AddScoped<IAuthTokenProcesador, AuthTokenProcesador>();
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 builder.Services.AddScoped<IAccountService, AccountService>();
@@ -224,11 +234,17 @@ builder.Services.AddScoped<ICajaMovimientoRepositorio, CajaMovimientoRepositorio
 builder.Services.AddScoped<ICajaHistorialRepositorio, CajaHistorialRepositorio>();
 builder.Services.AddScoped<ICajaHistorialMovimientoRepositorio, CajaHistorialMovimientoRepositorio>();
 builder.Services.AddScoped<IOrdenCompraRepositorio, OrdenCompraRepositorio>();
-
+builder.Services.AddScoped<IProductoCanjeableRepositorio, ProductoCanjeableRepositorio>();
+builder.Services.AddScoped<IPromocionPermanenteRepositorio, PromocionPermanenteRepositorio>();
+builder.Services.AddScoped<IReglaBasePuntosRepositorio, ReglaBasePuntosRepositorio>();
+builder.Services.AddScoped<IAceleradorPuntosRepositorio, AceleradorPuntosRepositorio>();
+builder.Services.AddScoped<IHistorialPuntosRepositorio, HistorialPuntosRepositorio>();
+builder.Services.AddScoped<IPuntosService, PuntosService>();
 
 ///////////////
 builder.Services.AddScoped<CajaAbiertaFilter>();
 builder.Services.AddScoped<IKafeYanaNotificador, KafeYanaNotificador>();
+builder.Services.AddScoped<StockPayloadService>();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -266,20 +282,19 @@ using (var scope = app.Services.CreateScope())
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
 
     if (!await roleManager.RoleExistsAsync(RolesKafe.Admin))
-    {
         await roleManager.CreateAsync(new IdentityRole<Guid>(RolesKafe.Admin));
-    }
 
     if (!await roleManager.RoleExistsAsync(RolesKafe.Mesero))
-    {
         await roleManager.CreateAsync(new IdentityRole<Guid>(RolesKafe.Mesero));
-    }
 
     if (!await roleManager.RoleExistsAsync(RolesKafe.Cajero))
-    {
         await roleManager.CreateAsync(new IdentityRole<Guid>(RolesKafe.Cajero));
-    }
 
+    if (!await roleManager.RoleExistsAsync(RolesKafe.Asistente))
+        await roleManager.CreateAsync(new IdentityRole<Guid>(RolesKafe.Asistente));
+
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await KafeYana.Infrastructure.Data.Seeders.AceleradorPuntosSeeder.SeedAsync(db);
 }
 
 app.Run();
