@@ -15,8 +15,6 @@ namespace KafeYana.Application.Dtos.CompradoDtos
         [Required(ErrorMessage = "Nombre es requerido")]
         public required string Nombre { get; set; }
 
-        public string Imagen { get; set; } = string.Empty;
-
         [MaxLength(50)]
         public string Codigo_barra { get; set; } = string.Empty;
 
@@ -63,7 +61,6 @@ namespace KafeYana.Application.Dtos.CompradoDtos
                 Precio = this.Precio,
                 Tipo = TiposProductos.Comprado,
                 Categoria_Id = this.Categoria_Id,
-                Imagen = this.Imagen,
                 Comprado = new Comprado(Stock_actual)
                 {
                     Codigo_barra = this.Codigo_barra,
@@ -93,7 +90,6 @@ namespace KafeYana.Application.Dtos.CompradoDtos
             datos.Comprado.Costo_compra = this.Costo_compra;
             datos.Comprado.Stock_minimo = this.Stock_minimo;
             datos.Comprado.Disponible  = this.Disponible;
-            datos.Imagen = this.Imagen;
             datos.Comprado.EditarStock(Stock_actual);
         }
     }

@@ -51,6 +51,17 @@ namespace KafeYana.Application.IRepositorio
         IProveedorRepositorio proveedores { get; }
 
         public IOrdenCompraRepositorio ordenes { get;  }
+
+        IProductoCanjeableRepositorio productosCanjeables { get; }
+
+        IPromocionPermanenteRepositorio promocionPermanentes { get; }
+
+        IReglaBasePuntosRepositorio reglaBasePuntos { get; }
+
+        IAceleradorPuntosRepositorio aceleradores { get; }
+
+        IHistorialPuntosRepositorio historialPuntos { get; }
+
         Task<int> SaveUnitWork();
     }
 }

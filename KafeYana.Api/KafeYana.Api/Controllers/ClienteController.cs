@@ -42,7 +42,7 @@ namespace KafeYana.Api.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var cliente = await _clientes.FindByIdAsync(Id);
-            if (cliente == null) return BadRequest(new { message = "Cliente no encontrado" });
+            if (cliente == null) return NotFound(new { message = "Cliente no encontrado" });
 
             datos.Adapt(cliente);
             cliente.Correonormalizado = !string.IsNullOrEmpty(datos.Correo)
@@ -60,7 +60,7 @@ namespace KafeYana.Api.Controllers
 
             var cliente = await _clientes.FindByIdAsync(Id);
 
-            if (cliente == null) return BadRequest(new { message = "Cliente no encontrado" });
+            if (cliente == null) return NotFound(new { message = "Cliente no encontrado" });
 
             await _clientes.Remove(cliente);
 

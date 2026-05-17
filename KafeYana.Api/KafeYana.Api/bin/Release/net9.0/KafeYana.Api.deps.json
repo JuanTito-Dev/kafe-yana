@@ -24,6 +24,25 @@
           "KafeYana.Api.dll": {}
         }
       },
+      "AWSSDK.Core/3.7.401.12": {
+        "runtime": {
+          "lib/net8.0/AWSSDK.Core.dll": {
+            "assemblyVersion": "3.3.0.0",
+            "fileVersion": "3.7.401.12"
+          }
+        }
+      },
+      "AWSSDK.S3/3.7.414.2": {
+        "dependencies": {
+          "AWSSDK.Core": "3.7.401.12"
+        },
+        "runtime": {
+          "lib/net8.0/AWSSDK.S3.dll": {
+            "assemblyVersion": "3.3.0.0",
+            "fileVersion": "3.7.414.2"
+          }
+        }
+      },
       "ChilliCream.Nitro.App/28.0.7": {
         "dependencies": {
           "Yarp.ReverseProxy": "2.3.0"
@@ -1575,6 +1594,7 @@
       },
       "KafeYana.Infrastructure/1.0.0": {
         "dependencies": {
+          "AWSSDK.S3": "3.7.414.2",
           "KafeYana.Application": "1.0.0",
           "KafeYana.Domain": "1.0.0",
           "Microsoft.AspNetCore.Http.Abstractions": "2.3.9",
@@ -1597,6 +1617,20 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "AWSSDK.Core/3.7.401.12": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-hmPDfEx44KsQEE0LBiDV/Q1EVFHYe9uMnDhRa+zefdYl6x9AmJFIAECWX9oTsTO7BqHpbYwhx76d+/P8JCllWQ==",
+      "path": "awssdk.core/3.7.401.12",
+      "hashPath": "awssdk.core.3.7.401.12.nupkg.sha512"
+    },
+    "AWSSDK.S3/3.7.414.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-lZzw8RpHtm1BSwUabqC2CdVzv/ZdvUkAOVBcD/0GzVsw2mY98bdJtkI8JFamPgxYMYnruEAgFOwAeog4p3MgHQ==",
+      "path": "awssdk.s3/3.7.414.2",
+      "hashPath": "awssdk.s3.3.7.414.2.nupkg.sha512"
     },
     "ChilliCream.Nitro.App/28.0.7": {
       "type": "package",

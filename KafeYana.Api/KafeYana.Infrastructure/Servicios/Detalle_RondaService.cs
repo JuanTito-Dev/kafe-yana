@@ -307,10 +307,10 @@ namespace KafeYana.Infrastructure.Servicios
                         }
                         break;
                 }
-
-                var movimiento = combo.Venta(cantidad, referencia);
-                await _unitWork.movimientos.Crear(movimiento);
             }
+
+            var movimiento = combo.Venta(cantidad, referencia);
+            await _unitWork.movimientos.Crear(movimiento);
 
             var itemsCombo = combo.Detalles
                 .Where(d => d.Producto is not null)

@@ -1,47 +1,58 @@
 ﻿using KafeYana.Application.Dtos.CompradoDtos;
 using KafeYana.Application.IRepositorio;
-using KafeYana.Application.Exceptions;
-using KafeYana.Domain.Entities.Inventario;
-using Mapster;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using KafeYana.Application.IServicios;
 using KafeYana.Domain.TiposDeDatos;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace KafeYana.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = $"{RolesKafe.Admin}")]
-    public class ProductoController(IProductoRepositorio _producto) : ControllerBase
+    public class ProductoController(IProductoRepositorio _producto, IProductoImagenService _imagenService) : ControllerBase
     {
-        
-        [HttpPost]
-        public async Task<IActionResult> Crear(DtoCompradoCrear datos)
-        {
-            if(!ModelState.IsValid) return BadRequest(ModelState);
 
-            await _producto.Crear(datos.ProductoCrear());
+        [HttpPost]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Crear([FromForm] DtoCompradoCrear datos, IFormFile Imagen)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            if (Imagen is null) return BadRequest(new { message = "La imagen es requerida." });
+
+            var producto = datos.ProductoCrear();
+
+            producto.UrlImagen = await _imagenService.ProcesarSubidaAsync(Imagen, datos.Nombre, datos.Categoria_Id);
+
+            await _producto.Crear(producto);
             await _producto.SaveAsync();
 
-            return Created("", new { message = "Producto creado"} );
+            return Created("", new { message = "Producto creado" });
         }
 
         [HttpPut("{Id:int}")]
-        public async Task<IActionResult> Update(int Id, DtoCompradoCrear datos)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Update(int Id, [FromForm] DtoCompradoCrear datos, IFormFile? Imagen)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var productoDb = await _producto.TraerProducto(Id, comprado: true);
 
-            if (productoDb is null || productoDb.Tipo != TiposProductos.Comprado) return NotFound(new { message = "Producto no encontrado" });  
+            if (productoDb is null || productoDb.Tipo != TiposProductos.Comprado)
+                return NotFound(new { message = "Producto no encontrado" });
 
             datos.Editar(productoDb);
 
+            if (Imagen is not null)
+            {
+                await _imagenService.EliminarSiExisteAsync(productoDb.UrlImagen);
+                productoDb.UrlImagen = await _imagenService.ProcesarSubidaAsync(Imagen, datos.Nombre, datos.Categoria_Id);
+            }
+
             await _producto.SaveAsync();
 
-            return Ok(new { message = "Prodcutos actualizado"});
+            return Ok(new { message = "Producto actualizado" });
         }
 
         [HttpDelete("{Id:int}")]
@@ -49,14 +60,14 @@ namespace KafeYana.Api.Controllers
         {
             var producto = await _producto.FindByIdAsync(Id);
 
-            if (producto is null) return NotFound(new { message = "Producto no encontrado"});
+            if (producto is null) return NotFound(new { message = "Producto no encontrado" });
+
+            await _imagenService.EliminarSiExisteAsync(producto.UrlImagen);
 
             await _producto.Remove(producto);
-
             await _producto.SaveAsync();
 
-            return Ok(new { message = "Prodcuto eliminado"});
-
+            return Ok(new { message = "Producto eliminado" });
         }
     }
 }

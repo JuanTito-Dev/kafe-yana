@@ -138,10 +138,7 @@ namespace KafeYana.Infrastructure.Servicios
             if (await _usuarios.IsLockedOutAsync(refreshToken.User))
                 throw new RefreshTokenExceptions("Usuario bloqueado, contacte al administrador");
 
-            // 3. Revocar el token actual — no se reutiliza
-            refreshToken.IsRevoked = true;
-
-            // 4. Generar nuevos tokens
+            // 3. Generar nuevos tokens
             var roles = await _usuarios.GetRolesAsync(refreshToken.User);
 
             var datosToken = new InfoUsuarioToken
@@ -156,14 +153,13 @@ namespace KafeYana.Infrastructure.Servicios
             var nuevoRefresh = _loggin.RefreshToken();
             var refreshExpires = DateTime.UtcNow.AddDays(7);
 
-            // 5. Guardar nuevo RefreshToken en BD
-            refreshToken.IsRevoked = false;
+            // 4. Rotar el RefreshToken en la misma fila
             refreshToken.ExpiraEn = refreshExpires;
             refreshToken.CreadoEn = DateTime.UtcNow;
             refreshToken.Token = nuevoRefresh;
             await _db.SaveChangesAsync();
 
-            // 6. Escribir nuevas cookies
+            // 5. Escribir nuevas cookies
             _loggin.WriteAunthHttpOnlyCookie("ACCESS_TOKEN", jwt, jwtExpires);
             _loggin.WriteAunthHttpOnlyCookie("REFRESH_TOKEN", nuevoRefresh, refreshExpires);
 

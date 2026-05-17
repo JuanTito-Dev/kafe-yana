@@ -1,11 +1,8 @@
 ﻿using KafeYana.Application.Dtos.ElaboradosDtos;
-using KafeYana.Application.Exceptions;
 using KafeYana.Application.IRepositorio;
-using KafeYana.Domain.Entities.Inventario;
+using KafeYana.Application.IServicios;
 using KafeYana.Domain.TiposDeDatos;
-using KafeYana.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KafeYana.Api.Controllers
@@ -13,17 +10,21 @@ namespace KafeYana.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = $"{RolesKafe.Admin}")]
-    public class ElaboradoController(IElaboradoRepositorio _repo) : ControllerBase
+    public class ElaboradoController(IElaboradoRepositorio _repo, IProductoImagenService _imagenService) : ControllerBase
     {
         [HttpPost]
-        public async Task<IActionResult> Crear(DtoElaboradoCrear datos)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Crear([FromForm] DtoElaboradoCrear datos, IFormFile Imagen)
         {
-            if(!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            if (Imagen is null) return BadRequest(new { message = "La imagen es requerida." });
 
             var entidad = datos.CrearEntidad();
 
-            await _repo.Crear(entidad);
+            entidad.UrlImagen = await _imagenService.ProcesarSubidaAsync(Imagen, datos.Nombre, datos.Categoria_Id);
 
+            await _repo.Crear(entidad);
             await _repo.SaveAsync();
 
             return Created("", new
@@ -36,7 +37,8 @@ namespace KafeYana.Api.Controllers
         }
 
         [HttpPut("{Id:int}")]
-        public async Task<IActionResult> Update(int Id, DtoElaboradoActualizar datos)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Update(int Id, [FromForm] DtoElaboradoActualizar datos, IFormFile? Imagen)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -46,6 +48,12 @@ namespace KafeYana.Api.Controllers
 
             datos.Editar(producto);
 
+            if (Imagen is not null)
+            {
+                await _imagenService.EliminarSiExisteAsync(producto.UrlImagen);
+                producto.UrlImagen = await _imagenService.ProcesarSubidaAsync(Imagen, datos.Nombre, datos.Categoria_Id);
+            }
+
             await _repo.SaveAsync();
 
             return Ok(new
@@ -53,9 +61,8 @@ namespace KafeYana.Api.Controllers
                 producto.Id,
                 producto.Nombre,
                 producto.Precio,
-                message = "Producto creado"
+                message = "Producto actualizado"
             });
         }
-
     }
 }

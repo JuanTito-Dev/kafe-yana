@@ -9,8 +9,8 @@ namespace KafeYana.Api.GraphQLMap
     [ExtendObjectType("Query")]
     public class ClienteQuery
     {
-        [Authorize(Roles = new[] { RolesKafe.Admin, RolesKafe.Mesero, RolesKafe.Cajero })]
-        [UsePaging(IncludeTotalCount = true, DefaultPageSize = 20)]
+        [Authorize(Roles = new[] { RolesKafe.Admin, RolesKafe.Mesero, RolesKafe.Cajero, RolesKafe.Asistente })]
+        [UsePaging(IncludeTotalCount = true)]
         [UseProjection]
         [UseFiltering]
         [UseSorting]

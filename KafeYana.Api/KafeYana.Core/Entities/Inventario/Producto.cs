@@ -18,7 +18,7 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public string Tipo { get; set; } = string.Empty;
 
-        public string Imagen { get; set; } = string.Empty;
+        public string UrlImagen { get; set; } = string.Empty;
 
         //Fk for categoria 
 

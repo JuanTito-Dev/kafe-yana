@@ -27,6 +27,12 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.Estado).HasDefaultValue(true);
 
+            builder.Property(x => x.Puntos)
+                .IsRequired()
+                .HasDefaultValue(0);
+            
+            builder.ToTable(t => t.HasCheckConstraint("CK_Cliente_Puntos_NonNegative", "\"Puntos\" >= 0"));
+
             builder.HasIndex(x => x.Nombre).IsUnique().HasDatabaseName("unique_nombre_cliente");
             builder.HasIndex(x => x.Celular).IsUnique().HasDatabaseName("Unique_celular_cliente");
             builder.HasIndex(x => x.Correo).IsUnique().HasFilter("\"Correo\" <> ''").HasDatabaseName("Unique_correo_cliente");

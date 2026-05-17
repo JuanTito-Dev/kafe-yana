@@ -22,7 +22,13 @@ namespace KafeYana.Domain.Entities
 
         public string? Direccion { get; set; }
 
-        public int Puntos { get; set; } = 0;
+        public int Puntos { get; private set; } = 0;
+
+        public void AgregarPuntos(int cantidad)
+        {
+            if (cantidad <= 0) return;
+            Puntos += cantidad;
+        }
 
         public bool Estado { get; set; } = true;
 

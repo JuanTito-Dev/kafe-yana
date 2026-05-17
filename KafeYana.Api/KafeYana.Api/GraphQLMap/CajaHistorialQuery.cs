@@ -8,7 +8,7 @@ namespace KafeYana.Api.GraphQLMap
     [ExtendObjectType("Query")]
     public class CajaHistorialQuery 
     {
-        [UsePaging(IncludeTotalCount = true, DefaultPageSize = 20)]
+        [UsePaging(IncludeTotalCount = true)]
         [UseProjection]
         [UseSorting]
         [UseFiltering]
@@ -18,7 +18,7 @@ namespace KafeYana.Api.GraphQLMap
             return _db.Query().AsQueryable() ;
         }
 
-        [UsePaging(IncludeTotalCount = true, DefaultPageSize = 20)]
+        [UsePaging(IncludeTotalCount = true)]
         [UseProjection]
         [UseSorting]
         [UseFiltering]

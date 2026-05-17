@@ -55,6 +55,16 @@ namespace KafeYana.Infrastructure.Data.Repositorio
 
         public IOrdenCompraRepositorio ordenes {  get; private set; }
 
+        public IProductoCanjeableRepositorio productosCanjeables { get; private set; }
+
+        public IPromocionPermanenteRepositorio promocionPermanentes { get; private set; }
+
+        public IReglaBasePuntosRepositorio reglaBasePuntos { get; private set; }
+
+        public IAceleradorPuntosRepositorio aceleradores { get; private set; }
+
+        public IHistorialPuntosRepositorio historialPuntos { get; private set; }
+
         public UnitWork(AppDbContext db, IProductoRepositorio productos, IElaboradoRepositorio elaborados,
                 IInsumoRepositorio insumos,
                 IAjusteStockRepositorio ajusteStocks,
@@ -75,7 +85,12 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                 ICajaMovimientoRepositorio cajamovimientos,
                 ICajaHistorialRepositorio cajaHistorial,
                 IProveedorRepositorio proveedores,
-                IOrdenCompraRepositorio orndenes
+                IOrdenCompraRepositorio orndenes,
+                IReglaBasePuntosRepositorio reglaBasePuntos,
+                IAceleradorPuntosRepositorio aceleradores,
+                IHistorialPuntosRepositorio historialPuntos,
+                IProductoCanjeableRepositorio productosCanjeables,
+                IPromocionPermanenteRepositorio promocionPermanentes
                 )
         {
             _db = db;
@@ -101,6 +116,11 @@ namespace KafeYana.Infrastructure.Data.Repositorio
             this.cajahistorial = cajaHistorial;
             this.proveedores = proveedores;
             this.ordenes = orndenes;
+            this.reglaBasePuntos = reglaBasePuntos;
+            this.aceleradores = aceleradores;
+            this.historialPuntos = historialPuntos;
+            this.productosCanjeables = productosCanjeables;
+            this.promocionPermanentes = promocionPermanentes;
         }
 
         public void Dispose()

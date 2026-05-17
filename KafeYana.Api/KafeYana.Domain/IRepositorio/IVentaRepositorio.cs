@@ -12,5 +12,7 @@ namespace KafeYana.Application.IRepositorio
         IQueryable<Venta> VentaQuery();
 
         Task<int> ContarVentasDelAnio(int anio);
+
+        Task<long> SiguienteNumeroVentaAsync();
     }
 }

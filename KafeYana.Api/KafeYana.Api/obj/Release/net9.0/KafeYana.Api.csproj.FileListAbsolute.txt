@@ -243,3 +243,5 @@ C:\Users\HP\Escritorio\C#\Aspe .net core MVC\kafe-yana\KafeYana.Api\KafeYana.Api
 C:\Users\HP\Escritorio\C#\Aspe .net core MVC\kafe-yana\KafeYana.Api\KafeYana.Api\bin\Release\net9.0\runtimes\win-x86\native\libstdc++-6.dll
 C:\Users\HP\Escritorio\C#\Aspe .net core MVC\kafe-yana\KafeYana.Api\KafeYana.Api\bin\Release\net9.0\runtimes\win-x86\native\libwinpthread-1.dll
 C:\Users\HP\Escritorio\C#\Aspe .net core MVC\kafe-yana\KafeYana.Api\KafeYana.Api\bin\Release\net9.0\runtimes\win-x86\native\qpdf.dll
+C:\Users\HP\Escritorio\C#\Aspe .net core MVC\kafe-yana\KafeYana.Api\KafeYana.Api\bin\Release\net9.0\AWSSDK.Core.dll
+C:\Users\HP\Escritorio\C#\Aspe .net core MVC\kafe-yana\KafeYana.Api\KafeYana.Api\bin\Release\net9.0\AWSSDK.S3.dll

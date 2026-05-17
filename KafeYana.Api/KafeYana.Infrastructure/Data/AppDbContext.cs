@@ -58,8 +58,6 @@ namespace KafeYana.Infrastructure.Data
 
         public DbSet<Proveedor> Proveedores { get; set; }
 
-        public DbSet<Detalle_ronda> Detalle_Rondas { get; set; }
-
         public DbSet<Detalle_Ronda_ComboItem> Detalle_Ronda_Combo_Items { get; set; }
 
         public DbSet<ProductoMovimiento> Movimientos_Producto { get; set; }
@@ -75,6 +73,16 @@ namespace KafeYana.Infrastructure.Data
         public DbSet<CajaHistorial> CajaHistorial {  get; set; }
 
         public DbSet<CajaHistorialMovimiento> CajaHistorialMovimientos { get; set; }
+
+        public DbSet<ProductoCanjeable> ProductosCanjeables { get; set; }
+
+        public DbSet<PromocionPermanente> PromocionPermanentes { get; set; }
+
+        public DbSet<ReglaBasePuntos> ReglaBasePuntos { get; set; }
+
+        public DbSet<AceleradorPuntos> AceleradorPuntos { get; set; }
+
+        public DbSet<HistorialPuntos> HistorialPuntos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

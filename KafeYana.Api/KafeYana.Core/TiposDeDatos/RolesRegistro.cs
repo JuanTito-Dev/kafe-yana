@@ -10,6 +10,7 @@ namespace KafeYana.Domain.TiposDeDatos
     {
         Admin,
         Mesero,
-        Cajero
+        Cajero,
+        AsistenteVirtual
     }
 }

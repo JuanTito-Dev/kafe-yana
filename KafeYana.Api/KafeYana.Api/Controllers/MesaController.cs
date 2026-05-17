@@ -20,7 +20,7 @@ namespace KafeYana.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}, {RolesKafe.Mesero}")]
-    public class MesaController(IMesaRepositorio _Mesa, IUnitWork _db, IVentaServices _venta, Detalle_RondaService _detalleRondaService, IKafeYanaNotificador _notificador) : ControllerBase
+    public class MesaController(IMesaRepositorio _Mesa, IUnitWork _db, IVentaServices _venta, Detalle_RondaService _detalleRondaService, IKafeYanaNotificador _notificador, StockPayloadService _stockService) : ControllerBase
     {
         [HttpPost]
         public async Task<IActionResult> Crear(DtoMesaCU datos)
@@ -111,7 +111,7 @@ namespace KafeYana.Api.Controllers
 
             if (mesa is null) return NotFound(new { message = "Mesa no existe" });
 
-            if (mesa.pedido.Total > 0) return NotFound(new { message = "No puedes liberar un pedido sin antes cobrar" });
+            if (mesa.pedido.Total > 0) return Conflict(new { message = "No puedes liberar un pedido sin antes cobrar" });
 
             await _db.Pedidos.Remove(mesa.pedido);
 
@@ -157,8 +157,10 @@ namespace KafeYana.Api.Controllers
             await _db.SaveUnitWork();
 
             var rondaPayload = BuildRondaPayload(mesa.Nombre, mesa.pedido.Id, ronda);
+            var stockPayload = await _stockService.BuildAsync(ronda);
 
             await _notificador.NotificarNuevaRonda(rondaPayload);
+            await _notificador.NotificarStockActualizado(stockPayload);
 
             return Ok(new
             {
