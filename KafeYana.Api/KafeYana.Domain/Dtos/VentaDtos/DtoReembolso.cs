@@ -1,17 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using KafeYana.Domain.TiposDeDatos;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace KafeYana.Application.Dtos.VentaDtos
 {
     public class DtoReembolso
     {
+        [Required(ErrorMessage = "El tipo de pago es requerido")]
+        public required TipoPagos TipoPago { get; set; }
+
         [Required]
         [Range(0.01, double.MaxValue, ErrorMessage = "El monto debe ser mayor a cero")]
         public required decimal Monto { get; set; }
-        public string Nota { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "El motivo es requerido")]
+        public required string Motivo { get; set; }
     }
 }

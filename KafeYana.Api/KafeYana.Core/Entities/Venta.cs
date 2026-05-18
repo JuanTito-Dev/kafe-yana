@@ -1,5 +1,6 @@
 ﻿using KafeYana.Domain.Entities.BaseEntidades;
 using KafeYana.Domain.Entities.Inventario;
+using KafeYana.Domain.TiposDeDatos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,11 +37,10 @@ namespace KafeYana.Domain.Entities
 
         public List<Detalle_venta> Detalles { get; set; } = new List<Detalle_venta>();
 
-        public CajaMovimiento Reembolso(Caja caja, decimal monto, string nota)
+        public CajaMovimiento Reembolso(Caja caja, decimal monto, TipoPagos tipoPago, string motivo)
         {
-
             Estado = "Reembolsado";
-            return caja.CajaEgresos(monto, "Reembolso", nota, Codigo, $"Venta {Codigo}");
+            return caja.RegistrarReembolso(monto, tipoPago, motivo, Codigo);
         }
     }
 }

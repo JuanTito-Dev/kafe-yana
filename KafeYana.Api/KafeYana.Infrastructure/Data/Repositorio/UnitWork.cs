@@ -59,11 +59,21 @@ namespace KafeYana.Infrastructure.Data.Repositorio
 
         public IPromocionPermanenteRepositorio promocionPermanentes { get; private set; }
 
+        public IPromocionTemporadaRepositorio promocionTemporadas { get; private set; }
+
+        public IHitoCompraRepositorio hitosCompra { get; private set; }
+
+        public IReferidosConfigRepositorio referidosConfig { get; private set; }
+
+        public IHistorialReferidoRepositorio historialReferidos { get; private set; }
+
         public IReglaBasePuntosRepositorio reglaBasePuntos { get; private set; }
 
         public IAceleradorPuntosRepositorio aceleradores { get; private set; }
 
         public IHistorialPuntosRepositorio historialPuntos { get; private set; }
+
+        public IConfiguracionQrRepositorio configuracionQr { get; private set; }
 
         public UnitWork(AppDbContext db, IProductoRepositorio productos, IElaboradoRepositorio elaborados,
                 IInsumoRepositorio insumos,
@@ -90,7 +100,12 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                 IAceleradorPuntosRepositorio aceleradores,
                 IHistorialPuntosRepositorio historialPuntos,
                 IProductoCanjeableRepositorio productosCanjeables,
-                IPromocionPermanenteRepositorio promocionPermanentes
+                IPromocionPermanenteRepositorio promocionPermanentes,
+                IPromocionTemporadaRepositorio promocionTemporadas,
+                IHitoCompraRepositorio hitosCompra,
+                IReferidosConfigRepositorio referidosConfig,
+                IHistorialReferidoRepositorio historialReferidos,
+                IConfiguracionQrRepositorio configuracionQr
                 )
         {
             _db = db;
@@ -121,6 +136,11 @@ namespace KafeYana.Infrastructure.Data.Repositorio
             this.historialPuntos = historialPuntos;
             this.productosCanjeables = productosCanjeables;
             this.promocionPermanentes = promocionPermanentes;
+            this.promocionTemporadas = promocionTemporadas;
+            this.hitosCompra = hitosCompra;
+            this.referidosConfig = referidosConfig;
+            this.historialReferidos = historialReferidos;
+            this.configuracionQr = configuracionQr;
         }
 
         public void Dispose()

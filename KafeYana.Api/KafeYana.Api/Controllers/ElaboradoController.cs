@@ -14,15 +14,14 @@ namespace KafeYana.Api.Controllers
     {
         [HttpPost]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> Crear([FromForm] DtoElaboradoCrear datos, IFormFile Imagen)
+        public async Task<IActionResult> Crear([FromForm] DtoElaboradoCrear datos, IFormFile? Imagen)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            if (Imagen is null) return BadRequest(new { message = "La imagen es requerida." });
-
             var entidad = datos.CrearEntidad();
 
-            entidad.UrlImagen = await _imagenService.ProcesarSubidaAsync(Imagen, datos.Nombre, datos.Categoria_Id);
+            if (Imagen is not null && Imagen.Length > 0)
+                entidad.UrlImagen = await _imagenService.ProcesarSubidaAsync(Imagen, datos.Nombre, datos.Categoria_Id);
 
             await _repo.Crear(entidad);
             await _repo.SaveAsync();

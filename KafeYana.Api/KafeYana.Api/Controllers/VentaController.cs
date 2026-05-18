@@ -208,6 +208,9 @@ namespace KafeYana.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            if (!Enum.IsDefined(typeof(TipoPagos), datos.TipoPago))
+                return BadRequest(new { message = $"Tipo de pago inválido. Los valores permitidos son: {string.Join(", ", Enum.GetNames(typeof(TipoPagos)))}" });
+
             var venta = await _db.ventas.FindByIdAsync(Id);
             if (venta is null)
                 return NotFound(new { message = "Venta no encontrada" });
@@ -219,11 +222,10 @@ namespace KafeYana.Api.Controllers
             if (caja is null)
                 return BadRequest(new { message = "No hay una caja abierta" });
 
-
             if (datos.Monto > venta.Total)
-                throw new VentaException($"El monto a reembolsar no puede ser mayor al total de la venta");
+                throw new VentaException("El monto a reembolsar no puede ser mayor al total de la venta");
 
-            var movimiento = venta.Reembolso(caja, datos.Monto, datos.Nota);
+            var movimiento = venta.Reembolso(caja, datos.Monto, datos.TipoPago, datos.Motivo);
 
             await _db.cajamovimientos.Crear(movimiento);
             await _db.SaveUnitWork();

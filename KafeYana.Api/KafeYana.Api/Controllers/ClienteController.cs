@@ -32,7 +32,7 @@ namespace KafeYana.Api.Controllers
 
             await _clientes.SaveAsync();
 
-            return Created("", new {message = "Cliente creado"});
+            return Created("", new {message = "Cliente creado", Id = cliente.Id});
         }
 
         [HttpPut("{Id:int}")]

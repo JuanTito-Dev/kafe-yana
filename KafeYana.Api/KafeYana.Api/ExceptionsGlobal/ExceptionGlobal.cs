@@ -89,6 +89,9 @@ namespace KafeYana.Application.Exceptions
                 "ix_categorias_nombre" => "Ya existe una categoría con ese nombre.",
                 "fx_nombre_usuario_unico" => "Intente con otro email",
 
+                // ==================== VENTAS ====================
+                "Codigo-repetido" => "Ya existe una venta con ese código. Intente de nuevo.",
+
                 // ==================== PRODUCTOS ====================
                 "id_nombre_producto" => "Ya existe un producto con ese nombre.",
                 "codigo_producto_comprado" => "Codigo duplicado envia otro",
@@ -123,6 +126,13 @@ namespace KafeYana.Application.Exceptions
 
                 //======promocion permanente
                 "ix_promocionpermanente_nombre_unique" => "Ya existe una promoción con ese nombre.",
+
+                //======promocion temporada
+                "ix_promociontemporada_nombre_unique" => "Ya existe una promoción por temporada con ese nombre.",
+                "pk_promociontemporada_productocanjeable" => "Ese producto canjeable ya está incluido en esta promoción.",
+
+                //======hitos por compra
+                "ix_hitocompra_numerocompras_unique" => "Ya existe un hito con ese número de compras.",
 
                 //Mesa
                 "Unique_mesa_nombre" => "Ya existe una mesa con ese nombre",
@@ -201,6 +211,8 @@ namespace KafeYana.Application.Exceptions
                 "fk_ordenitemproducto_producto" => "Producto no encontrado para la orden",
                 "fk_productocanjeable_producto" => "El producto seleccionado no existe.",
                 "fk_promocionpermanente_productocanjeable" => "El producto canjeable seleccionado no existe.",
+                "fk_promtemp_productocanjeable" => "El producto canjeable seleccionado no existe.",
+                "fk_hitocompra_productocanjeable" => "El producto canjeable seleccionado no existe.",
                 _ => "El registro relacionado no existe."
             };
         }
@@ -237,6 +249,8 @@ namespace KafeYana.Application.Exceptions
                 "fk_ordeniteminsumo_insumo"=> "No puede eliminar el insumo esta en una orden de compra",
                 "fk_ordenitemproducto_producto" => "No puedes eliminar el producto esta en un orden",
                 "fk_promocionpermanente_productocanjeable" => "No puedes eliminar este producto canjeable porque está en una promoción activa.",
+                "fk_promtemp_productocanjeable" => "No puedes eliminar este producto canjeable porque está en una promoción por temporada.",
+                "fk_hitocompra_productocanjeable" => "No puedes eliminar este producto canjeable porque está configurado en un hito por compra.",
 
                 _ => "El registro pertenece a otro y no puede eliminarse."
             };

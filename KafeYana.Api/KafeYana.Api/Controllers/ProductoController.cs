@@ -15,15 +15,14 @@ namespace KafeYana.Api.Controllers
 
         [HttpPost]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> Crear([FromForm] DtoCompradoCrear datos, IFormFile Imagen)
+        public async Task<IActionResult> Crear( DtoCompradoCrear datos, IFormFile? Imagen)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            if (Imagen is null) return BadRequest(new { message = "La imagen es requerida." });
-
             var producto = datos.ProductoCrear();
 
-            producto.UrlImagen = await _imagenService.ProcesarSubidaAsync(Imagen, datos.Nombre, datos.Categoria_Id);
+            if (Imagen is not null && Imagen.Length > 0)
+                producto.UrlImagen = await _imagenService.ProcesarSubidaAsync(Imagen, datos.Nombre, datos.Categoria_Id);
 
             await _producto.Crear(producto);
             await _producto.SaveAsync();
