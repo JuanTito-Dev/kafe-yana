@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\controllers\\combocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\controllers\\combocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -117,10 +121,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{D39A2C5E-88D3-4F9E-B5AB-31D0937ABC68}|KafeYana.Core\\KafeYana.Domain.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.core\\entities\\inventario\\producto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D39A2C5E-88D3-4F9E-B5AB-31D0937ABC68}|KafeYana.Core\\KafeYana.Domain.csproj|solutionrelative:kafeyana.core\\entities\\inventario\\producto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{2FA7F84F-92AE-481E-BA64-0682F5836DF2}|KafeYana.Api\\KafeYana.Api.csproj|solutionrelative:kafeyana.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{90A15CDF-5FDA-4EDF-9D01-70AA74B25B40}|KafeYana.Infrastructure\\KafeYana.Infrastructure.csproj|c:\\users\\hp\\escritorio\\c#\\aspe .net core mvc\\kafe-yana\\kafeyana.api\\kafeyana.infrastructure\\servicios\\productoimagenservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -526,7 +526,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 186,
-          "SelectedChildIndex": 9,
+          "SelectedChildIndex": 10,
           "Children": [
             {
               "$type": "Bookmark",
@@ -550,7 +550,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "ElaboradoController.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\ElaboradoController.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\ElaboradoController.cs",
@@ -558,12 +558,11 @@
               "RelativeToolTip": "KafeYana.Api\\Controllers\\ElaboradoController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAABLAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-18T19:00:25.266Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-18T19:00:25.266Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "DtoCompradoCrear.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Domain\\Dtos\\CompradoDtos\\DtoCompradoCrear.cs",
               "RelativeDocumentMoniker": "KafeYana.Domain\\Dtos\\CompradoDtos\\DtoCompradoCrear.cs",
@@ -571,12 +570,11 @@
               "RelativeToolTip": "KafeYana.Domain\\Dtos\\CompradoDtos\\DtoCompradoCrear.cs",
               "ViewState": "AgIAAAwAAAAAAAAAAAAAAC8AAABYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-18T18:36:19.525Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-18T18:36:19.525Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "ProductoController.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\ProductoController.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\ProductoController.cs",
@@ -584,12 +582,11 @@
               "RelativeToolTip": "KafeYana.Api\\Controllers\\ProductoController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAB4AAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-18T18:32:07.039Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-18T18:32:07.039Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "ReferidosController.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\ReferidosController.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\ReferidosController.cs",
@@ -597,12 +594,11 @@
               "RelativeToolTip": "KafeYana.Api\\Controllers\\ReferidosController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-18T03:24:02.04Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-18T03:24:02.04Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "ComboController.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\ComboController.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\ComboController.cs",
@@ -615,7 +611,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 0,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\appsettings.json",
+              "RelativeDocumentMoniker": "KafeYana.Api\\appsettings.json",
+              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\appsettings.json",
+              "RelativeToolTip": "KafeYana.Api\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAACAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-05-12T02:53:46.324Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
               "Title": "PromocionTemporadaProductoCanjeableConfig.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\ConfigDbContext\\PromocionTemporadaProductoCanjeableConfig.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\ConfigDbContext\\PromocionTemporadaProductoCanjeableConfig.cs",
@@ -627,7 +636,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "PromocionPermanenteQuery.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\PromocionPermanenteQuery.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\PromocionPermanenteQuery.cs",
@@ -639,7 +648,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "PromocionTemporadaQuery.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\PromocionTemporadaQuery.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\PromocionTemporadaQuery.cs",
@@ -651,7 +660,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Program.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\Program.cs",
@@ -663,7 +672,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "PromocionTemporadaRepositorio.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\Repositorio\\PromocionTemporadaRepositorio.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\Repositorio\\PromocionTemporadaRepositorio.cs",
@@ -675,7 +684,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 11,
               "Title": "PromocionPermanenteRepositorio.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\Repositorio\\PromocionPermanenteRepositorio.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\Repositorio\\PromocionPermanenteRepositorio.cs",
@@ -687,7 +696,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 12,
               "Title": "PromocionTemporadaProductoCanjeableType.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\PromocionTemporadaProductoCanjeableType.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\PromocionTemporadaProductoCanjeableType.cs",
@@ -711,7 +720,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 14,
               "Title": "CategoriaQuery.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\CategoriaQuery.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\CategoriaQuery.cs",
@@ -723,7 +732,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 17,
               "Title": "CategoriaRepositorio.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\Repositorio\\CategoriaRepositorio.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\Repositorio\\CategoriaRepositorio.cs",
@@ -735,7 +744,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 15,
               "Title": "CategoriaController.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\CategoriaController.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\CategoriaController.cs",
@@ -747,7 +756,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 13,
               "Title": "ClienteController.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\ClienteController.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\ClienteController.cs",
@@ -759,7 +768,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 18,
               "Title": "ProductoCanjeableController.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\ProductoCanjeableController.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\ProductoCanjeableController.cs",
@@ -771,7 +780,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 16,
               "Title": "CajaController.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\CajaController.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\CajaController.cs",
@@ -783,7 +792,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 23,
               "Title": "QrController.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\QrController.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\QrController.cs",
@@ -795,7 +804,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 24,
               "Title": "ConfiguracionQrRepositorio.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\Repositorio\\ConfiguracionQrRepositorio.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\Repositorio\\ConfiguracionQrRepositorio.cs",
@@ -807,7 +816,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 22,
               "Title": "AjusteStockController.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\AjusteStockController.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\AjusteStockController.cs",
@@ -819,7 +828,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 21,
               "Title": "MesaController.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\MesaController.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\MesaController.cs",
@@ -831,7 +840,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 19,
               "Title": "PuntosController.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\PuntosController.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\PuntosController.cs",
@@ -843,7 +852,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 25,
               "Title": "ConfiguracionQr.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\ConfiguracionQr.cs",
               "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\ConfiguracionQr.cs",
@@ -855,7 +864,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 20,
               "Title": "VentaController.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\VentaController.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\VentaController.cs",
@@ -867,7 +876,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 26,
               "Title": "MesaRepositorio.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Infrastructure\\Data\\Repositorio\\MesaRepositorio.cs",
               "RelativeDocumentMoniker": "KafeYana.Infrastructure\\Data\\Repositorio\\MesaRepositorio.cs",
@@ -879,7 +888,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 29,
               "Title": "Producto.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Core\\Entities\\Inventario\\Producto.cs",
               "RelativeDocumentMoniker": "KafeYana.Core\\Entities\\Inventario\\Producto.cs",
@@ -903,7 +912,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 28,
               "Title": "ElaboradoType.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\GraphQLMap\\Types\\ElaboradoType.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\GraphQLMap\\Types\\ElaboradoType.cs",
@@ -915,7 +924,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 27,
               "Title": "AunthController.cs",
               "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\Controllers\\AunthController.cs",
               "RelativeDocumentMoniker": "KafeYana.Api\\Controllers\\AunthController.cs",
@@ -948,18 +957,6 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-05-17T15:55:56.178Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 29,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\appsettings.json",
-              "RelativeDocumentMoniker": "KafeYana.Api\\appsettings.json",
-              "ToolTip": "C:\\Users\\HP\\Escritorio\\C#\\Aspe .net core MVC\\kafe-yana\\KafeYana.Api\\KafeYana.Api\\appsettings.json",
-              "RelativeToolTip": "KafeYana.Api\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAABaAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-05-12T02:53:46.324Z"
             },
             {
               "$type": "Document",
