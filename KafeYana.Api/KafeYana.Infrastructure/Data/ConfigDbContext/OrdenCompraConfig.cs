@@ -24,7 +24,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
                 .IsRequired();
 
             builder.Property(x => x.Fecha)
-                .HasColumnType("timestamp with time zone")
+                .HasColumnType("date")
                 .IsRequired();
 
             builder.Property(x => x.Recibido)

@@ -84,6 +84,29 @@ namespace KafeYana.Domain.Entities
         }
 
         [GraphQLIgnore]
+        public CajaMovimiento RegistrarReembolso(decimal monto, TipoPagos tipoPago, string motivo, string referencia)
+        {
+            switch (tipoPago)
+            {
+                case TipoPagos.Efectivo: TotalEfectivo -= monto; break;
+                case TipoPagos.Tarjeta: TotalTarjeta  -= monto; break;
+                case TipoPagos.Qr:      TotalQr       -= monto; break;
+            }
+
+            return new CajaMovimiento
+            {
+                Id_Caja     = Id,
+                Fecha       = DateTime.UtcNow,
+                Tipo        = MovimientosCaja.Engreso,
+                Categoria   = "Reembolso",
+                Descripcion = $"Reembolso {tipoPago} - venta {referencia}",
+                Referencia  = referencia,
+                Monto       = -monto,
+                Nota        = motivo
+            };
+        }
+
+        [GraphQLIgnore]
         public CajaHistorial CerrarCaja(decimal montoFinal, string cerradaPor, string nota)
         {
             Abierta = false;

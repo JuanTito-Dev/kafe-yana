@@ -16,11 +16,9 @@ namespace KafeYana.Api.Controllers
 
         [HttpPost]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> Crear([FromForm] DtoComboClient datos, IFormFile Imagen)
+        public async Task<IActionResult> Crear([FromForm] DtoComboClient datos, IFormFile? Imagen)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            if (Imagen is null) return BadRequest(new { message = "La imagen es requerida." });
 
             try
             {
@@ -33,7 +31,8 @@ namespace KafeYana.Api.Controllers
 
             var producto = datos.Crear();
 
-            producto.UrlImagen = await _imagenService.ProcesarSubidaAsync(Imagen, datos.Nombre, CategoriaComboId);
+            if (Imagen is not null && Imagen.Length > 0)
+                producto.UrlImagen = await _imagenService.ProcesarSubidaAsync(Imagen, datos.Nombre, CategoriaComboId);
 
             await _db.Crear(producto);
             await _db.SaveAsync();

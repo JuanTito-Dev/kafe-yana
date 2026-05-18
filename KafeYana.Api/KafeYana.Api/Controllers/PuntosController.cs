@@ -9,13 +9,12 @@ namespace KafeYana.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
     public class PuntosController(IUnitWork _db) : ControllerBase
     {
         // ─── Configuración: Regla base ────────────────────────────────────────
 
         [HttpGet("config/reglabase")]
-        [Authorize(Roles = RolesKafe.Admin)]
+        [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
         public async Task<IActionResult> ObtenerReglaBase()
         {
             var regla = await _db.reglaBasePuntos.ObtenerReglaAsync();
@@ -26,7 +25,7 @@ namespace KafeYana.Api.Controllers
         }
 
         [HttpPost("config/reglabase")]
-        [Authorize(Roles = RolesKafe.Admin)]
+        [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
         public async Task<IActionResult> CrearReglaBase(DtoReglaBaseUpdate datos)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -43,7 +42,7 @@ namespace KafeYana.Api.Controllers
         }
 
         [HttpPut("config/reglabase")]
-        [Authorize(Roles = RolesKafe.Admin)]
+        [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
         public async Task<IActionResult> ActualizarReglaBase(DtoReglaBaseUpdate datos)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -63,7 +62,7 @@ namespace KafeYana.Api.Controllers
         // ─── Configuración: Aceleradores ──────────────────────────────────────
 
         [HttpGet("config/aceleradores")]
-        [Authorize(Roles = RolesKafe.Admin)]
+        [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
         public async Task<IActionResult> ObtenerAceleradores()
         {
             var lista = await _db.aceleradores.ObtenerTodosAsync();

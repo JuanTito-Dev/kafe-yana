@@ -78,11 +78,23 @@ namespace KafeYana.Infrastructure.Data
 
         public DbSet<PromocionPermanente> PromocionPermanentes { get; set; }
 
+        public DbSet<PromocionTemporada> PromocionTemporadas { get; set; }
+
+        public DbSet<PromocionTemporadaProductoCanjeable> PromocionTemporadaProductosCanjeables { get; set; }
+
+        public DbSet<HitoCompra> HitosCompra { get; set; }
+
+        public DbSet<ReferidosConfig> ReferidosConfigs { get; set; }
+
+        public DbSet<HistorialReferido> HistorialReferidos { get; set; }
+
         public DbSet<ReglaBasePuntos> ReglaBasePuntos { get; set; }
 
         public DbSet<AceleradorPuntos> AceleradorPuntos { get; set; }
 
         public DbSet<HistorialPuntos> HistorialPuntos { get; set; }
+
+        public DbSet<ConfiguracionQr> ConfiguracionQr { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

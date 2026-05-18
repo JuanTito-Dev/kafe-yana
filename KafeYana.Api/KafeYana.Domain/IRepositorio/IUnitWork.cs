@@ -56,11 +56,21 @@ namespace KafeYana.Application.IRepositorio
 
         IPromocionPermanenteRepositorio promocionPermanentes { get; }
 
+        IPromocionTemporadaRepositorio promocionTemporadas { get; }
+
+        IHitoCompraRepositorio hitosCompra { get; }
+
+        IReferidosConfigRepositorio referidosConfig { get; }
+
+        IHistorialReferidoRepositorio historialReferidos { get; }
+
         IReglaBasePuntosRepositorio reglaBasePuntos { get; }
 
         IAceleradorPuntosRepositorio aceleradores { get; }
 
         IHistorialPuntosRepositorio historialPuntos { get; }
+
+        IConfiguracionQrRepositorio configuracionQr { get; }
 
         Task<int> SaveUnitWork();
     }

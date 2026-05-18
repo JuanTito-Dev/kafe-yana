@@ -13,7 +13,7 @@ namespace KafeYana.Application.Dtos.OrdenDeCompraDtos
         public required int Id_Proveedor { get; set; }
 
         [Required]
-        public required DateTime FechaEntrega { get; set; }
+        public required DateOnly FechaEntrega { get; set; }
 
         public string Nota { get; set; } = string.Empty;
 

@@ -129,6 +129,7 @@ builder.Services.AddCors( x =>
 });
 
 builder.Services.AddGraphQLServer()
+    .RegisterDbContextFactory<AppDbContext>()
     .AddQueryType<Query>()
     .AddTypeExtension<AjustesQuery>()
     .AddTypeExtension<CategoriaQuery>()
@@ -150,6 +151,9 @@ builder.Services.AddGraphQLServer()
     .AddTypeExtension<HistorialPuntosQuery>()
     .AddTypeExtension<ProductoCanjeableQuery>()
     .AddTypeExtension<PromocionPermanenteQuery>()
+    .AddTypeExtension<PromocionTemporadaQuery>()
+    .AddTypeExtension<HitoCompraQuery>()
+    .AddTypeExtension<HistorialReferidoQuery>()
     .AddType<AjusteType>()
     .AddType<CategoriaType>()
     .AddType<ClienteType>()
@@ -185,6 +189,11 @@ builder.Services.AddGraphQLServer()
 
     })
     .ModifyCostOptions(o => o.EnforceCostLimits = false)
+    .ModifyPagingOptions(o =>
+    {
+        o.DefaultPageSize = 200;
+        o.MaxPageSize = 1000;
+    })
     .AddFiltering()
     .AddProjections()
     .AddSorting()
@@ -194,6 +203,10 @@ builder.Services.AddGraphQLServer()
     .AddType<HistorialPuntosType>()
     .AddType<ProductoCanjeableType>()
     .AddType<PromocionPermanenteType>()
+    .AddType<PromocionTemporadaType>()
+    .AddType<PromocionTemporadaProductoCanjeableType>()
+    .AddType<HitoCompraType>()
+    .AddType<HistorialReferidoType>()
     .AddDataLoader<PromocionCantidadProducibleDataLoader>()
     .AddDataLoader<RecetaCantidadProducibleDataLoader>();
 
@@ -201,6 +214,7 @@ builder.Services.AddGraphQLServer()
 builder.Services.Configure<CloudflareR2Options>(builder.Configuration.GetSection(CloudflareR2Options.Key));
 builder.Services.AddSingleton<IR2StorageService, R2StorageService>();
 builder.Services.AddScoped<IProductoImagenService, ProductoImagenService>();
+builder.Services.AddScoped<IQrImagenService, QrImagenService>();
 
 builder.Services.AddScoped<IAuthTokenProcesador, AuthTokenProcesador>();
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
@@ -236,9 +250,14 @@ builder.Services.AddScoped<ICajaHistorialMovimientoRepositorio, CajaHistorialMov
 builder.Services.AddScoped<IOrdenCompraRepositorio, OrdenCompraRepositorio>();
 builder.Services.AddScoped<IProductoCanjeableRepositorio, ProductoCanjeableRepositorio>();
 builder.Services.AddScoped<IPromocionPermanenteRepositorio, PromocionPermanenteRepositorio>();
+builder.Services.AddScoped<IPromocionTemporadaRepositorio, PromocionTemporadaRepositorio>();
+builder.Services.AddScoped<IHitoCompraRepositorio, HitoCompraRepositorio>();
+builder.Services.AddScoped<IReferidosConfigRepositorio, ReferidosConfigRepositorio>();
+builder.Services.AddScoped<IHistorialReferidoRepositorio, HistorialReferidoRepositorio>();
 builder.Services.AddScoped<IReglaBasePuntosRepositorio, ReglaBasePuntosRepositorio>();
 builder.Services.AddScoped<IAceleradorPuntosRepositorio, AceleradorPuntosRepositorio>();
 builder.Services.AddScoped<IHistorialPuntosRepositorio, HistorialPuntosRepositorio>();
+builder.Services.AddScoped<IConfiguracionQrRepositorio, ConfiguracionQrRepositorio>();
 builder.Services.AddScoped<IPuntosService, PuntosService>();
 
 ///////////////
@@ -295,6 +314,7 @@ using (var scope = app.Services.CreateScope())
 
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await KafeYana.Infrastructure.Data.Seeders.AceleradorPuntosSeeder.SeedAsync(db);
+    await KafeYana.Infrastructure.Data.Seeders.ReferidosConfigSeeder.SeedAsync(db);
 }
 
 app.Run();
