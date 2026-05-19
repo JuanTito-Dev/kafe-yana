@@ -11,5 +11,12 @@ namespace KafeYana.Infrastructure.Data.Repositorio
         {
             return _db.ProductosCanjeables.AsNoTracking().AsQueryable();
         }
+
+        public async Task<ProductoCanjeable?> ObtenerParaCanjeAsync(int idProductoCanjeable)
+        {
+            return await _db.ProductosCanjeables
+                .Include(pc => pc.Producto)
+                .FirstOrDefaultAsync(pc => pc.Id == idProductoCanjeable);
+        }
     }
 }

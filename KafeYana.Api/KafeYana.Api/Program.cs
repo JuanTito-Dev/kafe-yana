@@ -220,6 +220,7 @@ builder.Services.AddScoped<IAuthTokenProcesador, AuthTokenProcesador>();
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IVentaServices, VentaServices>();
+builder.Services.AddScoped<ICanjeProductoService, CanjeProductoService>();
 builder.Services.AddScoped(typeof(IGenericRepositorio<>), typeof(GenericRepositorio<>));
 builder.Services.AddScoped<ICategoriaRepositorio, CategoriaRepositorio>();
 builder.Services.AddScoped<IProductoRepositorio, ProductoRepositorio>();
