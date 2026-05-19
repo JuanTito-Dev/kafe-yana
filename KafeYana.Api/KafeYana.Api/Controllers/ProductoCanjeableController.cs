@@ -1,6 +1,7 @@
 using KafeYana.Application.Dtos.ProductoCanjeable;
 using KafeYana.Application.Exceptions;
 using KafeYana.Application.IRepositorio;
+using KafeYana.Application.IServicios;
 using KafeYana.Domain.Entities;
 using KafeYana.Domain.TiposDeDatos;
 using Microsoft.AspNetCore.Authorization;
@@ -12,8 +13,19 @@ namespace KafeYana.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
-    public class ProductoCanjeableController(IUnitWork _db) : ControllerBase
+    public class ProductoCanjeableController(IUnitWork _db, ICanjeProductoService _canjeProducto) : ControllerBase
     {
+        [HttpPost("canje")]
+        public async Task<IActionResult> EjecutarCanje(DtoCanjeProducto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            await _canjeProducto.EjecutarCanjeAsync(dto);
+
+            return Ok(new { message = "Canje registrado correctamente." });
+        }
+
         [HttpPost]
         public async Task<IActionResult> Crear(DtoProductoCanjeableCU datos)
         {

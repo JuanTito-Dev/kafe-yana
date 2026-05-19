@@ -12,6 +12,7 @@ namespace KafeYana.Domain.TiposDeDatos
         Ajuste,
         Venta,
         Receta,
-        Compra
+        Compra,
+        Canje
     }
 }

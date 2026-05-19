@@ -30,6 +30,15 @@ namespace KafeYana.Domain.Entities
             Puntos += cantidad;
         }
 
+        /// <summary>Descuenta puntos ya validados en la capa de servicio (saldo suficiente).</summary>
+        public void DescontarPuntosPorCanje(int cantidad)
+        {
+            if (cantidad <= 0)
+                return;
+
+            Puntos -= cantidad;
+        }
+
         public bool Estado { get; set; } = true;
 
         public List<Pedido> Pedidos { get; set; } = new();
