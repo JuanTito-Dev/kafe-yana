@@ -156,7 +156,8 @@ namespace KafeYana.Infrastructure.Servicios
                 {
                     Nombre_Producto = elaborado.Producto.Nombre,
                     Cantidad = cantidad,
-                    Precio = elaborado.Producto.Precio + precioAjuste
+                    Precio = elaborado.Producto.Precio + precioAjuste,
+                    Ubicacion = elaborado.Ubicacion ?? string.Empty
                 };
             }
 
