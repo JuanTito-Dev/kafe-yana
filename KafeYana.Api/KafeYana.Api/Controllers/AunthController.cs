@@ -17,7 +17,7 @@ namespace KafeYana.Api.Controllers
     public class AunthController(IAccountService _servicio, UserManager<Usuario> _userManager) : ControllerBase
     {
         [HttpPost("Registro")]
-        [Authorize(Roles = $"{RolesKafe.Admin}")]
+  
         public async Task<IActionResult> Registro(RegisterRequest datos)
         {
             if (!ModelState.IsValid)

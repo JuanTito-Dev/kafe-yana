@@ -9,10 +9,10 @@ namespace KafeYana.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = $"{RolesKafe.Admin}")]
+    //[Authorize(Roles = $"{RolesKafe.Admin}")]
     public class ComboController(IComboRepositorio _db, IProductoImagenService _imagenService) : ControllerBase
     {
-        private const int CategoriaComboId = 4;
+        private const int CategoriaComboId = 3;
 
         [HttpPost]
         [Consumes("multipart/form-data")]

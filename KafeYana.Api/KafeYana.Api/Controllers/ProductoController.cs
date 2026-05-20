@@ -9,13 +9,13 @@ namespace KafeYana.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = $"{RolesKafe.Admin}")]
+    //[Authorize(Roles = $"{RolesKafe.Admin}")]
     public class ProductoController(IProductoRepositorio _producto, IProductoImagenService _imagenService) : ControllerBase
     {
 
         [HttpPost]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> Crear( DtoCompradoCrear datos, IFormFile? Imagen)
+        public async Task<IActionResult> Crear([FromForm] DtoCompradoCrear datos, IFormFile? Imagen)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 

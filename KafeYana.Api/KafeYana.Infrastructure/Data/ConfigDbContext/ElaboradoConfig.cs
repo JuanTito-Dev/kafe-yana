@@ -21,6 +21,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.Property(x => x.Unidad_medida).IsRequired().HasMaxLength(20);
 
             builder.Property(x => x.Producible).HasDefaultValue(false);
+            builder.Property(x => x.Ubicacion).HasColumnName("Ubicacion");
 
             // Relacion 1 a 1 con Producto
             builder.HasOne(x => x.Producto)
