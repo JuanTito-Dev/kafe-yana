@@ -130,9 +130,11 @@ namespace KafeYana.Application.Exceptions
                 //======promocion temporada
                 "ix_promociontemporada_nombre_unique" => "Ya existe una promoción por temporada con ese nombre.",
                 "pk_promociontemporada_productocanjeable" => "Ese producto canjeable ya está incluido en esta promoción.",
+                "ix_historialpromociontemporada_cliente_promocion" => "El cliente ya reclamó esta promoción por temporada.",
 
                 //======hitos por compra
                 "ix_hitocompra_numerocompras_unique" => "Ya existe un hito con ese número de compras.",
+                "ix_historialhitocompra_cliente_hito" => "El cliente ya reclamó este hito por compras.",
 
                 //Mesa
                 "Unique_mesa_nombre" => "Ya existe una mesa con ese nombre",
@@ -212,6 +214,10 @@ namespace KafeYana.Application.Exceptions
                 "fk_productocanjeable_producto" => "El producto seleccionado no existe.",
                 "fk_promocionpermanente_productocanjeable" => "El producto canjeable seleccionado no existe.",
                 "fk_promtemp_productocanjeable" => "El producto canjeable seleccionado no existe.",
+                "fk_historialpromociontemporada_cliente" => "El cliente seleccionado no existe.",
+                "fk_historialpromociontemporada_promocion" => "La promoción por temporada seleccionada no existe.",
+                "fk_historialhitocompra_cliente" => "El cliente seleccionado no existe.",
+                "fk_historialhitocompra_hitocompra" => "El hito por compra seleccionado no existe.",
                 "fk_hitocompra_productocanjeable" => "El producto canjeable seleccionado no existe.",
                 _ => "El registro relacionado no existe."
             };
@@ -250,6 +256,8 @@ namespace KafeYana.Application.Exceptions
                 "fk_ordenitemproducto_producto" => "No puedes eliminar el producto esta en un orden",
                 "fk_promocionpermanente_productocanjeable" => "No puedes eliminar este producto canjeable porque está en una promoción activa.",
                 "fk_promtemp_productocanjeable" => "No puedes eliminar este producto canjeable porque está en una promoción por temporada.",
+                "fk_historialpromociontemporada_promocion" => "No puedes eliminar esta promoción por temporada porque tiene reclamos registrados.",
+                "fk_historialhitocompra_hitocompra" => "No puedes eliminar este hito porque tiene reclamos registrados.",
                 "fk_hitocompra_productocanjeable" => "No puedes eliminar este producto canjeable porque está configurado en un hito por compra.",
 
                 _ => "El registro pertenece a otro y no puede eliminarse."

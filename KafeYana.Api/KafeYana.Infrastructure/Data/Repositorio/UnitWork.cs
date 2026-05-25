@@ -59,9 +59,17 @@ namespace KafeYana.Infrastructure.Data.Repositorio
 
         public IPromocionPermanenteRepositorio promocionPermanentes { get; private set; }
 
+        public IPromocionPermanenteProgresoRepositorio promocionPermanenteProgresos { get; private set; }
+
+        public IHistorialPromocionPermanenteRepositorio historialPromocionPermanentes { get; private set; }
+
         public IPromocionTemporadaRepositorio promocionTemporadas { get; private set; }
 
+        public IHistorialPromocionTemporadaRepositorio historialPromocionTemporadas { get; private set; }
+
         public IHitoCompraRepositorio hitosCompra { get; private set; }
+
+        public IHistorialHitoCompraRepositorio historialHitoCompras { get; private set; }
 
         public IReferidosConfigRepositorio referidosConfig { get; private set; }
 
@@ -101,8 +109,12 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                 IHistorialPuntosRepositorio historialPuntos,
                 IProductoCanjeableRepositorio productosCanjeables,
                 IPromocionPermanenteRepositorio promocionPermanentes,
+                IPromocionPermanenteProgresoRepositorio promocionPermanenteProgresos,
+                IHistorialPromocionPermanenteRepositorio historialPromocionPermanentes,
                 IPromocionTemporadaRepositorio promocionTemporadas,
+                IHistorialPromocionTemporadaRepositorio historialPromocionTemporadas,
                 IHitoCompraRepositorio hitosCompra,
+                IHistorialHitoCompraRepositorio historialHitoCompras,
                 IReferidosConfigRepositorio referidosConfig,
                 IHistorialReferidoRepositorio historialReferidos,
                 IConfiguracionQrRepositorio configuracionQr
@@ -136,8 +148,12 @@ namespace KafeYana.Infrastructure.Data.Repositorio
             this.historialPuntos = historialPuntos;
             this.productosCanjeables = productosCanjeables;
             this.promocionPermanentes = promocionPermanentes;
+            this.promocionPermanenteProgresos = promocionPermanenteProgresos;
+            this.historialPromocionPermanentes = historialPromocionPermanentes;
             this.promocionTemporadas = promocionTemporadas;
+            this.historialPromocionTemporadas = historialPromocionTemporadas;
             this.hitosCompra = hitosCompra;
+            this.historialHitoCompras = historialHitoCompras;
             this.referidosConfig = referidosConfig;
             this.historialReferidos = historialReferidos;
             this.configuracionQr = configuracionQr;

@@ -24,6 +24,8 @@ namespace KafeYana.Domain.Entities
 
         public int Puntos { get; private set; } = 0;
 
+        public int NumeroCompras { get; private set; } = 0;
+
         public void AgregarPuntos(int cantidad)
         {
             if (cantidad <= 0) return;
@@ -37,6 +39,11 @@ namespace KafeYana.Domain.Entities
                 return;
 
             Puntos -= cantidad;
+        }
+
+        public void RegistrarCompra()
+        {
+            NumeroCompras++;
         }
 
         public bool Estado { get; set; } = true;

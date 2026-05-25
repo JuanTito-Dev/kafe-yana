@@ -1,4 +1,5 @@
 ﻿using KafeYana.Api.Filters;
+using KafeYana.Api.Helpers;
 using KafeYana.Api.Hubs;
 using KafeYana.Application.Dtos.MesaDtos;
 using KafeYana.Application.Dtos.VentaDtos;
@@ -126,12 +127,9 @@ namespace KafeYana.Api.Controllers
             if (string.IsNullOrEmpty(nombreUsuario))
                 return Unauthorized(new { message = "Usuario no identificado" });
 
-            if (datos.Pagos.Total != (await _db.Pedidos.FindByIdAsync(datos.Id_Pedido))?.Total)
-                return BadRequest(new { message = "El total de los pagos no coincide con el total del pedido." });
+            var resultado = await _venta.ProcesarVenta(datos, nombreUsuario);
 
-            var venta = await _venta.ProcesarVenta(datos.Id_Pedido, datos.Id_Cliente, nombreUsuario, datos.Pagos);
-
-            await _db.ventas.Crear(venta);
+            await _db.ventas.Crear(resultado.Venta);
 
             paraLlevar.Disponible = true;
             paraLlevar.Pedido = null;
@@ -142,11 +140,11 @@ namespace KafeYana.Api.Controllers
             await _db.SaveUnitWork();
 
             await _notificador.NotificarVentaProcesada(
-                new VentaPayload("Para llevar", datos.Id_Pedido, datos.Pagos.Total));
+                new VentaPayload("Para llevar", datos.Id_Pedido, resultado.Venta.Total));
             await _notificador.NotificarPedidoParaLlevarActualizado(
                 new ParaLlevarPayload(IdPedido: null, Disponible: true));
 
-            return Ok(new { message = "Venta procesada correctamente" });
+            return Ok(VentaRespuestaHelper.ConstruirRespuestaCobro(resultado));
         }
 
         [HttpPut("liberar")]
