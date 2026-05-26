@@ -14,5 +14,12 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                 .Include(x => x.ProductoCanjeable)
                 .AsQueryable();
         }
+
+        public Task<HitoCompra?> ObtenerActivoParaReclamoAsync(int id)
+        {
+            return _db.HitosCompra
+                .Include(x => x.ProductoCanjeable)
+                .FirstOrDefaultAsync(x => x.Id == id && x.Activo);
+        }
     }
 }

@@ -37,6 +37,14 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.Subtotal).IsRequired().HasPrecision(10, 2);
 
+            builder.Property(x => x.MontoDescuento).HasPrecision(10, 2).HasDefaultValue(0m);
+
+            builder.Property(x => x.PorcentajeDescuento);
+
+            builder.Property(x => x.Id_PromocionPermanenteDescuento);
+
+            builder.Property(x => x.NombrePromocionDescuento).HasMaxLength(100);
+
             builder.Property(x => x.Total).IsRequired().HasPrecision(10, 2);
 
             builder.Property(x => x.PagoEfectivo).HasPrecision(10, 2).HasDefaultValue(0m);

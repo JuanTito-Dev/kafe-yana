@@ -115,6 +115,13 @@ namespace KafeYana.Domain.Entities.Inventario
         }
 
         [GraphQLIgnore]
+        public ProductoMovimiento Canje(int Cantidad, string Codigo)
+        {
+            Stock_actual -= Cantidad;
+            return Producto!.Movimiento(-Cantidad, TipoMovimientos.Canje.ToString(), Codigo, Stock_actual, Costo_compra);
+        }
+
+        [GraphQLIgnore]
         public ProductoMovimiento Compra(string referencia, int cantidad, decimal precioUnitario)
         {
             Stock_actual += cantidad;

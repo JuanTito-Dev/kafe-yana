@@ -78,11 +78,19 @@ namespace KafeYana.Infrastructure.Data
 
         public DbSet<PromocionPermanente> PromocionPermanentes { get; set; }
 
+        public DbSet<PromocionPermanenteProgreso> PromocionPermanenteProgresos { get; set; }
+
+        public DbSet<HistorialPromocionPermanente> HistorialPromocionPermanentes { get; set; }
+
         public DbSet<PromocionTemporada> PromocionTemporadas { get; set; }
 
         public DbSet<PromocionTemporadaProductoCanjeable> PromocionTemporadaProductosCanjeables { get; set; }
 
+        public DbSet<HistorialPromocionTemporada> HistorialPromocionTemporadas { get; set; }
+
         public DbSet<HitoCompra> HitosCompra { get; set; }
+
+        public DbSet<HistorialHitoCompra> HistorialHitoCompras { get; set; }
 
         public DbSet<ReferidosConfig> ReferidosConfigs { get; set; }
 

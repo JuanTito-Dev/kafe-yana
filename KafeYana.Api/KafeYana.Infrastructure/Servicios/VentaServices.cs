@@ -3,28 +3,28 @@ using KafeYana.Application.Exceptions;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Application.IServicios;
 using KafeYana.Domain.Entities;
-using KafeYana.Domain.Entities.Inventario;
-using KafeYana.Domain.TiposDeDatos;
-using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace KafeYana.Infrastructure.Servicios
 {
-    public class VentaServices(IUnitWork _db, IPuntosService _puntos) : IVentaServices
+    public class VentaServices(
+        IUnitWork _db,
+        IPuntosService _puntos,
+        IPromocionPermanenteVentaService _promocionPermanenteVenta,
+        IPromocionPermanenteDescuentoService _promocionDescuento,
+        IPromocionPermanenteProductoGratisService _productoGratis) : IVentaServices
     {
-        public async Task<Venta> ProcesarVenta(int Id_Pedido, int Id_Cliente, string cajero, DtoPagos pagos)
+        public async Task<ResultadoProcesarVenta> ProcesarVenta(DtoVentaPedido datos, string cajero)
         {
-            var pedido = await _db.Pedidos.TraerPedido(Id_Pedido);
+            var pedido = await _db.Pedidos.TraerPedido(datos.Id_Pedido);
             if (pedido is null)
                 throw new InventarioException("Pedido no encontrado");
 
             var cliente = pedido.Cliente;
-            if (pedido.Id_Cliente is null || pedido.Id_Cliente != Id_Cliente)
+            if (pedido.Id_Cliente is null || pedido.Id_Cliente != datos.Id_Cliente)
             {
-                cliente = await _db.clientes.FindByIdAsync(Id_Cliente);
+                cliente = await _db.clientes.FindByIdAsync(datos.Id_Cliente);
                 if (cliente is null)
                     throw new InventarioException("Cliente no encontrado");
             }
@@ -60,28 +60,66 @@ namespace KafeYana.Infrastructure.Servicios
                 }
             }
 
+            ResultadoAplicacionDescuentoPromocion? descuento = null;
+            var totalCobrar = subtotal;
+
+            if (datos.AplicarDescuentos)
+            {
+                descuento = await _promocionDescuento.AplicarDescuentoAsync(cliente, subtotal, codigoVenta);
+                if (descuento is null)
+                    throw new InventarioException("No hay descuentos aplicables para este pedido y cliente.");
+
+                totalCobrar = descuento.TotalConDescuento;
+            }
+
+            if (datos.Pagos.Total != totalCobrar)
+            {
+                var esperado = datos.AplicarDescuentos
+                    ? $"total con descuento ({totalCobrar:F2})"
+                    : $"total del pedido ({totalCobrar:F2})";
+
+                throw new InventarioException($"El total de los pagos no coincide con el {esperado}.");
+            }
+
             var venta = new Venta
             {
-                Codigo       = codigoVenta,
-                Fecha        = DateTime.UtcNow,
-                Cliente      = cliente!.Nombre,
-                Id_Cliente   = cliente.Id,
-                Cajero       = cajero,
-                Productos    = productosCount,
-                PagoEfectivo = pagos.Efectivo,
-                PagoTarjeta  = pagos.Tarjeta,
-                PagoQr       = pagos.Qr,
-                Estado       = "Finalizada",
-                Subtotal     = subtotal,
-                Total        = subtotal,
-                Detalles     = detallesVenta
+                Codigo                          = codigoVenta,
+                Fecha                           = DateTime.UtcNow,
+                Cliente                         = cliente!.Nombre,
+                Id_Cliente                      = cliente.Id,
+                Cajero                          = cajero,
+                Productos                       = productosCount,
+                PagoEfectivo                    = datos.Pagos.Efectivo,
+                PagoTarjeta                     = datos.Pagos.Tarjeta,
+                PagoQr                          = datos.Pagos.Qr,
+                Estado                          = "Finalizada",
+                Subtotal                        = subtotal,
+                MontoDescuento                  = descuento?.MontoDescuento ?? 0,
+                PorcentajeDescuento             = descuento?.PorcentajeDescuento,
+                Id_PromocionPermanenteDescuento = descuento?.IdPromocion,
+                NombrePromocionDescuento        = descuento?.NombrePromocion,
+                Total                           = totalCobrar,
+                Detalles                        = detallesVenta
             };
 
             await _db.Pedidos.Remove(pedido);
 
-            await _puntos.CalcularYAplicarPuntosAsync(cliente, subtotal, tieneCombo, codigoVenta);
+            var puntosPorVenta = await _puntos.CalcularYAplicarPuntosAsync(cliente, subtotal, tieneCombo, codigoVenta);
 
-            return venta;
+            var promocionPermanente = await _promocionPermanenteVenta.ProcesarAlFinalizarVentaAsync(
+                cliente, subtotal, codigoVenta);
+
+            await _productoGratis.RegistrarProgresoPostVentaAsync(cliente.Id, subtotal);
+
+            cliente.RegistrarCompra();
+
+            return new ResultadoProcesarVenta
+            {
+                Venta               = venta,
+                PuntosPorVenta      = puntosPorVenta,
+                PromocionPermanente = promocionPermanente,
+                DescuentoPromocion  = descuento
+            };
         }
     }
 }

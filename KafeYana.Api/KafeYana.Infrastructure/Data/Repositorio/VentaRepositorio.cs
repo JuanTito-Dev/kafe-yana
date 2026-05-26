@@ -30,8 +30,10 @@ namespace KafeYana.Infrastructure.Data.Repositorio
 
         public async Task<long> SiguienteNumeroVentaAsync()
         {
-            var anio = DateTime.UtcNow.Year;
-            return await _db.Ventas.LongCountAsync(x => x.Fecha.Year == anio) + 1;
+            var result = await _db.Database
+                .SqlQueryRaw<long>("SELECT nextval('seq_numero_venta')")
+                .ToListAsync();
+            return result[0];
         }
     }
 }

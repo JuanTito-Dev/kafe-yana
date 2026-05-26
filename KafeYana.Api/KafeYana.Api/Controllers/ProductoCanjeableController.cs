@@ -1,6 +1,9 @@
+using KafeYana.Application.Dtos.HitoCompraDtos;
 using KafeYana.Application.Dtos.ProductoCanjeable;
+using KafeYana.Application.Dtos.PromocionTemporadaDtos;
 using KafeYana.Application.Exceptions;
 using KafeYana.Application.IRepositorio;
+using KafeYana.Application.IServicios;
 using KafeYana.Domain.Entities;
 using KafeYana.Domain.TiposDeDatos;
 using Microsoft.AspNetCore.Authorization;
@@ -12,8 +15,74 @@ namespace KafeYana.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
-    public class ProductoCanjeableController(IUnitWork _db) : ControllerBase
+    public class ProductoCanjeableController(
+        IUnitWork _db,
+        ICanjeProductoService _canjeProducto,
+        IPromocionPermanenteProductoGratisService _productoGratis,
+        IPromocionTemporadaReclamoService _promocionTemporada,
+        IHitoCompraReclamoService _hitoCompra) : ControllerBase
     {
+        [HttpPost("reclamar-hito")]
+        public async Task<IActionResult> ReclamarHito(DtoReclamarHitoCompra dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var resultado = await _hitoCompra.ReclamarAsync(dto);
+            return Ok(resultado);
+        }
+
+        [HttpGet("promociones-temporada-disponibles")]
+        public async Task<IActionResult> ObtenerPromocionesTemporadaDisponibles([FromQuery] int Id_Cliente)
+        {
+            if (Id_Cliente <= 0)
+                return BadRequest(new { message = "Id_Cliente es obligatorio." });
+
+            var resultado = await _promocionTemporada.ObtenerProductosReclamablesAsync(Id_Cliente);
+            return Ok(resultado);
+        }
+
+        [HttpPost("reclamar-promocion-temporada")]
+        public async Task<IActionResult> ReclamarPromocionTemporada(DtoReclamarPromocionTemporada dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var resultado = await _promocionTemporada.ReclamarAsync(dto);
+            return Ok(resultado);
+        }
+
+        [HttpGet("promociones-gratis-disponibles")]
+        public async Task<IActionResult> ObtenerPromocionesGratisDisponibles([FromQuery] int Id_Cliente)
+        {
+            if (Id_Cliente <= 0)
+                return BadRequest(new { message = "Id_Cliente es obligatorio." });
+
+            var resultado = await _productoGratis.ObtenerPromocionesGratisClienteAsync(Id_Cliente);
+            return Ok(resultado);
+        }
+
+        [HttpPost("reclamar-promocion-gratis")]
+        public async Task<IActionResult> ReclamarPromocionGratis(DtoReclamarPromocionGratis dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var resultado = await _productoGratis.ReclamarAsync(dto);
+            return Ok(resultado);
+        }
+
+        [HttpPost("canje")]
+        public async Task<IActionResult> EjecutarCanje(DtoCanjeProducto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            await _canjeProducto.EjecutarCanjeAsync(dto);
+
+            return Ok(new { message = "Canje registrado correctamente." });
+        }
+
         [HttpPost]
         public async Task<IActionResult> Crear(DtoProductoCanjeableCU datos)
         {

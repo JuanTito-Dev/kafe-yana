@@ -30,6 +30,10 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.Property(x => x.Puntos)
                 .IsRequired()
                 .HasDefaultValue(0);
+
+            builder.Property(x => x.NumeroCompras)
+                .IsRequired()
+                .HasDefaultValue(0);
             
             builder.ToTable(t => t.HasCheckConstraint("CK_Cliente_Puntos_NonNegative", "\"Puntos\" >= 0"));
 

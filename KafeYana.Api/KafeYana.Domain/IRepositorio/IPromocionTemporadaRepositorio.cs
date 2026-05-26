@@ -8,5 +8,9 @@ namespace KafeYana.Application.IRepositorio
 
         /// <summary>Incluye enlaces cargados para editar y persistir cambios.</summary>
         Task<PromocionTemporada?> ObtenerConEnlacesTrackedAsync(int id);
+
+        Task<List<PromocionTemporada>> ObtenerActivasVigentesAsync(DateTime fechaReferencia);
+
+        Task<PromocionTemporada?> ObtenerActivaVigenteParaReclamoAsync(int id, DateTime fechaReferencia);
     }
 }

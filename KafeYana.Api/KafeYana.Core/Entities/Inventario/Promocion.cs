@@ -20,5 +20,10 @@ namespace KafeYana.Domain.Entities.Inventario
         {
             return Producto.Movimiento(cantidad, TipoMovimientos.Venta.ToString(), codigo, 0, Producto.Precio);
         }
+
+        public ProductoMovimiento Canje(int cantidad, string codigo)
+        {
+            return Producto.Movimiento(cantidad, TipoMovimientos.Canje.ToString(), codigo, 0, Producto.Precio);
+        }
     }
 }
