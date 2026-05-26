@@ -56,9 +56,17 @@ namespace KafeYana.Application.IRepositorio
 
         IPromocionPermanenteRepositorio promocionPermanentes { get; }
 
+        IPromocionPermanenteProgresoRepositorio promocionPermanenteProgresos { get; }
+
+        IHistorialPromocionPermanenteRepositorio historialPromocionPermanentes { get; }
+
         IPromocionTemporadaRepositorio promocionTemporadas { get; }
 
+        IHistorialPromocionTemporadaRepositorio historialPromocionTemporadas { get; }
+
         IHitoCompraRepositorio hitosCompra { get; }
+
+        IHistorialHitoCompraRepositorio historialHitoCompras { get; }
 
         IReferidosConfigRepositorio referidosConfig { get; }
 

@@ -1,4 +1,5 @@
 ﻿using KafeYana.Api.Filters;
+using KafeYana.Api.Helpers;
 using KafeYana.Api.Hubs;
 using KafeYana.Application.Dtos.MesaDtos;
 using KafeYana.Application.Dtos.PedidoDtos;
@@ -204,14 +205,10 @@ namespace KafeYana.Api.Controllers
             if (pedido is null)
                 return NotFound(new { message = "Pedido no encontrado" });
 
-            if (datos.Pagos.Total != pedido.Total)
-                return BadRequest(new { message = "El total de los pagos no coincide con el total del pedido." });
-
-            // Procesar venta
-            var venta = await _venta.ProcesarVenta(datos.Id_Pedido, datos.Id_Cliente, nombreUsuario, datos.Pagos);
+            var resultado = await _venta.ProcesarVenta(datos, nombreUsuario);
 
             // Guardar venta
-            await _db.ventas.Crear(venta);
+            await _db.ventas.Crear(resultado.Venta);
 
             // Liberar mesa
             mesa.Disponible = true;
@@ -222,10 +219,10 @@ namespace KafeYana.Api.Controllers
             // Guardar todos los cambios (transaccional)
             await _db.SaveUnitWork();
 
-            await _notificador.NotificarVentaProcesada(new VentaPayload(mesa.Nombre, datos.Id_Pedido, pedido.Total));
+            await _notificador.NotificarVentaProcesada(new VentaPayload(mesa.Nombre, datos.Id_Pedido, resultado.Venta.Total));
             await _notificador.NotificarMesaActualizada(new MesaActualizadaPayload(mesa.Id, mesa.Nombre, mesa.Disponible, IdPedido: null));
 
-            return Ok(new { message = "Venta procesada correctamente" });
+            return Ok(VentaRespuestaHelper.ConstruirRespuestaCobro(resultado));
         }
 
         // ─── helper compartido ────────────────────────────────────────────────

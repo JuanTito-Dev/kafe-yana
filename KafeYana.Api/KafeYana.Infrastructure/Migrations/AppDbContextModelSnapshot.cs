@@ -515,6 +515,11 @@ namespace KafeYana.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<int>("NumeroCompras")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.Property<int>("Puntos")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -614,6 +619,133 @@ namespace KafeYana.Infrastructure.Migrations
                     b.HasIndex("Id_venta");
 
                     b.ToTable("Detalle_venta", (string)null);
+                });
+
+            modelBuilder.Entity("KafeYana.Domain.Entities.HistorialHitoCompra", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodigoReclamo")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Id_Cliente")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id_HitoCompra")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("NumeroComprasAlReclamar")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Id_Cliente")
+                        .HasDatabaseName("IX_HistorialHitoCompra_Cliente");
+
+                    b.HasIndex("Id_HitoCompra");
+
+                    b.HasIndex("Id_Cliente", "Id_HitoCompra")
+                        .IsUnique()
+                        .HasDatabaseName("IX_HistorialHitoCompra_Cliente_Hito");
+
+                    b.ToTable("HistorialHitoCompra", (string)null);
+                });
+
+            modelBuilder.Entity("KafeYana.Domain.Entities.HistorialPromocionPermanente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodigoVenta")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Id_Cliente")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id_PromocionPermanente")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TipoCondicion")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("TipoRecompensa")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<int>("ValorCondicion")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ValorRecompensa")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Id_Cliente")
+                        .HasDatabaseName("IX_HistorialPromocionPermanente_Cliente");
+
+                    b.HasIndex("Id_PromocionPermanente");
+
+                    b.HasIndex("CodigoVenta", "TipoRecompensa")
+                        .IsUnique()
+                        .HasDatabaseName("IX_HistorialPromocionPermanente_Venta_TipoRecompensa");
+
+                    b.ToTable("HistorialPromocionPermanente", (string)null);
+                });
+
+            modelBuilder.Entity("KafeYana.Domain.Entities.HistorialPromocionTemporada", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodigoReclamo")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Id_Cliente")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id_PromocionTemporada")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Id_Cliente")
+                        .HasDatabaseName("IX_HistorialPromocionTemporada_Cliente");
+
+                    b.HasIndex("Id_PromocionTemporada");
+
+                    b.HasIndex("Id_Cliente", "Id_PromocionTemporada")
+                        .IsUnique()
+                        .HasDatabaseName("IX_HistorialPromocionTemporada_Cliente_Promocion");
+
+                    b.ToTable("HistorialPromocionTemporada", (string)null);
                 });
 
             modelBuilder.Entity("KafeYana.Domain.Entities.HistorialPuntos", b =>
@@ -961,7 +1093,8 @@ namespace KafeYana.Infrastructure.Migrations
 
                     b.Property<string>("Ubicacion")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("Ubicacion");
 
                     b.Property<string>("Unidad_medida")
                         .IsRequired()
@@ -1712,6 +1845,41 @@ namespace KafeYana.Infrastructure.Migrations
                     b.ToTable("PromocionPermanente", (string)null);
                 });
 
+            modelBuilder.Entity("KafeYana.Domain.Entities.PromocionPermanenteProgreso", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ContadorCompras")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("Id_Cliente")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Id_PromocionPermanente")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("ReclamoMontoMinimoPendiente")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Id_PromocionPermanente");
+
+                    b.HasIndex("Id_Cliente", "Id_PromocionPermanente")
+                        .IsUnique()
+                        .HasDatabaseName("IX_PromocionPermanenteProgreso_Cliente_Promo");
+
+                    b.ToTable("PromocionPermanenteProgreso", (string)null);
+                });
+
             modelBuilder.Entity("KafeYana.Domain.Entities.PromocionTemporada", b =>
                 {
                     b.Property<int>("Id")
@@ -1923,6 +2091,19 @@ namespace KafeYana.Infrastructure.Migrations
                     b.Property<int?>("Id_Cliente")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("Id_PromocionPermanenteDescuento")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("MontoDescuento")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<string>("NombrePromocionDescuento")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<decimal>("PagoEfectivo")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(10, 2)
@@ -1940,6 +2121,9 @@ namespace KafeYana.Infrastructure.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)")
                         .HasDefaultValue(0m);
+
+                    b.Property<int?>("PorcentajeDescuento")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Productos")
                         .ValueGeneratedOnAdd()
@@ -2165,6 +2349,69 @@ namespace KafeYana.Infrastructure.Migrations
                         .HasConstraintName("FK_DetalleVenta_Venta");
 
                     b.Navigation("venta");
+                });
+
+            modelBuilder.Entity("KafeYana.Domain.Entities.HistorialHitoCompra", b =>
+                {
+                    b.HasOne("KafeYana.Domain.Entities.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("Id_Cliente")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_historialhitocompra_cliente");
+
+                    b.HasOne("KafeYana.Domain.Entities.HitoCompra", "HitoCompra")
+                        .WithMany()
+                        .HasForeignKey("Id_HitoCompra")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_historialhitocompra_hitocompra");
+
+                    b.Navigation("Cliente");
+
+                    b.Navigation("HitoCompra");
+                });
+
+            modelBuilder.Entity("KafeYana.Domain.Entities.HistorialPromocionPermanente", b =>
+                {
+                    b.HasOne("KafeYana.Domain.Entities.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("Id_Cliente")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_historialpromocionpermanente_cliente");
+
+                    b.HasOne("KafeYana.Domain.Entities.PromocionPermanente", "PromocionPermanente")
+                        .WithMany()
+                        .HasForeignKey("Id_PromocionPermanente")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_historialpromocionpermanente_promocion");
+
+                    b.Navigation("Cliente");
+
+                    b.Navigation("PromocionPermanente");
+                });
+
+            modelBuilder.Entity("KafeYana.Domain.Entities.HistorialPromocionTemporada", b =>
+                {
+                    b.HasOne("KafeYana.Domain.Entities.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("Id_Cliente")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_historialpromociontemporada_cliente");
+
+                    b.HasOne("KafeYana.Domain.Entities.PromocionTemporada", "PromocionTemporada")
+                        .WithMany()
+                        .HasForeignKey("Id_PromocionTemporada")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_historialpromociontemporada_promocion");
+
+                    b.Navigation("Cliente");
+
+                    b.Navigation("PromocionTemporada");
                 });
 
             modelBuilder.Entity("KafeYana.Domain.Entities.HistorialPuntos", b =>
@@ -2526,6 +2773,27 @@ namespace KafeYana.Infrastructure.Migrations
                         .HasConstraintName("fk_promocionpermanente_productocanjeable");
 
                     b.Navigation("ProductoCanjeable");
+                });
+
+            modelBuilder.Entity("KafeYana.Domain.Entities.PromocionPermanenteProgreso", b =>
+                {
+                    b.HasOne("KafeYana.Domain.Entities.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("Id_Cliente")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_promocionpermanenteprogreso_cliente");
+
+                    b.HasOne("KafeYana.Domain.Entities.PromocionPermanente", "PromocionPermanente")
+                        .WithMany()
+                        .HasForeignKey("Id_PromocionPermanente")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_promocionpermanenteprogreso_promocion");
+
+                    b.Navigation("Cliente");
+
+                    b.Navigation("PromocionPermanente");
                 });
 
             modelBuilder.Entity("KafeYana.Domain.Entities.PromocionTemporadaProductoCanjeable", b =>
