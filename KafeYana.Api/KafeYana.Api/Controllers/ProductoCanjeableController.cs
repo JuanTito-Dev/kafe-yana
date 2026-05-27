@@ -22,6 +22,16 @@ namespace KafeYana.Api.Controllers
         IPromocionTemporadaReclamoService _promocionTemporada,
         IHitoCompraReclamoService _hitoCompra) : ControllerBase
     {
+        [HttpGet("hitos-reclamados")]
+        public async Task<IActionResult> ObtenerHitosReclamados([FromQuery] int Id_Cliente)
+        {
+            if (Id_Cliente <= 0)
+                return BadRequest(new { message = "Id_Cliente es obligatorio." });
+
+            var resultado = await _hitoCompra.ObtenerHitosReclamadosAsync(Id_Cliente);
+            return Ok(resultado);
+        }
+
         [HttpPost("reclamar-hito")]
         public async Task<IActionResult> ReclamarHito(DtoReclamarHitoCompra dto)
         {

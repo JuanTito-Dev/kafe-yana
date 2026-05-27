@@ -58,8 +58,7 @@ namespace KafeYana.Api.Controllers
 
 
 
-            if (comprado is null) return NotFound(new { message = "Producto no encontrado" });
-
+            if (comprado is null) return NotFound(new { message = "Producto no encontrado" }); 
 
 
             if (datos.Cantidad > comprado.Stock_actual && !entrada) return BadRequest(new { message = "No puedes quitar mas productos del que tienes" });

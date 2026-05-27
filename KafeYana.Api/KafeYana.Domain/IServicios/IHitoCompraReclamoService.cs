@@ -4,6 +4,8 @@ namespace KafeYana.Application.IServicios
 {
     public interface IHitoCompraReclamoService
     {
+        Task<DtoHitosReclamadosCliente> ObtenerHitosReclamadosAsync(int idCliente);
+
         Task<ResultadoReclamoHitoCompra> ReclamarAsync(DtoReclamarHitoCompra dto);
     }
 }

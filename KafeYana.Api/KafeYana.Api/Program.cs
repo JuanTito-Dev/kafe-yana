@@ -3,6 +3,7 @@ using KafeYana.Api.Hubs;
 using QuestPDF.Infrastructure;
 using KafeYana.Api.Filters;
 using KafeYana.Api.GraphQLMap;
+using KafeYana.Api.GraphQLMap.Filtering;
 using KafeYana.Api.GraphQLMap.Types;
 using KafeYana.Api.Middlewares;
 using KafeYana.Application.Exceptions;
@@ -197,7 +198,7 @@ builder.Services.AddGraphQLServer()
         o.DefaultPageSize = 200;
         o.MaxPageSize = 1000;
     })
-    .AddFiltering()
+    .AddFiltering<CaseInsensitiveFilteringConvention>()
     .AddProjections()
     .AddSorting()
     .AddAuthorization()
@@ -278,11 +279,20 @@ builder.Services.AddScoped<IPuntosService, PuntosService>();
 builder.Services.AddScoped<CajaAbiertaFilter>();
 builder.Services.AddScoped<IKafeYanaNotificador, KafeYanaNotificador>();
 builder.Services.AddScoped<StockPayloadService>();
+builder.Services.AddScoped<YanaBotService>();
 
 builder.Services.AddEndpointsApiExplorer();
 
 //Pra scalar
 builder.Services.AddHttpContextAccessor();
+
+// Registra HttpClient como servicio inyectable (buena práctica)
+builder.Services.AddHttpClient<YanaBotService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5000");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
 
 var app = builder.Build();
 
