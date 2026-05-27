@@ -12,7 +12,7 @@ namespace KafeYana.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = $"{RolesKafe.Admin}")]
+    //[Authorize(Roles = $"{RolesKafe.Admin}")]
     public class CategoriaController(ICategoriaRepositorio _Categoria) : ControllerBase
     {
 
@@ -49,7 +49,7 @@ namespace KafeYana.Api.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Eliminar(int Id)
         {
-            if (Id == 4) return BadRequest(new { message = "No puedes eliminar la categoria combos" });
+            if (Id == 3) return BadRequest(new { message = "No puedes eliminar la categoria combos" });
 
             var categoria = await _Categoria.FindByIdAsync(Id);
 

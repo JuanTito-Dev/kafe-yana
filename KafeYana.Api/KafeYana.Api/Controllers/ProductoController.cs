@@ -9,7 +9,7 @@ namespace KafeYana.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = $"{RolesKafe.Admin}")]
+    //[Authorize(Roles = $"{RolesKafe.Admin}")]
     public class ProductoController(IProductoRepositorio _producto, IProductoImagenService _imagenService) : ControllerBase
     {
 
