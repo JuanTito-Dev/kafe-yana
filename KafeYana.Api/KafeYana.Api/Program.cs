@@ -286,6 +286,7 @@ builder.Services.AddEndpointsApiExplorer();
 //Pra scalar
 builder.Services.AddHttpContextAccessor();
 
+<<<<<<< HEAD
 // Registra HttpClient como servicio inyectable (buena práctica)
 builder.Services.AddHttpClient<YanaBotService>(client =>
 {
@@ -293,6 +294,13 @@ builder.Services.AddHttpClient<YanaBotService>(client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
+=======
+builder.Services.AddHttpClient("MensajesApi", client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5000/");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+} );
+>>>>>>> a4f063004ce612af34105df20822009345fae8ae
 
 var app = builder.Build();
 
