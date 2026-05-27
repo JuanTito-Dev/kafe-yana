@@ -12,6 +12,24 @@ public sealed class HitoCompraReclamoService(
 {
     private const int CantidadReclamo = 1;
 
+    public async Task<DtoHitosReclamadosCliente> ObtenerHitosReclamadosAsync(int idCliente)
+    {
+        if (await _unitWork.clientes.GetCliente(idCliente) is null)
+            throw new InventarioException("Cliente no encontrado.");
+
+        var historial = await _unitWork.historialHitoCompras.ObtenerReclamadosPorClienteAsync(idCliente);
+
+        var reclamados = historial
+            .Select(MapReclamado)
+            .ToList();
+
+        return new DtoHitosReclamadosCliente
+        {
+            Id_Cliente  = idCliente,
+            Reclamados  = reclamados
+        };
+    }
+
     public async Task<ResultadoReclamoHitoCompra> ReclamarAsync(DtoReclamarHitoCompra dto)
     {
         var cliente = await _unitWork.clientes.GetCliente(dto.IdCliente);
@@ -66,6 +84,26 @@ public sealed class HitoCompraReclamoService(
             IdProductoCanjeable     = hito.ProductoCanjeable.Id,
             NombreProducto          = hito.ProductoCanjeable.NombreProducto,
             Categoria               = hito.ProductoCanjeable.Categoria
+        };
+    }
+
+    private static DtoHitoReclamadoItem MapReclamado(HistorialHitoCompra registro)
+    {
+        var hito = registro.HitoCompra!;
+        var pc   = hito.ProductoCanjeable!;
+
+        return new DtoHitoReclamadoItem
+        {
+            IdHitoCompra            = registro.Id_HitoCompra,
+            NumeroComprasRequerido  = hito.NumeroCompras,
+            NumeroComprasAlReclamar = registro.NumeroComprasAlReclamar,
+            CodigoReclamo           = registro.CodigoReclamo,
+            Fecha                   = registro.Fecha,
+            Descripcion             = hito.Descripcion,
+            Icono                   = hito.Icono,
+            IdProductoCanjeable     = pc.Id,
+            NombreProducto          = pc.NombreProducto,
+            Categoria               = pc.Categoria
         };
     }
 }

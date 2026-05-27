@@ -103,14 +103,11 @@ namespace KafeYana.Infrastructure.Servicios
 
             if (elaborado.Producible)
             {
-                if (elaborado.Receta is not null)
-                {
-                    if (elaborado.Stock_actual < cantidad)
-                        throw new DetalleRondaException($"Stock insuficiente para {elaborado.Producto.Nombre}. Disponible: {elaborado.Stock_actual}, Solicitado: {cantidad}");
+                if (elaborado.Stock_actual < cantidad)
+                    throw new DetalleRondaException($"Stock insuficiente para {elaborado.Producto.Nombre}. Disponible: {elaborado.Stock_actual}, Solicitado: {cantidad}");
 
-                    var movimiento = elaborado.Venta(cantidad, referencia, 0.00M);
-                    await _unitWork.movimientos.Crear(movimiento);
-                }
+                var movimiento = elaborado.Venta(cantidad, referencia, 0.00M);
+                await _unitWork.movimientos.Crear(movimiento);
 
                 return new Detalle_ronda
                 {
@@ -280,14 +277,11 @@ namespace KafeYana.Infrastructure.Servicios
 
                         if (elaborado.Producible)
                         {
-                            if (elaborado.Receta is not null)
-                            {
-                                if (elaborado.Stock_actual < cantidadTotal)
-                                    throw new DetalleRondaException($"Stock insuficiente para {detalle.Producto.Nombre}. Disponible: {elaborado.Stock_actual}, Solicitado: {cantidadTotal}");
+                            if (elaborado.Stock_actual < cantidadTotal)
+                                throw new DetalleRondaException($"Stock insuficiente para {detalle.Producto.Nombre}. Disponible: {elaborado.Stock_actual}, Solicitado: {cantidadTotal}");
 
-                                var movimientoElaborado = elaborado.Venta(cantidadTotal, referenciaCombo, 0.00M);
-                                await _unitWork.movimientos.Crear(movimientoElaborado);
-                            }
+                            var movimientoElaborado = elaborado.Venta(cantidadTotal, referenciaCombo, 0.00M);
+                            await _unitWork.movimientos.Crear(movimientoElaborado);
                         }
                         else
                         {
