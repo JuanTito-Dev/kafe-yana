@@ -54,30 +54,6 @@ namespace KafeYana.Api.Controllers
             return Ok(new { message = "Producto actualizado" });
         }
 
-        [HttpPut("{Id:int}")]
-        [Consumes("multipart/form-data")]
-        public async Task<IActionResult> Update2(int Id, [FromForm] DtoCompradoCrear datos, IFormFile? Imagen)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var productoDb = await _producto.TraerProducto(Id, comprado: true);
-
-            if (productoDb is null || productoDb.Tipo != TiposProductos.Comprado)
-                return NotFound(new { message = "Producto no encontrado" });
-
-            datos.Editar(productoDb);
-
-            if (Imagen is not null)
-            {
-                await _imagenService.EliminarSiExisteAsync(productoDb.UrlImagen);
-                productoDb.UrlImagen = await _imagenService.ProcesarSubidaAsync(Imagen, datos.Nombre, datos.Categoria_Id);
-            }
-
-            await _producto.SaveAsync();
-
-            return Ok(new { message = "Producto actualizado" });
-        }
-
         [HttpDelete("{Id:int}")]
         public async Task<IActionResult> Eliminar(int Id)
         {
