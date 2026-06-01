@@ -13,7 +13,8 @@ namespace KafeYana.Infrastructure.Servicios
         IPuntosService _puntos,
         IPromocionPermanenteVentaService _promocionPermanenteVenta,
         IPromocionPermanenteDescuentoService _promocionDescuento,
-        IPromocionPermanenteProductoGratisService _productoGratis) : IVentaServices
+        IPromocionPermanenteProductoGratisService _productoGratis,
+        IInventarioPedidoCompromisoService _inventarioPedidoCompromiso) : IVentaServices
     {
         public async Task<ResultadoProcesarVenta> ProcesarVenta(DtoVentaPedido datos, string cajero)
         {
@@ -32,6 +33,8 @@ namespace KafeYana.Infrastructure.Servicios
             var anio = DateTime.UtcNow.Year;
             var numeroVenta = await _db.ventas.SiguienteNumeroVentaAsync();
             var codigoVenta = $"VTA-{anio}-{numeroVenta:D3}";
+
+            await _inventarioPedidoCompromiso.AplicarMovimientosYCerrarAsync(datos.Id_Pedido, codigoVenta);
 
             var detallesVenta  = new List<Detalle_venta>();
             var subtotal       = 0.00M;

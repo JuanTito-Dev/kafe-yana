@@ -11,5 +11,9 @@ namespace KafeYana.Application.IRepositorio
     public interface IRondaRepositorio : IGenericRepositorio<Ronda>
     {
         Task<int> Count(Expression<Func<Ronda, bool>> filtro);
+
+        Task<Ronda?> TraerConDetallesAsync(int idRonda);
+
+        Task<decimal> SumSubTotalPorPedidoAsync(int idPedido);
     }
 }

@@ -83,6 +83,8 @@ namespace KafeYana.Infrastructure.Data.Repositorio
 
         public IConfiguracionQrRepositorio configuracionQr { get; private set; }
 
+        public IPedidoInventarioCompromisoRepositorio pedidoInventarioCompromisos { get; private set; }
+
         public UnitWork(AppDbContext db, IProductoRepositorio productos, IElaboradoRepositorio elaborados,
                 IInsumoRepositorio insumos,
                 IAjusteStockRepositorio ajusteStocks,
@@ -117,7 +119,8 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                 IHistorialHitoCompraRepositorio historialHitoCompras,
                 IReferidosConfigRepositorio referidosConfig,
                 IHistorialReferidoRepositorio historialReferidos,
-                IConfiguracionQrRepositorio configuracionQr
+                IConfiguracionQrRepositorio configuracionQr,
+                IPedidoInventarioCompromisoRepositorio pedidoInventarioCompromisos
                 )
         {
             _db = db;
@@ -157,6 +160,7 @@ namespace KafeYana.Infrastructure.Data.Repositorio
             this.referidosConfig = referidosConfig;
             this.historialReferidos = historialReferidos;
             this.configuracionQr = configuracionQr;
+            this.pedidoInventarioCompromisos = pedidoInventarioCompromisos;
         }
 
         public void Dispose()

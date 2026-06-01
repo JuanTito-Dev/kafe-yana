@@ -4,6 +4,7 @@ using KafeYana.Api.Hubs;
 using KafeYana.Application.Dtos.MesaDtos;
 using KafeYana.Application.Dtos.PedidoDtos;
 using KafeYana.Application.Dtos.VentaDtos;
+using KafeYana.Domain.Dtos.RondaDtos;
 using KafeYana.Application.Exceptions;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Application.IServicios;
@@ -21,7 +22,7 @@ namespace KafeYana.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}, {RolesKafe.Mesero}")]
-    public class MesaController(IMesaRepositorio _Mesa, IUnitWork _db, IVentaServices _venta, Detalle_RondaService _detalleRondaService, IKafeYanaNotificador _notificador, StockPayloadService _stockService) : ControllerBase
+    public class MesaController(IMesaRepositorio _Mesa, IUnitWork _db, IVentaServices _venta, Detalle_RondaService _detalleRondaService, IRondaPedidoService _rondaPedidoService, IKafeYanaNotificador _notificador, StockPayloadService _stockService) : ControllerBase
     {
         [HttpPost]
         public async Task<IActionResult> Crear(DtoMesaCU datos)
@@ -151,8 +152,9 @@ namespace KafeYana.Api.Controllers
 
             // Agregar ronda al pedido de la mesa
             await _db.rondas.Crear(ronda);
+            await _db.SaveUnitWork();
 
-            mesa.pedido.Total += ronda.SubTotal;
+            await _rondaPedidoService.RecalcularTotalPedidoAsync(datos.Id_Pedido);
 
             // Guardar cambios
             await _db.SaveUnitWork();
@@ -177,6 +179,75 @@ namespace KafeYana.Api.Controllers
                 }
             });
 
+        }
+
+        [HttpPut("{idMesa:int}/ronda/{idRonda:int}")]
+        [ServiceFilter(typeof(CajaAbiertaFilter))]
+        public async Task<IActionResult> EditarRonda(int idMesa, int idRonda, DtoRondaEditar datos)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var mesa = await _db.mesas.GetMesaPedido(idMesa);
+            if (mesa is null) return NotFound(new { message = "Mesa no existe" });
+            if (mesa.pedido is null) return NotFound(new { message = "La mesa no tiene un pedido activo" });
+            if (mesa.Id_Pedido != datos.Id_Pedido)
+                return BadRequest(new { message = "El pedido no corresponde a la mesa" });
+
+            var ronda = await _rondaPedidoService.EditarRondaAsync(idRonda, datos);
+            await _db.SaveUnitWork();
+
+            var stockPayload = await _stockService.BuildAsync(ronda);
+            await _notificador.NotificarStockActualizado(stockPayload);
+
+            var pedido = await _db.Pedidos.FindByIdAsync(datos.Id_Pedido);
+            return Ok(new { message = "Ronda actualizada", rondaId = ronda.Id, ronda.SubTotal, totalPedido = pedido?.Total });
+        }
+
+        [HttpDelete("{idMesa:int}/ronda/{idRonda:int}")]
+        [ServiceFilter(typeof(CajaAbiertaFilter))]
+        public async Task<IActionResult> EliminarRonda(int idMesa, int idRonda, [FromQuery] int idPedido)
+        {
+            var mesa = await _db.mesas.GetMesaPedido(idMesa);
+            if (mesa is null) return NotFound(new { message = "Mesa no existe" });
+            if (mesa.pedido is null) return NotFound(new { message = "La mesa no tiene un pedido activo" });
+            if (mesa.Id_Pedido != idPedido)
+                return BadRequest(new { message = "El pedido no corresponde a la mesa" });
+
+            await _rondaPedidoService.EliminarRondaAsync(idRonda, idPedido);
+            await _db.SaveUnitWork();
+
+            await _notificador.NotificarStockActualizado(await _stockService.BuildPorPedidoAsync(idPedido));
+
+            var pedido = await _db.Pedidos.FindByIdAsync(idPedido);
+            return Ok(new { message = "Ronda eliminada", totalPedido = pedido?.Total });
+        }
+
+        [HttpPut("detalle/{idDetalle:int}")]
+        [ServiceFilter(typeof(CajaAbiertaFilter))]
+        public async Task<IActionResult> EditarDetalle(int idDetalle, [FromQuery] int idPedido, DtoRondadetalle datos)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var detalle = await _rondaPedidoService.EditarDetalleAsync(idDetalle, datos, idPedido);
+            await _db.SaveUnitWork();
+
+            var ronda = await _db.rondas.TraerConDetallesAsync(detalle.Id_Ronda);
+            if (ronda is not null)
+                await _notificador.NotificarStockActualizado(await _stockService.BuildAsync(ronda));
+
+            return Ok(new { message = "Detalle actualizado", detalle.Id, detalle.Cantidad, detalle.Precio });
+        }
+
+        [HttpDelete("detalle/{idDetalle:int}")]
+        [ServiceFilter(typeof(CajaAbiertaFilter))]
+        public async Task<IActionResult> EliminarDetalle(int idDetalle, [FromQuery] int idPedido)
+        {
+            await _rondaPedidoService.EliminarDetalleAsync(idDetalle, idPedido);
+            await _db.SaveUnitWork();
+
+            await _notificador.NotificarStockActualizado(await _stockService.BuildPorPedidoAsync(idPedido));
+
+            return Ok(new { message = "Detalle eliminado" });
         }
 
         [HttpPost("cobrar/{Id:int}")]

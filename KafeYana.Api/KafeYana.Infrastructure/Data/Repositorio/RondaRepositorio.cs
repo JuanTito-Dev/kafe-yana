@@ -22,5 +22,19 @@ namespace KafeYana.Infrastructure.Data.Repositorio
         {
             return await _Rondas.CountAsync(filtro);
         }
+
+        public async Task<Ronda?> TraerConDetallesAsync(int idRonda) =>
+            await _Rondas
+                .Include(x => x.Detalle)
+                    .ThenInclude(d => d.Opciones)
+                .Include(x => x.Detalle)
+                    .ThenInclude(d => d.ItemsCombo)
+                .Include(x => x.Detalle)
+                    .ThenInclude(d => d.CompromisoInventario!)
+                        .ThenInclude(c => c.Lineas)
+                .FirstOrDefaultAsync(x => x.Id == idRonda);
+
+        public async Task<decimal> SumSubTotalPorPedidoAsync(int idPedido) =>
+            await _Rondas.Where(r => r.Id_Pedido == idPedido).SumAsync(r => r.SubTotal);
     }
 }

@@ -16,6 +16,9 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public ICollection<PromocionDetalle> Detalles { get; set; } = new List<PromocionDetalle>();
 
+        public ProductoMovimiento CrearMovimientoVenta(int cantidad, string codigo) =>
+            Producto.Movimiento(cantidad, TipoMovimientos.Venta.ToString(), codigo, 0, Producto.Precio);
+
         public ProductoMovimiento Venta(int cantidad, string codigo)
         {
             return Producto.Movimiento(cantidad, TipoMovimientos.Venta.ToString(), codigo, 0, Producto.Precio);
