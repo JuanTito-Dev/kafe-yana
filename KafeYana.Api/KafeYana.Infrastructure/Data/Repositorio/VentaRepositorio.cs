@@ -35,7 +35,7 @@ namespace KafeYana.Infrastructure.Data.Repositorio
 
  
             var result = await _db.Database
-                .SqlQueryRaw<long>("SELECT nextval('seq_numero_venta')")
+                .SqlQueryRaw<long>("SELECT nextval('venta_codigo_seq')")
                 .ToListAsync();
             return result[0];
         }

@@ -3,3 +3,6 @@ obj/
 *.dll
 *.pdb
 *.exe
+
+app.settings
+appsettings.Development.json
