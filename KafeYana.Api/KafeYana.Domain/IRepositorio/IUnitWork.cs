@@ -80,6 +80,8 @@ namespace KafeYana.Application.IRepositorio
 
         IConfiguracionQrRepositorio configuracionQr { get; }
 
+        IPedidoInventarioCompromisoRepositorio pedidoInventarioCompromisos { get; }
+
         Task<int> SaveUnitWork();
     }
 }

@@ -104,6 +104,10 @@ namespace KafeYana.Infrastructure.Data
 
         public DbSet<ConfiguracionQr> ConfiguracionQr { get; set; }
 
+        public DbSet<PedidoInventarioComprometido> PedidoInventarioComprometidos { get; set; }
+
+        public DbSet<PedidoInventarioComprometidoLinea> PedidoInventarioComprometidoLineas { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -165,6 +169,8 @@ namespace KafeYana.Infrastructure.Data
             builder.ApplyConfigurationsFromAssembly(typeof(CajaHistorialConfig).Assembly);
 
             builder.ApplyConfigurationsFromAssembly(typeof(CajaHistorialMovimientoConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(PedidoInventarioComprometidoConfig).Assembly);
         }
     }
 }

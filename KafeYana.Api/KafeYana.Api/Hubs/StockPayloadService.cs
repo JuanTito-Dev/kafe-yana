@@ -166,6 +166,27 @@ namespace KafeYana.Api.Hubs
             return new StockActualizadoPayload(compradosResult, elaboradosResult, combosResult);
         }
 
+        public async Task<StockActualizadoPayload> BuildPorPedidoAsync(int idPedido)
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+
+            var detalles = await db.Rondas
+                .Where(r => r.Id_Pedido == idPedido)
+                .SelectMany(r => r.Detalle)
+                .Include(d => d.ItemsCombo)
+                .ToListAsync();
+
+            var rondaSintetica = new Ronda
+            {
+                Id_Pedido = idPedido,
+                Ronda_Descripcion = string.Empty,
+                SubTotal = 0,
+                Detalle = detalles
+            };
+
+            return await BuildAsync(rondaSintetica);
+        }
+
         // ── Helpers ───────────────────────────────────────────────────────────
 
         private static int CalcularProducibleReceta(Receta receta)

@@ -6,6 +6,6 @@ namespace KafeYana.Application.IRepositorio
 {
     public interface IDetalle_RondaRepositorio : IGenericRepositorio<Detalle_ronda>
     {
-        
+        Task<Detalle_ronda?> TraerConRelacionesAsync(int idDetalle);
     }
 }

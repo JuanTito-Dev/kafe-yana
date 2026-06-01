@@ -1,16 +1,17 @@
 using KafeYana.Application.IRepositorio;
 using KafeYana.Domain.Entities.Inventario;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace KafeYana.Infrastructure.Data.Repositorio
+namespace KafeYana.Infrastructure.Data.Repositorio;
+
+public class Detalle_RondaRepositorio(AppDbContext db) : GenericRepositorio<Detalle_ronda>(db), IDetalle_RondaRepositorio
 {
-    public class Detalle_RondaRepositorio : GenericRepositorio<Detalle_ronda>, IDetalle_RondaRepositorio
-    {
-        public Detalle_RondaRepositorio(AppDbContext db) : base(db)
-        {
-        }
-    }
+    public async Task<Detalle_ronda?> TraerConRelacionesAsync(int idDetalle) =>
+        await db.Set<Detalle_ronda>()
+            .Include(d => d.ronda)
+            .Include(d => d.Opciones)
+            .Include(d => d.ItemsCombo)
+            .Include(d => d.CompromisoInventario!)
+                .ThenInclude(c => c.Lineas)
+            .FirstOrDefaultAsync(d => d.Id == idDetalle);
 }

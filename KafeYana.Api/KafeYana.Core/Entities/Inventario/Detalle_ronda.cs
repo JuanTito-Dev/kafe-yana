@@ -29,5 +29,7 @@ namespace KafeYana.Domain.Entities.Inventario
 
         /// <summary>Solo se rellena cuando la línea es un combo (promoción): un registro por producto del combo.</summary>
         public List<Detalle_Ronda_ComboItem> ItemsCombo { get; set; } = new List<Detalle_Ronda_ComboItem>();
+
+        public PedidoInventarioComprometido? CompromisoInventario { get; set; }
     }
 }

@@ -56,6 +56,24 @@ namespace KafeYana.Domain.Entities.Inventario
             return movimiento;
         }
 
+        [GraphQLIgnore]
+        public void ComprometerStock(int cantidad)
+        {
+            if (Producible)
+                Stock_actual -= cantidad;
+        }
+
+        [GraphQLIgnore]
+        public void DevolverStock(int cantidad)
+        {
+            if (Producible)
+                Stock_actual += cantidad;
+        }
+
+        [GraphQLIgnore]
+        public ProductoMovimiento CrearMovimientoVenta(int cantidad, string codigo, decimal costo) =>
+            Producto.Movimiento(-cantidad, TipoMovimientos.Venta.ToString(), codigo, Stock_actual, costo);
+
         [GraphQLIgnore] 
         public ProductoMovimiento Venta(int cantidad, string Codigo, decimal costo)
         {
