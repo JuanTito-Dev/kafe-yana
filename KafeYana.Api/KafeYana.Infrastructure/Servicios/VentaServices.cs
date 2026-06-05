@@ -49,10 +49,11 @@ namespace KafeYana.Infrastructure.Servicios
 
                     detallesVenta.Add(new Detalle_venta
                     {
-                        Nombre   = detalle.Nombre_Producto,
-                        Cantidad = detalle.Cantidad,
-                        Precio   = detalle.Precio,
-                        Total    = totalDetalle
+                        Nombre    = detalle.Nombre_Producto,
+                        Cantidad  = detalle.Cantidad,
+                        Precio    = detalle.Precio,
+                        Total     = totalDetalle,
+                        Ubicacion = detalle.Ubicacion ?? string.Empty
                     });
 
                     subtotal += totalDetalle;

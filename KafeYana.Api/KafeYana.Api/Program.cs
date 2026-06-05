@@ -215,6 +215,9 @@ builder.Services.AddGraphQLServer()
     .AddDataLoader<RecetaCantidadProducibleDataLoader>();
 
 //Servicios
+builder.Services.Configure<ImpresoraOptions>(builder.Configuration.GetSection(ImpresoraOptions.Key));
+builder.Services.AddScoped<IImpresoraService, ImpresoraService>();
+
 builder.Services.Configure<CloudflareR2Options>(builder.Configuration.GetSection(CloudflareR2Options.Key));
 builder.Services.AddSingleton<IR2StorageService, R2StorageService>();
 builder.Services.AddScoped<IProductoImagenService, ProductoImagenService>();

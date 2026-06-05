@@ -19,6 +19,8 @@ namespace KafeYana.Domain.Entities
 
         public required decimal Total { get; set; }
 
+        public string Ubicacion { get; set; } = string.Empty;
+
         public Venta? venta { get; set; }
     }
 }
