@@ -7,6 +7,7 @@ namespace KafeYana.Api.GraphQLMap.Types
         protected override void Configure(IObjectTypeDescriptor<Detalle_venta> descriptor)
         {
             descriptor.Field(d => d.venta).Ignore();
+            descriptor.Field(d => d.Ubicacion);
         }
     }
 }

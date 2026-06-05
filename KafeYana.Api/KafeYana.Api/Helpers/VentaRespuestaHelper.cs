@@ -64,6 +64,8 @@ namespace KafeYana.Api.Helpers
 
                 PorcentajeDescuento = descuento?.PorcentajeDescuento,
 
+                CodigoVenta = resultado.Venta.Codigo,
+
                 SubtotalPedido = resultado.Venta.Subtotal,
 
                 TotalCobrado = resultado.Venta.Total,
