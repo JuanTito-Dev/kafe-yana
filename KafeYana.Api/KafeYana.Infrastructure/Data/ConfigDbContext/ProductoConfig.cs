@@ -34,6 +34,14 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.Tipo).IsRequired().HasMaxLength(20);
 
+            builder.Property(x => x.CodigoSin)
+                .IsRequired()
+                .HasMaxLength(20)
+                .HasDefaultValue(string.Empty);
+
+            builder.HasIndex(x => x.CodigoSin)
+                .HasDatabaseName("IX_Producto_CodigoSin");
+
             builder.HasOne(p => p.Categoria)
                 .WithMany(x => x.Productos)
                 .HasForeignKey(p => p.Categoria_Id)

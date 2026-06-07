@@ -51,6 +51,9 @@ namespace KafeYana.Application.Dtos.CompradoDtos
         [Required]
         public required bool Disponible { get; set; }
 
+        [Required(ErrorMessage = "CodigoSin es requerido")]
+        [MaxLength(20, ErrorMessage = "CodigoSin no puede superar 20 caracteres")]
+        public string CodigoSin { get; set; } = string.Empty;
 
         public Producto ProductoCrear()
         {
@@ -61,6 +64,7 @@ namespace KafeYana.Application.Dtos.CompradoDtos
                 Precio = this.Precio,
                 Tipo = TiposProductos.Comprado,
                 Categoria_Id = this.Categoria_Id,
+                CodigoSin = this.CodigoSin.Trim(),
                 Comprado = new Comprado(Stock_actual)
                 {
                     Codigo_barra = this.Codigo_barra,
@@ -91,6 +95,7 @@ namespace KafeYana.Application.Dtos.CompradoDtos
             datos.Comprado.Stock_minimo = this.Stock_minimo;
             datos.Comprado.Disponible  = this.Disponible;
             datos.Comprado.EditarStock(Stock_actual);
+            datos.CodigoSin = CodigoSin.Trim();
         }
     }
 }

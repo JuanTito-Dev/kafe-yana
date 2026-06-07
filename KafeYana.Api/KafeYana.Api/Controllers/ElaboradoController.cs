@@ -18,6 +18,9 @@ namespace KafeYana.Api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            if (string.IsNullOrWhiteSpace(datos.CodigoSin))
+                return BadRequest(new { message = "CodigoSin es requerido" });
+
             var entidad = datos.CrearEntidad();
 
             if (Imagen is not null && Imagen.Length > 0)
@@ -40,6 +43,9 @@ namespace KafeYana.Api.Controllers
         public async Task<IActionResult> Update(int Id, [FromForm] DtoElaboradoActualizar datos, IFormFile? Imagen)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            if (string.IsNullOrWhiteSpace(datos.CodigoSin))
+                return BadRequest(new { message = "CodigoSin es requerido" });
 
             var producto = await _repo.TraerProducto(Id: Id, elaborado: true);
 

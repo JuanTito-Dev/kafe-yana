@@ -33,6 +33,10 @@ namespace KafeYana.Application.Dtos.ElaboradosDtos
         [Required]
         public bool Producible { get; set; } = false;
 
+        [MaxLength(20, ErrorMessage = "CodigoSin no puede superar 20 caracteres")]
+        [Required(ErrorMessage = "CodigoSin es requerido")]
+        public string CodigoSin { get; set; } = string.Empty;
+
         public Producto CrearEntidad()
         {
             var producto = new Producto
@@ -42,6 +46,7 @@ namespace KafeYana.Application.Dtos.ElaboradosDtos
                 Precio = this.Precio,
                 Tipo = TiposProductos.Elaborado,
                 Categoria_Id = this.Categoria_Id,
+                CodigoSin = this.CodigoSin.Trim(),
                 Elaborado = new Elaborado
                 {
                     Ubicacion = this.Ubicacion,

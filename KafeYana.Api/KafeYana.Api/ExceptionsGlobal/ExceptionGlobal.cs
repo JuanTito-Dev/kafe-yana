@@ -21,31 +21,46 @@ namespace KafeYana.Application.Exceptions
         /// </summary>
         public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
-            if (exception is DbUpdateException dbEx &&
-                dbEx.InnerException is PostgresException pgEx)
+            var pgEx = ObtenerPostgresException(exception);
+
+            if (exception is DbUpdateException && pgEx is not null)
             {
                 exception = pgEx.SqlState switch
                 {
                     "23505" => new UniqueConstraintException(ResolverUnico(pgEx.ConstraintName)),
                     "23503" => new ForeignKeyException(ResolverFK(pgEx.ConstraintName, pgEx.MessageText)),
                     "23001" => new ForeignKeyException(ResolverFK_Eliminacion(pgEx.ConstraintName)),
+                    "23502" => new InventarioException($"Campo obligatorio sin valor: {pgEx.ColumnName ?? pgEx.MessageText}"),
+                    "22001" => new InventarioException("Uno de los valores excede la longitud permitida en base de datos."),
+                    "42703" => new InventarioException("El esquema de base de datos no coincide con la aplicación. Aplique las migraciones pendientes."),
 
                     _ => exception
                 };
             }
 
-            var (statusCode, message) = GetExceptions(exception);
+            var (statusCode, message) = GetExceptions(exception, pgEx);
             _logger.LogError(exception, exception.Message);
             httpContext.Response.StatusCode = (int)statusCode;
             await httpContext.Response.WriteAsJsonAsync(new { message }, cancellationToken);
             return true;
         }
 
+        private static PostgresException? ObtenerPostgresException(Exception exception)
+        {
+            for (var actual = exception; actual is not null; actual = actual.InnerException)
+            {
+                if (actual is PostgresException pgEx)
+                    return pgEx;
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Mapea cada tipo de excepción del dominio a su código HTTP correspondiente.
         /// Agregar aquí cada nueva excepción del dominio que se cree en el proyecto
         /// </summary>
-        private (HttpStatusCode status, string Message) GetExceptions(Exception exception)
+        private (HttpStatusCode status, string Message) GetExceptions(Exception exception, PostgresException? pgEx)
         {
             return exception switch
             {
@@ -72,6 +87,10 @@ namespace KafeYana.Application.Exceptions
                             => (HttpStatusCode.Conflict, "El registro ya existe."),
                 OrdenCompraException => (HttpStatusCode.BadRequest, exception.Message),
                 VentaException => (HttpStatusCode.Conflict, exception.Message),
+
+                DbUpdateException dbEx => (
+                    HttpStatusCode.InternalServerError,
+                    pgEx?.MessageText ?? dbEx.Message),
 
                 _ => (HttpStatusCode.InternalServerError, $"Ocurrió un error crítico: {exception.Message}")
             };

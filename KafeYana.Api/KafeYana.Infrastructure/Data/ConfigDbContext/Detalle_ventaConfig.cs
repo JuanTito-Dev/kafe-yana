@@ -24,7 +24,10 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.Total).HasPrecision(10, 2);
 
-            builder.Property(x => x.Ubicacion).HasMaxLength(50);
+            builder.Property(x => x.Ubicacion)
+                .IsRequired()
+                .HasMaxLength(200)
+                .HasDefaultValue(string.Empty);
 
             // Relación
             builder.HasOne(x => x.venta)

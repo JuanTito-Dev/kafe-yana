@@ -20,6 +20,9 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public string UrlImagen { get; set; } = string.Empty;
 
+        /// <summary>Código de producto SIN para facturación electrónica.</summary>
+        public string CodigoSin { get; set; } = string.Empty;
+
         //Fk for categoria 
 
         public required int Categoria_Id { get; set; }

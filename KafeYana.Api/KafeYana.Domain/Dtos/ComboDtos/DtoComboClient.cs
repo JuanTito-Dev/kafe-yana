@@ -22,6 +22,10 @@ namespace KafeYana.Application.Dtos.ComboDtos
         [Range(0.01, double.MaxValue, ErrorMessage = "Valor no debe ser menor a 0")]
         public required decimal Precio { get; set; }
 
+        [Required(ErrorMessage = "CodigoSin es requerido")]
+        [MaxLength(20, ErrorMessage = "CodigoSin no puede superar 20 caracteres")]
+        public string CodigoSin { get; set; } = string.Empty;
+
         public required List<ComboDetalleDto> Productos { get; set; }
 
         public Producto Crear()
@@ -33,6 +37,7 @@ namespace KafeYana.Application.Dtos.ComboDtos
                 Precio = this.Precio,
                 Tipo = TiposProductos.Promocion,
                 Categoria_Id = 3,
+                CodigoSin = this.CodigoSin.Trim(),
                 Promocion = new Promocion
                 {
                     Detalles = this.Productos.Select(p => new PromocionDetalle
@@ -54,6 +59,8 @@ namespace KafeYana.Application.Dtos.ComboDtos
             producto.Nombre = this.Nombre;
             producto.Descripcion = this.Descripcion;
             producto.Precio = this.Precio;
+            producto.CodigoSin = CodigoSin.Trim();
+
             // Reemplazar los detalles
             producto.Promocion.Detalles = this.Productos.Select(p => new PromocionDetalle
             {

@@ -1,6 +1,7 @@
 ﻿using KafeYana.Core.Entities.Entity;
 using KafeYana.Core.Entities.Inventario;
 using KafeYana.Domain.Entities;
+using KafeYana.Domain.Entities.Facturacion;
 using KafeYana.Domain.Entities.Inventario;
 using KafeYana.Infrastructure.Data.ConfigDbContext;
 using KafeYana.Infrastructure.Data.ConfigDbContext.Indentity;
@@ -108,6 +109,12 @@ namespace KafeYana.Infrastructure.Data
 
         public DbSet<PedidoInventarioComprometidoLinea> PedidoInventarioComprometidoLineas { get; set; }
 
+        public DbSet<Cuis> Cuis { get; set; }
+
+        public DbSet<Cufd> Cufd { get; set; }
+
+        public DbSet<CodigoSiat> CodigosSiat { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -171,6 +178,12 @@ namespace KafeYana.Infrastructure.Data
             builder.ApplyConfigurationsFromAssembly(typeof(CajaHistorialMovimientoConfig).Assembly);
 
             builder.ApplyConfigurationsFromAssembly(typeof(PedidoInventarioComprometidoConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CuisConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CufdConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CodigoSiatConfig).Assembly);
         }
     }
 }

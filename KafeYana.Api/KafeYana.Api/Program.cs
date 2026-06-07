@@ -10,7 +10,6 @@ using KafeYana.Application.Exceptions;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Application.IServicios;
 using KafeYana.Core.Entities.Entity;
-using KafeYana.Domain.Entities.Inventario;
 using KafeYana.Domain.TiposDeDatos;
 using KafeYana.Infrastructure.Data;
 using KafeYana.Infrastructure.Data.Repositorio;
@@ -27,6 +26,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using System.Text;
+using KafeYana.Infrastructure;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 QuestPDF.Settings.License = LicenseType.Community;
@@ -158,6 +158,7 @@ builder.Services.AddGraphQLServer()
     .AddTypeExtension<PromocionTemporadaQuery>()
     .AddTypeExtension<HitoCompraQuery>()
     .AddTypeExtension<HistorialReferidoQuery>()
+    .AddTypeExtension<CodigoSiatQuery>()
     .AddType<AjusteType>()
     .AddType<CategoriaType>()
     .AddType<ClienteType>()
@@ -211,6 +212,7 @@ builder.Services.AddGraphQLServer()
     .AddType<PromocionTemporadaProductoCanjeableType>()
     .AddType<HitoCompraType>()
     .AddType<HistorialReferidoType>()
+    .AddType<CodigoSiatType>()
     .AddDataLoader<PromocionCantidadProducibleDataLoader>()
     .AddDataLoader<RecetaCantidadProducibleDataLoader>();
 
@@ -279,6 +281,7 @@ builder.Services.AddScoped<IReglaBasePuntosRepositorio, ReglaBasePuntosRepositor
 builder.Services.AddScoped<IAceleradorPuntosRepositorio, AceleradorPuntosRepositorio>();
 builder.Services.AddScoped<IHistorialPuntosRepositorio, HistorialPuntosRepositorio>();
 builder.Services.AddScoped<IConfiguracionQrRepositorio, ConfiguracionQrRepositorio>();
+builder.Services.AddScoped<ICodigoSiatRepositorio, CodigoSiatRepositorio>();
 builder.Services.AddScoped<IPuntosService, PuntosService>();
 
 ///////////////
@@ -288,6 +291,9 @@ builder.Services.AddScoped<StockPayloadService>();
 builder.Services.AddScoped<YanaBotService>();
 
 builder.Services.AddEndpointsApiExplorer();
+
+//Serviciio facturacion 
+builder.Services.AddInfrastructure(builder.Configuration);
 
 //Pra scalar
 builder.Services.AddHttpContextAccessor();
