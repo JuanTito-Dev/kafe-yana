@@ -283,6 +283,8 @@ namespace KafeYana.Api.Controllers
 
             // Liberar mesa
             mesa.Disponible = true;
+            mesa.Id_Pedido = null;
+            mesa.pedido = null;
 
             var caja = (Caja)HttpContext.Items["Caja"]!;
             caja.RegistrarVenta(datos.Pagos.Efectivo, datos.Pagos.Tarjeta, datos.Pagos.Qr);

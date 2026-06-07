@@ -29,6 +29,10 @@ namespace KafeYana.Application.Dtos.ElaboradosDtos
 
         public string Ubicacion { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "CodigoSin es requerido")]
+        [MaxLength(20, ErrorMessage = "CodigoSin no puede superar 20 caracteres")]
+        public string CodigoSin { get; set; } = string.Empty;
+
         public void Editar(Producto datos)
         {
             datos.Nombre = this.Nombre;
@@ -37,6 +41,7 @@ namespace KafeYana.Application.Dtos.ElaboradosDtos
             datos.Categoria_Id = this.Categoria_Id;
             datos.Elaborado.Unidad_medida = this.Unidad_medida;
             datos.Elaborado.Ubicacion = this.Ubicacion;
+            datos.CodigoSin = CodigoSin.Trim();
         }
     }
 }

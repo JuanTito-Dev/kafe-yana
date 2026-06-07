@@ -1,7 +1,5 @@
 ﻿using KafeYana.Application.Dtos.CompradoDtos;
-using KafeYana.Application.IRepositorio;
-using KafeYana.Application.IServicios;
-using KafeYana.Domain.TiposDeDatos;
+using KafeYana.Application.IRepositorio;using KafeYana.Application.IServicios;using KafeYana.Domain.TiposDeDatos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,6 +17,9 @@ namespace KafeYana.Api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            if (string.IsNullOrWhiteSpace(datos.CodigoSin))
+                return BadRequest(new { message = "CodigoSin es requerido" });
+
             var producto = datos.ProductoCrear();
 
             if (Imagen is not null && Imagen.Length > 0)
@@ -35,6 +36,9 @@ namespace KafeYana.Api.Controllers
         public async Task<IActionResult> Update(int Id, [FromForm] DtoCompradoCrear datos, IFormFile? Imagen)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            if (string.IsNullOrWhiteSpace(datos.CodigoSin))
+                return BadRequest(new { message = "CodigoSin es requerido" });
 
             var productoDb = await _producto.TraerProducto(Id, comprado: true);
 

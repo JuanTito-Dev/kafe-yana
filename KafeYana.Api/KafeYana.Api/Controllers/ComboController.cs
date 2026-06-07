@@ -20,6 +20,9 @@ namespace KafeYana.Api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            if (string.IsNullOrWhiteSpace(datos.CodigoSin))
+                return BadRequest(new { message = "CodigoSin es requerido" });
+
             try
             {
                 await datos.ValidarProductos(_db);
@@ -45,6 +48,9 @@ namespace KafeYana.Api.Controllers
         public async Task<IActionResult> Update(int Id, [FromForm] DtoComboClient datos, IFormFile? Imagen)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            if (string.IsNullOrWhiteSpace(datos.CodigoSin))
+                return BadRequest(new { message = "CodigoSin es requerido" });
 
             try
             {
