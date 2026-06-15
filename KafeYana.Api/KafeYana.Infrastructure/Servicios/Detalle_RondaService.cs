@@ -6,6 +6,7 @@ using KafeYana.Domain.Dtos.RondaDtos;
 using KafeYana.Domain.Entities;
 using KafeYana.Domain.Entities.Inventario;
 using KafeYana.Domain.TiposDeDatos;
+using KafeYana.Infrastructure.Servicios.Facturacion;
 
 namespace KafeYana.Infrastructure.Servicios;
 
@@ -13,6 +14,11 @@ public sealed class Detalle_RondaService(
     IUnitWork _unitWork,
     IInventarioPedidoCompromisoService _compromisoService)
 {
+    private static readonly int UnidadMedidaPorDefecto =
+        UnidadMedidaSiatCatalogo.PorDescripcion["UNIDAD"];
+
+    private static readonly int UnidadMedidaCombo =
+        UnidadMedidaSiatCatalogo.PorDescripcion["UNIDAD"];
     public async Task<Ronda> CrearRondaConDetallesAsync(int idPedido, List<DtoRondadetalle> detallesDto)
     {
         var listaDetalles = new List<Detalle_ronda>();
@@ -99,13 +105,8 @@ public sealed class Detalle_RondaService(
             Referencia = referencia
         });
 
-        return new Detalle_ronda
-        {
-            Nombre_Producto = producto.Nombre,
-            Cantidad = cantidad,
-            Precio = producto.Precio,
-            Ubicacion = producto.Comprado.Ubicacion
-        };
+        return CrearDetalleRonda(producto, cantidad, producto.Precio, producto.Comprado.Ubicacion,
+            ObtenerCodigoUnidadMedida(producto.Comprado));
     }
 
     private async Task<Detalle_ronda> ProcesarElaborado(
@@ -136,13 +137,8 @@ public sealed class Detalle_RondaService(
                 Referencia = referencia
             });
 
-            return new Detalle_ronda
-            {
-                Nombre_Producto = elaborado.Producto.Nombre,
-                Cantidad = cantidad,
-                Precio = elaborado.Producto.Precio,
-                Ubicacion = elaborado.Ubicacion
-            };
+            return CrearDetalleRonda(elaborado.Producto, cantidad, elaborado.Producto.Precio, elaborado.Ubicacion,
+                ObtenerCodigoUnidadMedida(elaborado));
         }
 
         return await ProcesarNoProducible(idProducto, cantidad, idsOpciones, referencia, elaborado, lineas);
@@ -180,13 +176,8 @@ public sealed class Detalle_RondaService(
 
         if (elaborado.Receta is null)
         {
-            return new Detalle_ronda
-            {
-                Nombre_Producto = elaborado.Producto.Nombre,
-                Cantidad = cantidad,
-                Precio = elaborado.Producto.Precio + precioAjuste,
-                Ubicacion = elaborado.Ubicacion
-            };
+            return CrearDetalleRonda(elaborado.Producto, cantidad, elaborado.Producto.Precio + precioAjuste,
+                elaborado.Ubicacion, ObtenerCodigoUnidadMedida(elaborado));
         }
 
         var insumosOmitidos = opcionesEntity
@@ -273,18 +264,15 @@ public sealed class Detalle_RondaService(
             Referencia = referencia
         });
 
-        return new Detalle_ronda
+        var detalle = CrearDetalleRonda(elaborado.Producto, cantidad, elaborado.Producto.Precio + precioAjuste,
+            elaborado.Ubicacion, ObtenerCodigoUnidadMedida(elaborado));
+        detalle.Nombre_Producto = nombre;
+        detalle.Opciones = opcionesEntity.Select(x => new Detalle_Ronda_Opcion
         {
-            Nombre_Producto = nombre,
-            Cantidad = cantidad,
-            Precio = elaborado.Producto.Precio + precioAjuste,
-            Ubicacion = elaborado.Ubicacion,
-            Opciones = opcionesEntity.Select(x => new Detalle_Ronda_Opcion
-            {
-                Id_Opcion = x.Id,
-                Opcion = x
-            }).ToList()
-        };
+            Id_Opcion = x.Id,
+            Opcion = x
+        }).ToList();
+        return detalle;
     }
 
     private async Task<Detalle_ronda> ProcesarCombo(
@@ -402,15 +390,41 @@ public sealed class Detalle_RondaService(
             })
             .ToList();
 
-        return new Detalle_ronda
-        {
-            Nombre_Producto = combo.Producto.Nombre,
-            Cantidad = cantidad,
-            Precio = combo.Producto.Precio,
-            Ubicacion = string.Empty,
-            ItemsCombo = itemsCombo,
-        };
+        var detalleRonda = CrearDetalleRonda(combo.Producto, cantidad, combo.Producto.Precio, string.Empty, UnidadMedidaCombo);
+        detalleRonda.ItemsCombo = itemsCombo;
+        return detalleRonda;
     }
+
+    private static Detalle_ronda CrearDetalleRonda(
+        Producto producto,
+        int cantidad,
+        decimal precio,
+        string ubicacion,
+        int codigoUnidadMedida) =>
+        new()
+        {
+            Nombre_Producto = producto.Nombre,
+            Cantidad = cantidad,
+            Precio = precio,
+            Ubicacion = ubicacion,
+            Codigo = ObtenerCodigoProducto(producto),
+            CodigoSin = ObtenerCodigoSin(producto),
+            CodigoUnidadMedida = codigoUnidadMedida
+        };
+
+    private static string ObtenerCodigoProducto(Producto producto) =>
+        string.IsNullOrWhiteSpace(producto.Codigo)
+            ? ProductoCodigoService.Generar(producto.Id)
+            : producto.Codigo.Trim();
+
+    private static string ObtenerCodigoSin(Producto producto) =>
+        string.IsNullOrWhiteSpace(producto.CodigoSin) ? string.Empty : producto.CodigoSin.Trim();
+
+    private static int ObtenerCodigoUnidadMedida(Comprado? comprado) =>
+        comprado?.CodigoUnidadMedida > 0 ? comprado.CodigoUnidadMedida : UnidadMedidaPorDefecto;
+
+    private static int ObtenerCodigoUnidadMedida(Elaborado? elaborado) =>
+        elaborado?.CodigoUnidadMedida > 0 ? elaborado.CodigoUnidadMedida : UnidadMedidaPorDefecto;
 
     private static string UbicacionDeProducto(Producto producto) =>
         producto.Tipo switch

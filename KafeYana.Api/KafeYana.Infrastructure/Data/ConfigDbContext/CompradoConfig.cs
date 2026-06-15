@@ -15,6 +15,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.Property(x => x.Codigo_barra).HasMaxLength(50);
 
             builder.Property(x => x.Unidad_medida).IsRequired().HasMaxLength(20);
+            builder.Property(x => x.CodigoUnidadMedida).IsRequired();
 
             builder.Property(x => x.Marca)
             .HasMaxLength(100);

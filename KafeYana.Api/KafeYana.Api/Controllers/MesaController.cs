@@ -22,7 +22,7 @@ namespace KafeYana.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}, {RolesKafe.Mesero}")]
-    public class MesaController(IMesaRepositorio _Mesa, IUnitWork _db, IVentaServices _venta, Detalle_RondaService _detalleRondaService, IRondaPedidoService _rondaPedidoService, IKafeYanaNotificador _notificador, StockPayloadService _stockService) : ControllerBase
+    public class MesaController(IMesaRepositorio _Mesa, IUnitWork _db, ICobroPedidoService _cobroPedido, Detalle_RondaService _detalleRondaService, IRondaPedidoService _rondaPedidoService, IKafeYanaNotificador _notificador, StockPayloadService _stockService) : ControllerBase
     {
         [HttpPost]
         public async Task<IActionResult> Crear(DtoMesaCU datos)
@@ -257,45 +257,23 @@ namespace KafeYana.Api.Controllers
             if (!ModelState.IsValid) 
                 return BadRequest(ModelState);
 
-            // Obtener mesa con pedido
-            var mesa = await _db.mesas.GetMesaPedido(Id);
-            if (mesa is null)
-                return NotFound(new { message = "Mesa no existe" });
-
-            // Validar pedido corresponde a la mesa
-            if (!await _db.mesas.MesaConpedido(datos.Id_Pedido, Id_mesa: Id))
-                return NotFound(new { message = "El pedido no corresponde a la mesa" });
-
-            // Obtener usuario actual
             var nombreUsuario = User.Identity?.Name;
             if (string.IsNullOrEmpty(nombreUsuario))
                 return Unauthorized(new { message = "Usuario no identificado" });
 
-            // Validar que el total de pagos coincide con el total del pedido
-            var pedido = await _db.Pedidos.FindByIdAsync(datos.Id_Pedido);
-            if (pedido is null)
-                return NotFound(new { message = "Pedido no encontrado" });
-
-            var resultado = await _venta.ProcesarVenta(datos, nombreUsuario);
-
-            // Guardar venta
-            await _db.ventas.Crear(resultado.Venta);
-
-            // Liberar mesa
-            mesa.Disponible = true;
-            mesa.Id_Pedido = null;
-            mesa.pedido = null;
-
             var caja = (Caja)HttpContext.Items["Caja"]!;
-            caja.RegistrarVenta(datos.Pagos.Efectivo, datos.Pagos.Tarjeta, datos.Pagos.Qr);
+            var cobro = await _cobroPedido.CobrarMesaAsync(Id, datos, nombreUsuario, caja);
 
-            // Guardar todos los cambios (transaccional)
-            await _db.SaveUnitWork();
+            if (cobro.IdMesa is int idMesa)
+            {
+                await _notificador.NotificarMesaActualizada(
+                    new MesaActualizadaPayload(idMesa, cobro.OrigenVenta, Disponible: true, IdPedido: null));
+            }
 
-            await _notificador.NotificarVentaProcesada(new VentaPayload(mesa.Nombre, datos.Id_Pedido, resultado.Venta.Total));
-            await _notificador.NotificarMesaActualizada(new MesaActualizadaPayload(mesa.Id, mesa.Nombre, mesa.Disponible, IdPedido: null));
+            await _notificador.NotificarVentaProcesada(
+                new VentaPayload(cobro.OrigenVenta, datos.Id_Pedido, cobro.Resultado.Venta.MontoTotal));
 
-            return Ok(VentaRespuestaHelper.ConstruirRespuestaCobro(resultado));
+            return Ok(VentaRespuestaHelper.ConstruirRespuestaCobro(cobro.Resultado, cobro.EnvioSiat, cobro.ImpresionFactura));
         }
 
         // ─── helper compartido ────────────────────────────────────────────────

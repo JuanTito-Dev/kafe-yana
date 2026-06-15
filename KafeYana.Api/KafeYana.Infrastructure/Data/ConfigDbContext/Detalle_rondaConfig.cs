@@ -39,6 +39,20 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.Property(x => x.Id_Producto)
                 .IsRequired();
 
+            builder.Property(x => x.Codigo)
+                .IsRequired()
+                .HasMaxLength(10)
+                .HasDefaultValue(string.Empty);
+
+            builder.Property(x => x.CodigoSin)
+                .IsRequired()
+                .HasMaxLength(20)
+                .HasDefaultValue(string.Empty);
+
+            builder.Property(x => x.CodigoUnidadMedida)
+                .IsRequired()
+                .HasDefaultValue(57);
+
             // Relación con Ronda
             builder.HasOne(x => x.ronda)
                 .WithMany(x => x.Detalle)

@@ -53,6 +53,33 @@ namespace KafeYana.Infrastructure.Configuration
 
         /// <summary>Timeout en segundos para llamadas al SIAT.</summary>
         public int TimeoutSegundos { get; set; } = 30;
+
+        /// <summary>Sector de documento. Compra y Venta = 1.</summary>
+        public int CodigoDocumentoSector { get; set; } = 1;
+
+        /// <summary>Tipo de factura documento. Compra y Venta = 1.</summary>
+        public int TipoFacturaDocumento { get; set; } = 1;
+
+        /// <summary>Emisión en línea = 1.</summary>
+        public int CodigoEmision { get; set; } = 1;
+
+        /// <summary>
+        /// Servicio SOAP de recepción según sector.
+        /// Compra y Venta: ServicioFacturacionCompraVenta
+        /// </summary>
+        public string ServicioRecepcionFactura { get; set; } = "ServicioFacturacionCompraVenta";
+
+        /// <summary>0 por defecto. 1 solo si el SIN autoriza factura a NIT inválido.</summary>
+        public int CodigoExcepcion { get; set; } = 0;
+
+        /// <summary>CAFC de contingencia. Vacío si no aplica.</summary>
+        public string Cafc { get; set; } = string.Empty;
+
+        /// <summary>1 = Boliviano.</summary>
+        public int CodigoMoneda { get; set; } = 1;
+
+        /// <summary>1 cuando la moneda es boliviano.</summary>
+        public decimal TipoCambio { get; set; } = 1;
     }
 
 }

@@ -28,6 +28,8 @@ namespace KafeYana.Application.Dtos.ElaboradosDtos
         [Required]
         public required string Unidad_medida { get; set; }
 
+        public int CodigoUnidadMedida { get; private set; }
+
         public string Ubicacion { get; set; } = string.Empty;
 
         [Required]
@@ -36,6 +38,12 @@ namespace KafeYana.Application.Dtos.ElaboradosDtos
         [MaxLength(20, ErrorMessage = "CodigoSin no puede superar 20 caracteres")]
         [Required(ErrorMessage = "CodigoSin es requerido")]
         public string CodigoSin { get; set; } = string.Empty;
+
+        public void AsignarUnidadMedida(int codigo, string descripcion)
+        {
+            Unidad_medida = descripcion;
+            CodigoUnidadMedida = codigo;
+        }
 
         public Producto CrearEntidad()
         {
@@ -51,6 +59,7 @@ namespace KafeYana.Application.Dtos.ElaboradosDtos
                 {
                     Ubicacion = this.Ubicacion,
                     Unidad_medida = this.Unidad_medida,
+                    CodigoUnidadMedida = this.CodigoUnidadMedida,
                     Producible = this.Producible
                 }
 

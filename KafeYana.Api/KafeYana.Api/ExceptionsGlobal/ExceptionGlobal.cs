@@ -110,6 +110,8 @@ namespace KafeYana.Application.Exceptions
 
                 // ==================== VENTAS ====================
                 "Codigo-repetido" => "Ya existe una venta con ese código. Intente de nuevo.",
+                "IX_Venta_Cuf" => "Ya existe una venta con ese CUF.",
+                "IX_Venta_NumeroFactura" => "Ya existe una venta con ese número de factura.",
 
                 // ==================== PRODUCTOS ====================
                 "id_nombre_producto" => "Ya existe un producto con ese nombre.",

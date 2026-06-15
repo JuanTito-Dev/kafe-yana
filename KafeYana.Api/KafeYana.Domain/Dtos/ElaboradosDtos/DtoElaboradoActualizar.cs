@@ -27,6 +27,14 @@ namespace KafeYana.Application.Dtos.ElaboradosDtos
         [Required]
         public required string Unidad_medida { get; set; }
 
+        public int CodigoUnidadMedida { get; private set; }
+
+        public void AsignarUnidadMedida(int codigo, string descripcion)
+        {
+            Unidad_medida = descripcion;
+            CodigoUnidadMedida = codigo;
+        }
+
         public string Ubicacion { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "CodigoSin es requerido")]
@@ -40,6 +48,7 @@ namespace KafeYana.Application.Dtos.ElaboradosDtos
             datos.Precio = this.Precio;
             datos.Categoria_Id = this.Categoria_Id;
             datos.Elaborado.Unidad_medida = this.Unidad_medida;
+            datos.Elaborado.CodigoUnidadMedida = this.CodigoUnidadMedida;
             datos.Elaborado.Ubicacion = this.Ubicacion;
             datos.CodigoSin = CodigoSin.Trim();
         }

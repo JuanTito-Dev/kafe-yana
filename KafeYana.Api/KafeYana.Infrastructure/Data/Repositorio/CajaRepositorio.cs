@@ -24,13 +24,18 @@ namespace KafeYana.Infrastructure.Data.Repositorio
 
         public async Task<Caja?> ObtenerCaja()
         {
-            return await _set.FirstOrDefaultAsync();
+            return await _set
+                .Where(x => x.Abierta)
+                .OrderByDescending(x => x.FechaApertura)
+                .FirstOrDefaultAsync();
         }
 
         public async Task<Caja?> ObtenerCajaConMovimientos()
         {
             return await _set
+                .Where(x => x.Abierta)
                 .Include(x => x.Movimientos)
+                .OrderByDescending(x => x.FechaApertura)
                 .FirstOrDefaultAsync();
         }
     }

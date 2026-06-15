@@ -13,6 +13,8 @@ namespace KafeYana.Domain.Entities.Inventario
     {
         public required string Unidad_medida { get; set; }
 
+        public int CodigoUnidadMedida { get; set; }
+
         public required bool Producible { get; set; }
 
         public int Stock_actual { get; private set; } = 0;

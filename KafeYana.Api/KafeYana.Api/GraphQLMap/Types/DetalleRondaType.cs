@@ -13,6 +13,9 @@ namespace KafeYana.Api.GraphQLMap.Types
             descriptor.Field(x => x.Precio).Type<DecimalType>();
             descriptor.Field(x => x.Nota).Type<StringType>();
             descriptor.Field(x => x.Ubicacion).Type<StringType>();
+            descriptor.Field(x => x.Codigo).Type<StringType>();
+            descriptor.Field(x => x.CodigoSin).Type<StringType>();
+            descriptor.Field(x => x.CodigoUnidadMedida).Type<IntType>();
             descriptor.Field(x => x.Producto).Type<ProductoType>();
             descriptor.Field(x => x.ItemsCombo).Type<ListType<DetalleRondaComboItemType>>();
             descriptor.Field(x => x.ronda).Type<RondaType>().Ignore();

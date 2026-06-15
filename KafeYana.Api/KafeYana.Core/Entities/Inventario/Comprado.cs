@@ -15,6 +15,8 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public required string Unidad_medida { get; set; }
 
+        public int CodigoUnidadMedida { get; set; }
+
         public string Marca { get; set; } = string.Empty;
 
         public string Ubicacion { get; set; } = string.Empty;

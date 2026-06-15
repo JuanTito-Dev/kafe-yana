@@ -10,12 +10,16 @@ namespace KafeYana.Application.Dtos.ElaboradosDtos
 {
     public class DtoElaboradoGet : BaseEntity
     {
+        public string Codigo { get; set; } = string.Empty;
+
         public required string Nombre { get; set; }
         public string Descripcion { get; set; } = string.Empty;
         public required decimal Precio { get; set; }
         public string Tipo { get; set; } = string.Empty;
         public required int Categoria_Id { get; set; }
         public required string Unidad_medida { get; set; }
+
+        public int CodigoUnidadMedida { get; set; }
 
         public int CantidadProducible { get; set; }
 
@@ -24,12 +28,14 @@ namespace KafeYana.Application.Dtos.ElaboradosDtos
         public static DtoElaboradoGet Desde(Producto p) => new DtoElaboradoGet
         {
             Id = p.Id,
+            Codigo = p.Codigo,
             Nombre = p.Nombre,
             Descripcion = p.Descripcion,
             Precio = p.Precio,
             Tipo = p.Tipo,
             Categoria_Id = p.Categoria_Id,
-            Unidad_medida = p.Elaborado.Unidad_medida
+            Unidad_medida = p.Elaborado.Unidad_medida,
+            CodigoUnidadMedida = p.Elaborado.CodigoUnidadMedida
         };
     }
 }

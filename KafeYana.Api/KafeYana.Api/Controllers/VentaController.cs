@@ -7,6 +7,7 @@ using KafeYana.Domain.Dtos.RondaDtos;
 using KafeYana.Application.Exceptions;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Application.IServicios;
+using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Domain.Entities;
 using KafeYana.Domain.Entities.Inventario;
 using KafeYana.Domain.TiposDeDatos;
@@ -22,7 +23,7 @@ namespace KafeYana.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}, {RolesKafe.Mesero}")]
-    public class VentaController(IUnitWork _db, Detalle_RondaService _detalleRondaService, IRondaPedidoService _rondaPedidoService, IVentaServices _venta, IKafeYanaNotificador _notificador, StockPayloadService _stockService) : ControllerBase
+    public class VentaController(IUnitWork _db, Detalle_RondaService _detalleRondaService, IRondaPedidoService _rondaPedidoService, ICobroPedidoService _cobroPedido, IFacturaSiatEnvioService _facturaSiatEnvio, IKafeYanaNotificador _notificador, StockPayloadService _stockService) : ControllerBase
     {
         [HttpPost("pedido")]
         [ServiceFilter(typeof(CajaAbiertaFilter))]
@@ -185,39 +186,39 @@ namespace KafeYana.Api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var paraLlevar = await _db.parallevar.GetParaLlevarConPedido();
-
-            if (paraLlevar is null)
-                return NotFound(new { message = "Configuración para llevar no encontrada" });
-
-            if (paraLlevar.Pedido is null)
-                return NotFound(new { message = "No hay un pedido para llevar activo" });
-
-            if (paraLlevar.Id_Pedido != datos.Id_Pedido)
-                return BadRequest(new { message = "El pedido no corresponde al pedido para llevar activo" });
-
             var nombreUsuario = User.Identity?.Name;
             if (string.IsNullOrEmpty(nombreUsuario))
                 return Unauthorized(new { message = "Usuario no identificado" });
 
-            var resultado = await _venta.ProcesarVenta(datos, nombreUsuario);
-
-            await _db.ventas.Crear(resultado.Venta);
-
-            paraLlevar.Disponible = true;
-            paraLlevar.Pedido = null;
-
             var caja = (Caja)HttpContext.Items["Caja"]!;
-            caja.RegistrarVenta(datos.Pagos.Efectivo, datos.Pagos.Tarjeta, datos.Pagos.Qr);
-
-            await _db.SaveUnitWork();
+            var cobro = await _cobroPedido.CobrarParaLlevarAsync(datos, nombreUsuario, caja);
 
             await _notificador.NotificarVentaProcesada(
-                new VentaPayload("Para llevar", datos.Id_Pedido, resultado.Venta.Total));
+                new VentaPayload(cobro.OrigenVenta, datos.Id_Pedido, cobro.Resultado.Venta.MontoTotal));
             await _notificador.NotificarPedidoParaLlevarActualizado(
                 new ParaLlevarPayload(IdPedido: null, Disponible: true));
 
-            return Ok(VentaRespuestaHelper.ConstruirRespuestaCobro(resultado));
+            return Ok(VentaRespuestaHelper.ConstruirRespuestaCobro(cobro.Resultado, cobro.EnvioSiat, cobro.ImpresionFactura));
+        }
+
+        [HttpPost("{id:int}/enviar-siat")]
+        [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
+        public async Task<IActionResult> EnviarSiat(int id)
+        {
+            var envioSiat = await _facturaSiatEnvio.ReenviarFacturaAsync(id);
+
+            var mensaje = envioSiat.Transaccion
+                ? envioSiat.Enviado
+                    ? "Factura reenviada y validada por el SIAT."
+                    : "La factura ya estaba validada por el SIAT."
+                : "Factura reenviada al SIAT con observaciones o error de comunicación.";
+
+            return Ok(new
+            {
+                message = mensaje,
+                VentaId = id,
+                Siat = envioSiat
+            });
         }
 
         [HttpPut("liberar")]
@@ -286,14 +287,14 @@ namespace KafeYana.Api.Controllers
             if (venta is null)
                 return NotFound(new { message = "Venta no encontrada" });
 
-            if (venta.Estado == "Reembolsado")
+            if (venta.EstadoSiat == FacturaEstado.Anulada)
                 return BadRequest(new { message = "Esta venta ya fue reembolsada" });
 
             var caja = await _db.cajas.ObtenerCaja();
             if (caja is null)
                 return BadRequest(new { message = "No hay una caja abierta" });
 
-            if (datos.Monto > venta.Total)
+            if (datos.Monto > venta.MontoTotal)
                 throw new VentaException("El monto a reembolsar no puede ser mayor al total de la venta");
 
             var movimiento = venta.Reembolso(caja, datos.Monto, datos.TipoPago, datos.Motivo);
@@ -301,7 +302,7 @@ namespace KafeYana.Api.Controllers
             await _db.cajamovimientos.Crear(movimiento);
             await _db.SaveUnitWork();
 
-            return Ok(new { message = "Reembolso procesado correctamente", venta.Codigo });
+            return Ok(new { message = "Reembolso procesado correctamente", venta.Cuf });
         }
     }
 }

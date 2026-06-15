@@ -15,6 +15,8 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
         {
             builder.HasKey(c => c.Id);
             builder.Property(c => c.Nombre).IsRequired().HasMaxLength(100);
+            builder.Property(c => c.Codigo).IsRequired().HasMaxLength(20);
+            builder.HasIndex(c => c.Codigo).IsUnique().HasDatabaseName("IX_Cliente_Codigo");
             builder.Property(c => c.Celular).IsRequired().HasMaxLength(20);
             builder.Property(c => c.Correo).HasConversion(v => v.ToLower(), // Convert to lowercase when saving to the database
                 v => v // No conversion when reading from the database

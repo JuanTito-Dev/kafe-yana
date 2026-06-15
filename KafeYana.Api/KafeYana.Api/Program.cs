@@ -178,7 +178,7 @@ builder.Services.AddGraphQLServer()
     .AddType<DetalleRondaType>()
     .AddType<DetalleRondaComboItemType>()
     .AddType<VentaType>()
-    .AddType<DetalleVentaType>()
+    .AddType<DetallePagoType>()
     .AddType<CategoriaForProductosType>()
     .AddType<ProductoMovientosType>()
     .AddType<InsumoMovimientoType>()
@@ -229,6 +229,7 @@ builder.Services.AddScoped<IAuthTokenProcesador, AuthTokenProcesador>();
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IVentaServices, VentaServices>();
+builder.Services.AddScoped<ICobroPedidoService, CobroPedidoService>();
 builder.Services.AddScoped<IPromocionPermanenteVentaService, PromocionPermanenteVentaService>();
 builder.Services.AddScoped<IPromocionPermanenteDescuentoService, PromocionPermanenteDescuentoService>();
 builder.Services.AddScoped<IPromocionPermanenteProductoGratisService, PromocionPermanenteProductoGratisService>();

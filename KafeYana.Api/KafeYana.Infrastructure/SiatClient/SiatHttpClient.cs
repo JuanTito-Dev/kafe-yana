@@ -1,4 +1,6 @@
-﻿using KafeYana.Infrastructure.Configuration;
+﻿using KafeYana.Application.Dtos.FacturacionDtos;
+using KafeYana.Infrastructure.Configuration;
+using KafeYana.Infrastructure.Servicios.Facturacion.Utilidades;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -143,6 +145,54 @@ namespace KafeYana.Infrastructure.SiatClient
                 Mensajes = ParseCodigos(respEl)
             };
         }
+
+        // ─────────────────────────────────────────────
+        // Recepción Factura
+        // ─────────────────────────────────────────────
+        public async Task<RespuestaRecepcionFacturaDto> RecepcionFacturaAsync(
+            SolicitudRecepcionFacturaDto solicitud,
+            CancellationToken ct = default)
+        {
+            var body = new XElement(SiatNs + "recepcionFactura",
+                Solicitud("SolicitudServicioRecepcionFactura",
+                    Campo("codigoAmbiente", solicitud.CodigoAmbiente),
+                    Campo("codigoDocumentoSector", solicitud.CodigoDocumentoSector),
+                    Campo("codigoEmision", solicitud.CodigoEmision),
+                    Campo("codigoModalidad", solicitud.CodigoModalidad),
+                    Campo("codigoPuntoVenta", solicitud.CodigoPuntoVenta),
+                    Campo("codigoSistema", solicitud.CodigoSistema),
+                    Campo("codigoSucursal", solicitud.CodigoSucursal),
+                    Campo("cufd", solicitud.Cufd),
+                    Campo("cuis", solicitud.Cuis),
+                    Campo("nit", solicitud.Nit),
+                    Campo("tipoFacturaDocumento", solicitud.TipoFacturaDocumento),
+                    Campo("archivo", solicitud.Archivo),
+                    Campo("fechaEnvio", FormatearFechaEnvio(solicitud.FechaEnvio)),
+                    Campo("hashArchivo", solicitud.HashArchivo)
+                )
+            );
+
+            var xml = await EnviarSoapAsync(_opts.ServicioRecepcionFactura, body, ct);
+
+            var respEl = BuscarElemento(xml, "RespuestaRecepcion")
+                ?? BuscarElemento(xml, "recepcionFacturaResponse");
+
+            return new RespuestaRecepcionFacturaDto
+            {
+                Transaccion = ParseTransaccion(respEl),
+                CodigoEstado = int.TryParse(ValorElemento(respEl, "codigoEstado"), out var estado) ? estado : null,
+                CodigoRecepcion = ValorElemento(respEl, "codigoRecepcion"),
+                CodigoDescripcion = ValorElemento(respEl, "codigoDescripcion"),
+                CodigosRespuesta = ParseCodigos(respEl).Select(c => new CodigoRespuestaSiatDto
+                {
+                    Codigo = c.Codigo,
+                    Descripcion = c.Descripcion
+                }).ToList()
+            };
+        }
+
+        private static string FormatearFechaEnvio(DateTime fecha) =>
+            SiatFechaEmision.Formatear(fecha);
 
         // ─────────────────────────────────────────────
         // Método interno: arma el envelope y envía

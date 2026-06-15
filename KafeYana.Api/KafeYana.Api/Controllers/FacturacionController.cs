@@ -1,5 +1,7 @@
 ﻿using KafeYana.Application.IServicios.IFacturacion;
+using KafeYana.Domain.TiposDeDatos;
 using KafeYana.Infrastructure.Configuration;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -13,17 +15,23 @@ namespace KafeYana.Api.Controllers
         private readonly ICuisService _cuis;
         private readonly ICufdService _cufd;
         private readonly IVerificaNitService _verificaNit;
+        private readonly IFacturaSiatEnvioService _facturaSiatEnvio;
+        private readonly IFacturaImpresionService _facturaImpresion;
         private readonly SiatOptions _opts;
 
         public FacturacionController(
             ICuisService cuisService,
             ICufdService cufdService,
             IVerificaNitService verificaNitService,
+            IFacturaSiatEnvioService facturaSiatEnvio,
+            IFacturaImpresionService facturaImpresion,
             IOptions<SiatOptions> opts)
         {
             _cuis = cuisService;
             _cufd = cufdService;
             _verificaNit = verificaNitService;
+            _facturaSiatEnvio = facturaSiatEnvio;
+            _facturaImpresion = facturaImpresion;
             _opts = opts.Value;
         }
 
@@ -94,6 +102,49 @@ namespace KafeYana.Api.Controllers
             {
                 return BadRequest(new { error = ex.Message });
             }
+        }
+
+        /// <summary>
+        /// Imprime la representación gráfica de una factura ya guardada (80mm + QR SIAT).
+        /// </summary>
+        [HttpPost("imprimir/{ventaId:int}")]
+        [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
+        public async Task<IActionResult> ImprimirFactura(int ventaId, CancellationToken ct)
+        {
+            var impresion = await _facturaImpresion.ImprimirPorIdAsync(ventaId, ct);
+
+            return Ok(new
+            {
+                message = impresion.Ok
+                    ? "Factura enviada a la impresora."
+                    : "No se pudo imprimir la factura.",
+                VentaId = ventaId,
+                ImpresionFactura = impresion
+            });
+        }
+
+        /// <summary>
+        /// Reenvía al SIAT una factura ya guardada (usa XmlBase64 y CodigoHash de la venta).
+        /// Solo reenvía si EstadoSiat no es Validada (908).
+        /// </summary>
+        [HttpPost("reenviar/{ventaId:int}")]
+        [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
+        public async Task<IActionResult> ReenviarFactura(int ventaId, CancellationToken ct)
+        {
+            var envioSiat = await _facturaSiatEnvio.ReenviarFacturaAsync(ventaId, ct);
+
+            var mensaje = envioSiat.Transaccion
+                ? envioSiat.Enviado
+                    ? "Factura reenviada y validada por el SIAT."
+                    : "La factura ya estaba validada por el SIAT."
+                : "Factura reenviada al SIAT con observaciones o error de comunicación.";
+
+            return Ok(new
+            {
+                message = mensaje,
+                VentaId = ventaId,
+                Siat = envioSiat
+            });
         }
 
         /// <summary>

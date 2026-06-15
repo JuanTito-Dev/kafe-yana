@@ -19,6 +19,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.HasKey(x => x.Id);
 
             builder.Property(x => x.Unidad_medida).IsRequired().HasMaxLength(20);
+            builder.Property(x => x.CodigoUnidadMedida).IsRequired();
 
             builder.Property(x => x.Producible).HasDefaultValue(false);
             builder.Property(x => x.Ubicacion).HasColumnName("Ubicacion");

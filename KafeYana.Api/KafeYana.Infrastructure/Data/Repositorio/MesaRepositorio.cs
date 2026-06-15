@@ -42,6 +42,13 @@ namespace KafeYana.Infrastructure.Data.Repositorio
             return await _set.AnyAsync(x => x.Id == Id_mesa && x.Id_Pedido == Id);
         }
 
+        public async Task<Mesa?> GetMesaPorPedidoAsync(int idPedido)
+        {
+            return await _set
+                .Include(x => x.pedido)
+                .FirstOrDefaultAsync(x => x.Id_Pedido == idPedido && !x.Disponible);
+        }
+
         public async Task<bool> HayMesasOcupadas()
         {
             return await _set.AnyAsync(x => x.Disponible == false);

@@ -4,6 +4,7 @@ using KafeYana.Application.IServicios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using KafeYana.Domain.TiposDeDatos;
+using KafeYana.Infrastructure.Servicios.Facturacion;
 
 namespace KafeYana.Api.Controllers
 {
@@ -40,7 +41,10 @@ namespace KafeYana.Api.Controllers
             await _db.Crear(producto);
             await _db.SaveAsync();
 
-            return Created("", new { message = "Combo creado" });
+            producto.AsignarCodigo(ProductoCodigoService.Generar(producto.Id));
+            await _db.SaveAsync();
+
+            return Created("", new { message = "Combo creado", Id = producto.Id, Codigo = producto.Codigo });
         }
 
         [HttpPut("{Id}")]
