@@ -1,3 +1,4 @@
+using KafeYana.Application.Dtos.FacturacionDtos;
 using KafeYana.Application.Dtos.VentaDtos;
 
 
@@ -10,7 +11,11 @@ namespace KafeYana.Api.Helpers
 
     {
 
-        public static object ConstruirRespuestaCobro(ResultadoProcesarVenta resultado, string mensajeBase = "Venta procesada correctamente")
+        public static object ConstruirRespuestaCobro(
+            ResultadoProcesarVenta resultado,
+            ResultadoEnvioFacturaSiatDto? envioSiat = null,
+            ResultadoImpresionFacturaDto? impresionFactura = null,
+            string mensajeBase = "Venta procesada correctamente")
 
         {
 
@@ -64,11 +69,58 @@ namespace KafeYana.Api.Helpers
 
                 PorcentajeDescuento = descuento?.PorcentajeDescuento,
 
-                CodigoVenta = resultado.Venta.Codigo,
+                CodigoVenta = resultado.Venta.Cuf,
 
-                SubtotalPedido = resultado.Venta.Subtotal,
+                VentaId = resultado.Venta.Id,
 
-                TotalCobrado = resultado.Venta.Total,
+                NumeroFactura = resultado.Venta.NumeroFactura,
+
+                EstadoSiat = envioSiat?.EstadoSiat ?? resultado.Venta.EstadoSiat,
+
+                CodigoRecepcion = envioSiat?.CodigoRecepcion ?? resultado.Venta.CodigoRecepcion,
+
+                SiatAceptada = envioSiat?.Transaccion
+                    ?? resultado.Venta.EstadoSiat == KafeYana.Domain.TiposDeDatos.FacturaEstado.Validada,
+
+                ErrorSiat = envioSiat?.ErrorMensaje ?? resultado.Venta.ErrorMensaje,
+
+                CodigoHash = resultado.Venta.CodigoHash,
+
+                Siat = envioSiat is null ? null : new
+
+                {
+
+                    envioSiat.Enviado,
+
+                    envioSiat.Transaccion,
+
+                    envioSiat.EstadoSiat,
+
+                    envioSiat.CodigoEstado,
+
+                    envioSiat.CodigoRecepcion,
+
+                    envioSiat.CodigoDescripcion,
+
+                    envioSiat.ErrorMensaje,
+
+                    envioSiat.CodigosRespuesta
+
+                },
+
+                XmlGenerado = !string.IsNullOrWhiteSpace(resultado.Venta.XmlBase64),
+
+                ImpresionFactura = impresionFactura is null ? null : new
+                {
+                    impresionFactura.Enviado,
+                    impresionFactura.Ok,
+                    impresionFactura.ErrorMensaje,
+                    impresionFactura.UrlQr
+                },
+
+                SubtotalPedido = resultado.Venta.MontoTotal + (resultado.Venta.DescuentoAdicional ?? 0m),
+
+                TotalCobrado = resultado.Venta.MontoTotal,
 
                 PromocionDescuento = descuento is null
 

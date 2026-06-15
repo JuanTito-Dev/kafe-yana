@@ -34,6 +34,14 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.Tipo).IsRequired().HasMaxLength(20);
 
+            builder.Property(x => x.Codigo)
+                .IsRequired()
+                .HasMaxLength(10);
+
+            builder.HasIndex(x => x.Codigo)
+                .IsUnique()
+                .HasDatabaseName("IX_Producto_Codigo");
+
             builder.Property(x => x.CodigoSin)
                 .IsRequired()
                 .HasMaxLength(20)

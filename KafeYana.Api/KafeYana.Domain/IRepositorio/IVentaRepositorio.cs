@@ -14,5 +14,7 @@ namespace KafeYana.Application.IRepositorio
         Task<int> ContarVentasDelAnio(int anio);
 
         Task<long> SiguienteNumeroVentaAsync();
+
+        Task<Venta?> TraerVentaConDetallesAsync(int id);
     }
 }

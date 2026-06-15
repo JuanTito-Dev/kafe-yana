@@ -20,7 +20,17 @@ namespace KafeYana.Infrastructure.Data.Repositorio
 
         public async Task<ParaLlevar?> GetParaLlevarConPedido()
         {
-            return await _set.Include(x => x.Pedido).FirstOrDefaultAsync();
+            return await _set
+                .Include(x => x.Pedido)
+                .OrderBy(x => x.Id)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<ParaLlevar?> GetPorPedidoActivoAsync(int idPedido)
+        {
+            return await _set
+                .Include(x => x.Pedido)
+                .FirstOrDefaultAsync(x => x.Id_Pedido == idPedido && !x.Disponible);
         }
 
         public async Task<bool> TienePedidoActivo()

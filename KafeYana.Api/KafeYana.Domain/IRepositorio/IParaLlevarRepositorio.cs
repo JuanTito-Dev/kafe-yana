@@ -10,6 +10,9 @@ namespace KafeYana.Application.IRepositorio
     public interface IParaLlevarRepositorio : IGenericRepositorio<ParaLlevar>
     {
         Task<ParaLlevar?> GetParaLlevarConPedido();
+
+        Task<ParaLlevar?> GetPorPedidoActivoAsync(int idPedido);
+
         Task<bool> TienePedidoActivo();
 
         IQueryable<ParaLlevar> ParaLlevarQuery();

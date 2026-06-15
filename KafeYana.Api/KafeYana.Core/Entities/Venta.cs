@@ -1,101 +1,102 @@
-﻿using KafeYana.Domain.Entities.BaseEntidades;
-
+﻿using HotChocolate;
+using KafeYana.Domain.Entities.BaseEntidades;
 using KafeYana.Domain.TiposDeDatos;
 
-
-
 namespace KafeYana.Domain.Entities
-
 {
-
+    /// <summary>Cabecera de Factura Compra y Venta (SIAT) + trazabilidad de recepción.</summary>
     public class Venta : BaseEntity
-
     {
+        // --- Cabecera SIAT — obligatorios ---
 
-        public string Codigo { get; set; }
+        public long NitEmisor { get; set; }
 
+        public required string RazonSocialEmisor { get; set; }
 
+        public required string Municipio { get; set; }
 
-        public DateTime Fecha { get; set; }
+        public long NumeroFactura { get; set; }
 
+        public required string Cuf { get; set; }
 
+        public required string Cufd { get; set; }
 
-        public required string Cliente { get; set; }
+        public int CodigoSucursal { get; set; }
 
+        public required string Direccion { get; set; }
 
+        /// <summary>Fecha/hora UTC de emisión.</summary>
+        public DateTime FechaEmision { get; set; }
 
-        public int? Id_Cliente { get; set; }
+        public int CodigoTipoDocumentoIdentidad { get; set; }
 
+        public required string NumeroDocumento { get; set; }
 
+        public required string CodigoCliente { get; set; }
 
-        public required string Cajero { get; set; }
+        public int CodigoMetodoPago { get; set; }
 
+        public decimal MontoTotal { get; set; }
 
+        public decimal MontoTotalSujetoIva { get; set; }
 
-        public required int Productos { get; set; } = 0;
+        public int CodigoMoneda { get; set; }
 
+        public decimal TipoCambio { get; set; }
 
+        public decimal MontoTotalMoneda { get; set; }
 
-        public decimal PagoEfectivo { get; set; } = 0;
+        public required string Leyenda { get; set; }
 
+        public required string Usuario { get; set; }
 
+        public int CodigoDocumentoSector { get; set; }
 
-        public decimal PagoTarjeta { get; set; } = 0;
+        // --- Cabecera SIAT — opcionales ---
 
+        public string? Telefono { get; set; }
 
+        /// <summary>Enviar 0 cuando no aplica punto de venta.</summary>
+        public int CodigoPuntoVenta { get; set; }
 
-        public decimal PagoQr { get; set; } = 0;
+        public string? NombreRazonSocial { get; set; }
 
+        /// <summary>Opcional SEGIP. Si es null, en XML: complemento xsi:nil="true".</summary>
+        public string? Complemento { get; set; }
 
+        [GraphQLIgnore]
+        public bool ComplementoEsNuloSiat => string.IsNullOrWhiteSpace(Complemento);
 
-        public required string Estado { get; set; }
+        public string? NumeroTarjeta { get; set; }
 
+        public decimal? MontoGiftCard { get; set; }
 
+        public decimal? DescuentoAdicional { get; set; }
 
-        /// <summary>Total del pedido antes de descuento por promoción permanente.</summary>
+        public int? CodigoExcepcion { get; set; }
 
-        public required decimal Subtotal { get; set; }
+        public string? Cafc { get; set; }
 
+        // --- Proceso de recepción SIAT (se llenan al enviar la factura) ---
 
+        public int? TipoEmision { get; set; }
 
-        public decimal MontoDescuento { get; set; } = 0;
+        public FacturaEstado? EstadoSiat { get; set; }
 
+        public string? CodigoRecepcion { get; set; }
 
+        public string? ErrorMensaje { get; set; }
 
-        public int? PorcentajeDescuento { get; set; }
+        public string? CodigoHash { get; set; }
 
+        public string? XmlBase64 { get; set; }
 
-
-        public int? Id_PromocionPermanenteDescuento { get; set; }
-
-
-
-        public string? NombrePromocionDescuento { get; set; }
-
-
-
-        /// <summary>Total cobrado (Subtotal - MontoDescuento).</summary>
-
-        public required decimal Total { get; set; }
-
-
-
-        public List<Detalle_venta> Detalles { get; set; } = new List<Detalle_venta>();
-
-
+        public List<Detalle_Pago> Detalles { get; set; } = new List<Detalle_Pago>();
 
         public CajaMovimiento Reembolso(Caja caja, decimal monto, TipoPagos tipoPago, string motivo)
-
         {
-
-            Estado = "Reembolsado";
-
-            return caja.RegistrarReembolso(monto, tipoPago, motivo, Codigo);
-
+            EstadoSiat = FacturaEstado.Anulada;
+            return caja.RegistrarReembolso(monto, tipoPago, motivo, Cuf);
         }
-
     }
-
 }
-
-

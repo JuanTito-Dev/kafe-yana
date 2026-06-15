@@ -3,6 +3,7 @@ using KafeYana.Application.Exceptions;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Domain.Entities;
 using KafeYana.Domain.TiposDeDatos;
+using KafeYana.Infrastructure.Servicios.Facturacion;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -29,10 +30,12 @@ namespace KafeYana.Api.Controllers
                 : string.Empty;
 
             await _clientes.Crear(cliente);
-
             await _clientes.SaveAsync();
 
-            return Created("", new {message = "Cliente creado", Id = cliente.Id});
+            cliente.AsignarCodigoFacturacion(ClienteCodigoService.Generar(cliente.Nombre, cliente.Id));
+            await _clientes.SaveAsync();
+
+            return Created("", new { message = "Cliente creado", Id = cliente.Id, Codigo = cliente.Codigo });
         }
 
         [HttpPut("{Id:int}")]

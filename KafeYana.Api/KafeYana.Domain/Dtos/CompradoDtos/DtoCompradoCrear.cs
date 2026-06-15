@@ -27,6 +27,8 @@ namespace KafeYana.Application.Dtos.CompradoDtos
         [Required(ErrorMessage = "Unidad de medida requerida")]
         public required string Unidad_medida { get; set; }
 
+        public int CodigoUnidadMedida { get; private set; }
+
         public string Marca { get; set; } = string.Empty;
 
         public string Ubicacion { get; set; } = string.Empty;
@@ -55,6 +57,12 @@ namespace KafeYana.Application.Dtos.CompradoDtos
         [MaxLength(20, ErrorMessage = "CodigoSin no puede superar 20 caracteres")]
         public string CodigoSin { get; set; } = string.Empty;
 
+        public void AsignarUnidadMedida(int codigo, string descripcion)
+        {
+            Unidad_medida = descripcion;
+            CodigoUnidadMedida = codigo;
+        }
+
         public Producto ProductoCrear()
         {
             var proudcto = new Producto
@@ -69,6 +77,7 @@ namespace KafeYana.Application.Dtos.CompradoDtos
                 {
                     Codigo_barra = this.Codigo_barra,
                     Unidad_medida = this.Unidad_medida,
+                    CodigoUnidadMedida = this.CodigoUnidadMedida,
                     Marca = this.Marca,
                     Ubicacion = this.Ubicacion,
                     Costo_compra = this.Costo_compra,
@@ -89,6 +98,7 @@ namespace KafeYana.Application.Dtos.CompradoDtos
             datos.Categoria_Id = this.Categoria_Id;
             datos.Comprado!.Codigo_barra = this.Codigo_barra;
             datos.Comprado.Unidad_medida = this.Unidad_medida;
+            datos.Comprado.CodigoUnidadMedida = this.CodigoUnidadMedida;
             datos.Comprado.Marca = this.Marca;
             datos.Comprado.Ubicacion = this.Ubicacion;
             datos.Comprado.Costo_compra = this.Costo_compra;

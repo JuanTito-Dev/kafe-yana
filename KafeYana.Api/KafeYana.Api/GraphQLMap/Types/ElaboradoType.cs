@@ -8,7 +8,9 @@ namespace KafeYana.Api.GraphQLMap.Types
         {
 
             descriptor.Field(x => x.Id).Ignore();
- 
+
+            descriptor.Field(x => x.Unidad_medida);
+            descriptor.Field(x => x.CodigoUnidadMedida);
 
             descriptor.Field(x => x.Producto.Categoria).Ignore();
             descriptor.Field(x => x.Producto.Categoria_Id);

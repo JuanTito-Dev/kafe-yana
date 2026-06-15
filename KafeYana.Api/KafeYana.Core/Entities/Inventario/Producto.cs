@@ -20,6 +20,9 @@ namespace KafeYana.Domain.Entities.Inventario
 
         public string UrlImagen { get; set; } = string.Empty;
 
+        /// <summary>Código interno del sistema según Id. Ej: 00001. Distinto de CodigoSin.</summary>
+        public string Codigo { get; set; } = string.Empty;
+
         /// <summary>Código de producto SIN para facturación electrónica.</summary>
         public string CodigoSin { get; set; } = string.Empty;
 
@@ -44,6 +47,9 @@ namespace KafeYana.Domain.Entities.Inventario
         public List<ProductoMovimiento> Movimientos { get; set; } = new List<ProductoMovimiento>();
 
         public List<OrdenItemProducto> OrdenesProducto { get; set; } = new List<OrdenItemProducto>();
+
+        public void AsignarCodigo(string codigo) =>
+            Codigo = codigo;
 
         internal ProductoMovimiento Movimiento(int Cantidad, string Tipo, string referencia, int StockResultado, decimal costo)
         { 

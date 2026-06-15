@@ -24,20 +24,25 @@ namespace KafeYana.Infrastructure.Data.Repositorio
         public async Task<int> ContarVentasDelAnio(int anio)
         {
             return await _db.Ventas
-                .Where(x => x.Fecha.Year == anio)
+                .Where(x => x.FechaEmision.Year == anio)
                 .CountAsync();
         }
 
+        /// <summary>Número de factura correlativo: MAX(NumeroFactura) + 1.</summary>
         public async Task<long> SiguienteNumeroVentaAsync()
-        { 
-            //var anio = DateTime.UtcNow.Year;
-            //return await _db.Ventas.LongCountAsync(x => x.Fecha.Year == anio) + 1;
-
- 
+        {
             var result = await _db.Database
-                .SqlQueryRaw<long>("SELECT nextval('venta_codigo_seq')")
+                .SqlQueryRaw<long>("SELECT COALESCE(MAX(\"NumeroFactura\"), 0) + 1 FROM \"Venta\"")
                 .ToListAsync();
+
             return result[0];
+        }
+
+        public async Task<Venta?> TraerVentaConDetallesAsync(int id)
+        {
+            return await _db.Ventas
+                .Include(v => v.Detalles)
+                .FirstOrDefaultAsync(v => v.Id == id);
         }
     }
 }

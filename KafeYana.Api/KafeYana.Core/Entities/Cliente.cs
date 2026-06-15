@@ -1,16 +1,15 @@
 ﻿using KafeYana.Domain.Entities.BaseEntidades;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace KafeYana.Domain.Entities
 {
     public class Cliente : BaseEntity
     {
         public int? Dni { get; set; }
+
         public required string Nombre { get; set; }
+
+        /// <summary>Código único de facturación SIAT. Ej: J-0002.</summary>
+        public string Codigo { get; set; } = string.Empty;
 
         public required string Celular { get; set; }  
 
@@ -50,5 +49,7 @@ namespace KafeYana.Domain.Entities
 
         public List<Pedido> Pedidos { get; set; } = new();
 
+        public void AsignarCodigoFacturacion(string codigo) =>
+            Codigo = codigo;
     }
 }

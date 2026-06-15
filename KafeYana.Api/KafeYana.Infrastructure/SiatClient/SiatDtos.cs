@@ -39,4 +39,5 @@ namespace KafeYana.Infrastructure.SiatClient
         public int Codigo { get; set; }
         public string Descripcion { get; set; } = string.Empty;
     }
+
 }

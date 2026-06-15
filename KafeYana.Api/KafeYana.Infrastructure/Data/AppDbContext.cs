@@ -49,7 +49,7 @@ namespace KafeYana.Infrastructure.Data
 
         public DbSet<Venta> Ventas {  get; set; }
 
-        public DbSet<Detalle_venta> Detalle_ventas {  get; set; }
+        public DbSet<Detalle_Pago> Detalle_Pagos { get; set; }
 
         public DbSet<Pedido> Pedidos { get; set; }
 
@@ -153,7 +153,7 @@ namespace KafeYana.Infrastructure.Data
 
             builder.ApplyConfigurationsFromAssembly(typeof(VentaConfig).Assembly);
 
-            builder.ApplyConfigurationsFromAssembly(typeof(Detalle_ventaConfig).Assembly);
+            builder.ApplyConfigurationsFromAssembly(typeof(Detalle_PagoConfig).Assembly);
 
             builder.ApplyConfigurationsFromAssembly(typeof(PedidoConfig).Assembly);
 

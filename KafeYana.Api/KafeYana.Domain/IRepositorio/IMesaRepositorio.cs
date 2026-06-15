@@ -15,6 +15,8 @@ namespace KafeYana.Application.IRepositorio
 
         Task<bool> MesaConpedido(int Id, int Id_mesa);
 
+        Task<Mesa?> GetMesaPorPedidoAsync(int idPedido);
+
         Task<bool> HayMesasOcupadas();
     }
 }

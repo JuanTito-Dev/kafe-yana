@@ -10,6 +10,8 @@ namespace KafeYana.Application.Dtos.CompradoDtos
 {
     public class DtoCompradoGet : BaseEntity
     {
+        public string Codigo { get; set; } = string.Empty;
+
         public required string Nombre { get; set; }
 
         public string Descripcion { get; set; } = string.Empty;
@@ -23,6 +25,8 @@ namespace KafeYana.Application.Dtos.CompradoDtos
         public string Codigo_barra { get; set; } = string.Empty;
 
         public required string Unidad_medida { get; set; }
+
+        public int CodigoUnidadMedida { get; set; }
 
         public string Marca { get; set; } = string.Empty;
 
@@ -39,6 +43,7 @@ namespace KafeYana.Application.Dtos.CompradoDtos
         public static DtoCompradoGet Desde(Producto p) => new DtoCompradoGet
         {
             Id = p.Id,
+            Codigo = p.Codigo,
             Nombre = p.Nombre,
             Descripcion = p.Descripcion,
             Precio = p.Precio,
@@ -46,6 +51,7 @@ namespace KafeYana.Application.Dtos.CompradoDtos
             Categoria_Id = p.Categoria_Id,
             Codigo_barra = p.Comprado.Codigo_barra,
             Unidad_medida = p.Comprado.Unidad_medida,
+            CodigoUnidadMedida = p.Comprado.CodigoUnidadMedida,
             Marca = p.Comprado.Marca,
             Ubicacion = p.Comprado.Ubicacion,
             Costo_compra = p.Comprado.Costo_compra,

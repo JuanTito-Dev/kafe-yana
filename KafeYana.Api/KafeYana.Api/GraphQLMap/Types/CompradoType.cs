@@ -12,6 +12,7 @@ namespace KafeYana.Api.GraphQLMap.Types
             descriptor.Field(x => x.Codigo_barra);
 
             descriptor.Field(x => x.Unidad_medida);
+            descriptor.Field(x => x.CodigoUnidadMedida);
 
             descriptor.Field(x => x.Marca);
 

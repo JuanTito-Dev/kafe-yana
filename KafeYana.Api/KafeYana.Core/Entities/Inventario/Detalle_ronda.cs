@@ -23,6 +23,15 @@ namespace KafeYana.Domain.Entities.Inventario
         /// <summary>Ubicación del producto. String.Empty cuando la línea es un combo (los items tienen su propia ubicación).</summary>
         public string Ubicacion { get; set; } = string.Empty;
 
+        /// <summary>Código interno del producto (snapshot al crear la ronda). Ej: 00001.</summary>
+        public string Codigo { get; set; } = string.Empty;
+
+        /// <summary>Código SIN del producto (snapshot al crear la ronda).</summary>
+        public string CodigoSin { get; set; } = string.Empty;
+
+        /// <summary>Código SIAT de unidad de medida (snapshot al crear la ronda).</summary>
+        public int CodigoUnidadMedida { get; set; } = 57;
+
         public Ronda? ronda { get; set; }
 
         public List<Detalle_Ronda_Opcion> Opciones { get; set; } = new List<Detalle_Ronda_Opcion>();

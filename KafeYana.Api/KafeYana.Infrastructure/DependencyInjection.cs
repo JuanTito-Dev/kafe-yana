@@ -1,6 +1,7 @@
 ﻿using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Infrastructure.Configuration;
 using KafeYana.Infrastructure.Servicios.Facturacion;
+using KafeYana.Infrastructure.Servicios.FacturacionImpresion;
 using KafeYana.Infrastructure.SiatClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +24,12 @@ namespace KafeYana.Infrastructure
             services.Configure<SiatOptions>(
                 configuration.GetSection(SiatOptions.SeccionNombre));
 
+            services.Configure<DatosEmpresaOptions>(
+                configuration.GetSection(DatosEmpresaOptions.SeccionNombre));
+
+            services.Configure<FacturaImpresoraOptions>(
+                configuration.GetSection(FacturaImpresoraOptions.SeccionNombre));
+
             // 2. HttpClient con la URL base y timeout configurados
             services.AddHttpClient<SiatHttpClient>((sp, client) =>
             {
@@ -35,6 +42,11 @@ namespace KafeYana.Infrastructure
             services.AddScoped<ICuisService, CuisService>();
             services.AddScoped<ICufdService, CufdService>();
             services.AddScoped<IVerificaNitService, VerificaNitService>();
+            services.AddScoped<IRecepcionFacturaService, RecepcionFacturaService>();
+            services.AddScoped<IFacturaSiatEnvioService, FacturaSiatEnvioService>();
+            services.AddScoped<IFacturaImpresionService, FacturaImpresionService>();
+            services.AddSingleton<ICufGenerator, CufGenerator>();
+            services.AddSingleton<IFacturaXmlGenerator, FacturaXmlGenerator>();
 
             return services;
         }

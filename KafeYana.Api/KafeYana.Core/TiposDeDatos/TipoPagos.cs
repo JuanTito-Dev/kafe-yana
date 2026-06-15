@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace KafeYana.Domain.TiposDeDatos
-{
+﻿namespace KafeYana.Domain.TiposDeDatos
+{ 
     public enum TipoPagos
     {
-        Efectivo,
-        Tarjeta,
-        Qr,
+        Efectivo = 1,
+        Tarjeta = 2,
+        Otros = 5,
+        Qr = 32
     }
 }

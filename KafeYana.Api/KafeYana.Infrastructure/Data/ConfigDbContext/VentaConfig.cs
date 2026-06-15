@@ -1,11 +1,6 @@
 ﻿using KafeYana.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace KafeYana.Infrastructure.Data.ConfigDbContext
 {
@@ -17,45 +12,46 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.HasKey(x => x.Id);
 
-            builder.HasIndex(x => x.Codigo).IsUnique().HasDatabaseName("Codigo-repetido");
+            builder.HasIndex(x => x.NumeroFactura).IsUnique();
+            builder.HasIndex(x => x.Cuf).IsUnique();
+            builder.HasIndex(x => x.EstadoSiat);
+            builder.HasIndex(x => x.FechaEmision);
 
-            builder.HasIndex(x => x.Cliente);
+            // Obligatorios
+            builder.Property(x => x.RazonSocialEmisor).IsRequired().HasMaxLength(200);
+            builder.Property(x => x.Municipio).IsRequired().HasMaxLength(100);
+            builder.Property(x => x.Cuf).IsRequired().HasMaxLength(100);
+            builder.Property(x => x.Cufd).IsRequired().HasMaxLength(100);
+            builder.Property(x => x.Direccion).IsRequired().HasMaxLength(500);
+            builder.Property(x => x.FechaEmision).HasColumnType("timestamp with time zone").IsRequired();
+            builder.Property(x => x.NumeroDocumento).IsRequired().HasMaxLength(50);
+            builder.Property(x => x.CodigoCliente).IsRequired().HasMaxLength(50);
+            builder.Property(x => x.Leyenda).IsRequired().HasMaxLength(500);
+            builder.Property(x => x.Usuario).IsRequired().HasMaxLength(100);
 
-            builder.HasIndex(x => x.Cajero);
+            builder.Property(x => x.MontoTotal).HasPrecision(18, 2).IsRequired();
+            builder.Property(x => x.MontoTotalSujetoIva).HasPrecision(18, 2).IsRequired();
+            builder.Property(x => x.TipoCambio).HasPrecision(18, 0).IsRequired();
+            builder.Property(x => x.MontoTotalMoneda).HasPrecision(18, 2).IsRequired();
 
-            builder.HasIndex(x => x.Estado);
+            builder.Property(x => x.CodigoDocumentoSector).IsRequired().HasDefaultValue(1);
+            builder.Property(x => x.CodigoPuntoVenta).HasDefaultValue(0);
 
-            builder.Property(x => x.Cliente).IsRequired();
+            // Opcionales
+            builder.Property(x => x.Telefono).HasMaxLength(50);
+            builder.Property(x => x.NombreRazonSocial).HasMaxLength(200);
+            builder.Property(x => x.Complemento).HasMaxLength(10);
+            builder.Property(x => x.NumeroTarjeta).HasMaxLength(20);
+            builder.Property(x => x.MontoGiftCard).HasPrecision(18, 2);
+            builder.Property(x => x.DescuentoAdicional).HasPrecision(18, 2);
+            builder.Property(x => x.Cafc).HasMaxLength(50);
 
-            builder.Property(x => x.Id_Cliente);
-
-            builder.Property(x => x.Estado).IsRequired();
-
-            builder.Property(x => x.Fecha).HasDefaultValueSql("NOW()");
-
-            builder.Property(x => x.Productos).HasDefaultValue(0);
-
-            builder.Property(x => x.Subtotal).IsRequired().HasPrecision(10, 2);
-
-            builder.Property(x => x.MontoDescuento).HasPrecision(10, 2).HasDefaultValue(0m);
-
-            builder.Property(x => x.PorcentajeDescuento);
-
-            builder.Property(x => x.Id_PromocionPermanenteDescuento);
-
-            builder.Property(x => x.NombrePromocionDescuento).HasMaxLength(100);
-
-            builder.Property(x => x.Total).IsRequired().HasPrecision(10, 2);
-
-            builder.Property(x => x.PagoEfectivo).HasPrecision(10, 2).HasDefaultValue(0m);
-
-            builder.Property(x => x.PagoTarjeta).HasPrecision(10, 2).HasDefaultValue(0m);
-
-            builder.Property(x => x.PagoQr).HasPrecision(10, 2).HasDefaultValue(0m);
-
-            builder.Property(x => x.Codigo)
-                .IsRequired()
-                .HasDefaultValue("VTA-LEGACY");
+            // Proceso recepción
+            builder.Property(x => x.CodigoRecepcion).HasMaxLength(100);
+            builder.Property(x => x.CodigoHash).HasMaxLength(128);
+            builder.Property(x => x.ErrorMensaje).HasMaxLength(1000);
+            builder.Property(x => x.XmlBase64).HasColumnType("text");
+            builder.Property(x => x.EstadoSiat).HasConversion<int?>();
         }
     }
 }

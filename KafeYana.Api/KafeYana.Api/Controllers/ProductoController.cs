@@ -1,5 +1,8 @@
 ﻿using KafeYana.Application.Dtos.CompradoDtos;
-using KafeYana.Application.IRepositorio;using KafeYana.Application.IServicios;using KafeYana.Domain.TiposDeDatos;
+using KafeYana.Application.IRepositorio;
+using KafeYana.Application.IServicios;
+using KafeYana.Domain.TiposDeDatos;
+using KafeYana.Infrastructure.Servicios.Facturacion;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,6 +23,11 @@ namespace KafeYana.Api.Controllers
             if (string.IsNullOrWhiteSpace(datos.CodigoSin))
                 return BadRequest(new { message = "CodigoSin es requerido" });
 
+            if (!UnidadMedidaSiatService.TryResolver(datos.Unidad_medida, out var codigoUm, out var descripcionUm))
+                return BadRequest(new { message = "Unidad de medida no válida" });
+
+            datos.AsignarUnidadMedida(codigoUm, descripcionUm);
+
             var producto = datos.ProductoCrear();
 
             if (Imagen is not null && Imagen.Length > 0)
@@ -28,7 +36,10 @@ namespace KafeYana.Api.Controllers
             await _producto.Crear(producto);
             await _producto.SaveAsync();
 
-            return Created("", new { message = "Producto creado" });
+            producto.AsignarCodigo(ProductoCodigoService.Generar(producto.Id));
+            await _producto.SaveAsync();
+
+            return Created("", new { message = "Producto creado", Id = producto.Id, Codigo = producto.Codigo });
         }
 
         [HttpPut("{Id:int}")]
@@ -39,6 +50,11 @@ namespace KafeYana.Api.Controllers
 
             if (string.IsNullOrWhiteSpace(datos.CodigoSin))
                 return BadRequest(new { message = "CodigoSin es requerido" });
+
+            if (!UnidadMedidaSiatService.TryResolver(datos.Unidad_medida, out var codigoUm, out var descripcionUm))
+                return BadRequest(new { message = "Unidad de medida no válida" });
+
+            datos.AsignarUnidadMedida(codigoUm, descripcionUm);
 
             var productoDb = await _producto.TraerProducto(Id, comprado: true);
 
