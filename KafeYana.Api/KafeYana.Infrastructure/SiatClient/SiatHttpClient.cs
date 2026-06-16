@@ -191,6 +191,49 @@ namespace KafeYana.Infrastructure.SiatClient
             };
         }
 
+        // ─────────────────────────────────────────────
+        // Anulación Factura
+        // ─────────────────────────────────────────────
+        public async Task<RespuestaAnulacionFacturaDto> AnulacionFacturaAsync(
+            SolicitudAnulacionFacturaDto solicitud,
+            CancellationToken ct = default)
+        {
+            var body = new XElement(SiatNs + "anulacionFactura",
+                Solicitud("SolicitudServicioAnulacionFactura",
+                    Campo("codigoAmbiente", solicitud.CodigoAmbiente),
+                    Campo("codigoDocumentoSector", solicitud.CodigoDocumentoSector),
+                    Campo("codigoEmision", solicitud.CodigoEmision),
+                    Campo("codigoModalidad", solicitud.CodigoModalidad),
+                    Campo("codigoPuntoVenta", solicitud.CodigoPuntoVenta),
+                    Campo("codigoSistema", solicitud.CodigoSistema),
+                    Campo("codigoSucursal", solicitud.CodigoSucursal),
+                    Campo("cufd", solicitud.Cufd),
+                    Campo("cuis", solicitud.Cuis),
+                    Campo("nit", solicitud.Nit),
+                    Campo("tipoFacturaDocumento", solicitud.TipoFacturaDocumento),
+                    Campo("codigoMotivo", solicitud.CodigoMotivo),
+                    Campo("cuf", solicitud.Cuf)
+                )
+            );
+
+            var xml = await EnviarSoapAsync(_opts.ServicioAnulacionFactura, body, ct);
+
+            var respEl = BuscarElemento(xml, "RespuestaAnulacion")
+                ?? BuscarElemento(xml, "anulacionFacturaResponse");
+
+            return new RespuestaAnulacionFacturaDto
+            {
+                Transaccion = ParseTransaccion(respEl),
+                CodigoEstado = int.TryParse(ValorElemento(respEl, "codigoEstado"), out var estado) ? estado : null,
+                CodigoDescripcion = ValorElemento(respEl, "codigoDescripcion"),
+                CodigosRespuesta = ParseCodigos(respEl).Select(c => new CodigoRespuestaSiatDto
+                {
+                    Codigo = c.Codigo,
+                    Descripcion = c.Descripcion
+                }).ToList()
+            };
+        }
+
         private static string FormatearFechaEnvio(DateTime fecha) =>
             SiatFechaEmision.Formatear(fecha);
 

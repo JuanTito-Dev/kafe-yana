@@ -69,6 +69,12 @@ namespace KafeYana.Infrastructure.Configuration
         /// </summary>
         public string ServicioRecepcionFactura { get; set; } = "ServicioFacturacionCompraVenta";
 
+        /// <summary>
+        /// Servicio SOAP de anulación según sector.
+        /// Compra y Venta: ServicioFacturacionCompraVenta
+        /// </summary>
+        public string ServicioAnulacionFactura { get; set; } = "ServicioFacturacionCompraVenta";
+
         /// <summary>0 por defecto. 1 solo si el SIN autoriza factura a NIT inválido.</summary>
         public int CodigoExcepcion { get; set; } = 0;
 
