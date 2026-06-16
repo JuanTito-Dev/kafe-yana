@@ -150,7 +150,9 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 Enviado = enviado,
                 Transaccion = respuesta.Transaccion,
                 EstadoSiat = venta.EstadoSiat,
-                CodigoEstado = respuesta.CodigoEstado,
+                CodigoEstado = respuesta.Transaccion
+                    ? respuesta.CodigoEstado ?? (int)FacturaEstado.Validada
+                    : respuesta.CodigoEstado,
                 CodigoRecepcion = venta.CodigoRecepcion,
                 CodigoDescripcion = respuesta.CodigoDescripcion,
                 ErrorMensaje = venta.ErrorMensaje,
