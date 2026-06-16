@@ -1,4 +1,5 @@
-﻿using KafeYana.Application.IServicios.IFacturacion;
+﻿using KafeYana.Application.Dtos.FacturacionDtos;
+using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Domain.TiposDeDatos;
 using KafeYana.Infrastructure.Configuration;
 using Microsoft.AspNetCore.Authorization;
@@ -16,6 +17,7 @@ namespace KafeYana.Api.Controllers
         private readonly ICufdService _cufd;
         private readonly IVerificaNitService _verificaNit;
         private readonly IFacturaSiatEnvioService _facturaSiatEnvio;
+        private readonly IFacturaSiatAnulacionService _facturaSiatAnulacion;
         private readonly IFacturaImpresionService _facturaImpresion;
         private readonly SiatOptions _opts;
 
@@ -24,6 +26,7 @@ namespace KafeYana.Api.Controllers
             ICufdService cufdService,
             IVerificaNitService verificaNitService,
             IFacturaSiatEnvioService facturaSiatEnvio,
+            IFacturaSiatAnulacionService facturaSiatAnulacion,
             IFacturaImpresionService facturaImpresion,
             IOptions<SiatOptions> opts)
         {
@@ -31,6 +34,7 @@ namespace KafeYana.Api.Controllers
             _cufd = cufdService;
             _verificaNit = verificaNitService;
             _facturaSiatEnvio = facturaSiatEnvio;
+            _facturaSiatAnulacion = facturaSiatAnulacion;
             _facturaImpresion = facturaImpresion;
             _opts = opts.Value;
         }
@@ -120,6 +124,34 @@ namespace KafeYana.Api.Controllers
                     : "No se pudo imprimir la factura.",
                 VentaId = ventaId,
                 ImpresionFactura = impresion
+            });
+        }
+
+        /// <summary>
+        /// Anula en el SIAT una factura previamente validada (EstadoSiat = 908).
+        /// </summary>
+        [HttpPost("anular/{ventaId:int}")]
+        [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
+        public async Task<IActionResult> AnularFactura(
+            int ventaId,
+            [FromBody] DtoAnularFactura dto,
+            CancellationToken ct)
+        {
+            var anulacion = await _facturaSiatAnulacion.AnularVentaAsync(ventaId, dto.CodigoMotivo, ct);
+
+            var mensaje = anulacion.Transaccion
+                ? anulacion.EstadoSiat == FacturaEstado.Anulada
+                    ? "Factura anulada correctamente en el SIAT."
+                    : "La factura ya estaba anulada."
+                : "El SIAT rechazó la anulación o hubo error de comunicación.";
+
+            return Ok(new
+            {
+                message = mensaje,
+                VentaId = ventaId,
+                CodigoMotivo = dto.CodigoMotivo,
+                MotivoDescripcion = MotivoAnulacionSiatCatalogo.ObtenerDescripcion(dto.CodigoMotivo),
+                Siat = anulacion
             });
         }
 

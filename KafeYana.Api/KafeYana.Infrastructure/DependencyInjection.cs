@@ -43,7 +43,9 @@ namespace KafeYana.Infrastructure
             services.AddScoped<ICufdService, CufdService>();
             services.AddScoped<IVerificaNitService, VerificaNitService>();
             services.AddScoped<IRecepcionFacturaService, RecepcionFacturaService>();
+            services.AddScoped<IAnulacionFacturaService, AnulacionFacturaService>();
             services.AddScoped<IFacturaSiatEnvioService, FacturaSiatEnvioService>();
+            services.AddScoped<IFacturaSiatAnulacionService, FacturaSiatAnulacionService>();
             services.AddScoped<IFacturaImpresionService, FacturaImpresionService>();
             services.AddSingleton<ICufGenerator, CufGenerator>();
             services.AddSingleton<IFacturaXmlGenerator, FacturaXmlGenerator>();
