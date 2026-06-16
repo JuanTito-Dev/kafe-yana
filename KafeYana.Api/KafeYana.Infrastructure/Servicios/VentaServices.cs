@@ -44,13 +44,8 @@ namespace KafeYana.Infrastructure.Servicios
             if (pedido.Rondas.Count == 0 || !pedido.Rondas.Any(r => r.Detalle.Count > 0))
                 throw new VentaException("El pedido no tiene productos para cobrar.");
 
-            var cliente = pedido.Cliente;
-            if (pedido.Id_Cliente is null || pedido.Id_Cliente != datos.Id_Cliente)
-            {
-                cliente = await _db.clientes.FindByIdAsync(datos.Id_Cliente);
-                if (cliente is null)
-                    throw new InventarioException("Cliente no encontrado.");
-            }
+            var (cliente, numeroDocumento) = await ClientePedidoHelper.ResolverParaFacturacionAsync(
+                _db, datos, pedido);
 
             if (!cliente.Estado)
                 throw new VentaException("El cliente está inactivo y no puede realizarse el cobro.");
@@ -163,7 +158,7 @@ namespace KafeYana.Infrastructure.Servicios
                 Direccion = _empresa.Direccion,
                 FechaEmision = fechaEmision,
                 CodigoTipoDocumentoIdentidad = datos.CodigoTipoDocumento,
-                NumeroDocumento = datos.NumeroDocumento.Trim(),
+                NumeroDocumento = numeroDocumento,
                 Complemento = ResolverComplemento(datos),
                 CodigoCliente = ResolverCodigoCliente(cliente),
                 CodigoMetodoPago = ResolverMetodoPago(datos.Pagos),

@@ -11,7 +11,7 @@ namespace KafeYana.Domain.Entities
         /// <summary>Código único de facturación SIAT. Ej: J-0002.</summary>
         public string Codigo { get; set; } = string.Empty;
 
-        public required string Celular { get; set; }  
+        public string? Celular { get; set; }  
 
         public string? Correo { get; set; }  
 
