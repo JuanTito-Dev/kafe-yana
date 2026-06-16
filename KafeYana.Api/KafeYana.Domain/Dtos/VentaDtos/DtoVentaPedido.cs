@@ -8,8 +8,8 @@ namespace KafeYana.Application.Dtos.VentaDtos
         [Required]
         public required int Id_Pedido { get; set; }
 
-        [Required]
-        public required int Id_Cliente { get; set; }
+        /// <summary>Cliente registrado. Si no se envía, son obligatorios Nombre y Dni (C.L.).</summary>
+        public int? Id_Cliente { get; set; }
 
         [Required]
         public required DtoPagos Pagos { get; set; }
@@ -22,10 +22,11 @@ namespace KafeYana.Application.Dtos.VentaDtos
         [Range(1, 5, ErrorMessage = "El código de tipo de documento debe estar entre 1 y 5.")]
         public required int CodigoTipoDocumento { get; set; }
 
-        /// <summary>Número del documento de identidad del comprador.</summary>
-        [Required(ErrorMessage = "El número de documento es requerido.")]
-        [MaxLength(50, ErrorMessage = "El número de documento no puede exceder 50 caracteres.")]
-        public required string NumeroDocumento { get; set; }
+        /// <summary>Nombre del comprador. Obligatorio solo si no se envía Id_Cliente.</summary>
+        public string? Nombre { get; set; }
+
+        /// <summary>Cédula de identidad (C.L.). Obligatoria solo si no se envía Id_Cliente.</summary>
+        public int? Dni { get; set; }
 
         /// <summary>Complemento SEGIP. Opcional; null si no aplica.</summary>
         [MaxLength(10, ErrorMessage = "El complemento no puede exceder 10 caracteres.")]
@@ -40,12 +41,22 @@ namespace KafeYana.Application.Dtos.VentaDtos
                     [nameof(CodigoTipoDocumento)]);
             }
 
-            if (string.IsNullOrWhiteSpace(NumeroDocumento))
+            if (Id_Cliente is int idCliente)
             {
-                yield return new ValidationResult(
-                    "El número de documento no puede estar vacío.",
-                    [nameof(NumeroDocumento)]);
+                if (idCliente <= 0)
+                {
+                    yield return new ValidationResult(
+                        "Id_Cliente debe ser mayor a cero.",
+                        [nameof(Id_Cliente)]);
+                }
+
+                yield break;
             }
+
+            if (!string.IsNullOrWhiteSpace(Nombre) && Dni is > 0)
+                yield break;
+
+            // Sin Id_Cliente ni Nombre/C.L. en el body: el servicio usará el cliente del pedido o fallará.
         }
     }
 }

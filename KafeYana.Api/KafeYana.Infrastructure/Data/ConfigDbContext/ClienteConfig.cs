@@ -17,7 +17,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.Property(c => c.Nombre).IsRequired().HasMaxLength(100);
             builder.Property(c => c.Codigo).IsRequired().HasMaxLength(20);
             builder.HasIndex(c => c.Codigo).IsUnique().HasDatabaseName("IX_Cliente_Codigo");
-            builder.Property(c => c.Celular).IsRequired().HasMaxLength(20);
+            builder.Property(c => c.Celular).HasMaxLength(20);
             builder.Property(c => c.Correo).HasConversion(v => v.ToLower(), // Convert to lowercase when saving to the database
                 v => v // No conversion when reading from the database
             ).HasMaxLength(100);
@@ -40,7 +40,10 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.ToTable(t => t.HasCheckConstraint("CK_Cliente_Puntos_NonNegative", "\"Puntos\" >= 0"));
 
             builder.HasIndex(x => x.Nombre).IsUnique().HasDatabaseName("unique_nombre_cliente");
-            builder.HasIndex(x => x.Celular).IsUnique().HasDatabaseName("Unique_celular_cliente");
+            builder.HasIndex(x => x.Celular)
+                .IsUnique()
+                .HasFilter("\"Celular\" IS NOT NULL AND \"Celular\" <> ''")
+                .HasDatabaseName("Unique_celular_cliente");
             builder.HasIndex(x => x.Correo).IsUnique().HasFilter("\"Correo\" <> ''").HasDatabaseName("Unique_correo_cliente");
             builder.HasIndex(x => x.Dni).IsUnique().HasFilter("\"Dni\" IS NOT NULL").HasDatabaseName("Unique_Dni_cliente");
             builder.HasIndex(x => x.Correonormalizado).IsUnique().HasFilter("\"Correonormalizado\" <> ''");

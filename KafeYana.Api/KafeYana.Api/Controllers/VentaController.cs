@@ -12,6 +12,7 @@ using KafeYana.Domain.Entities;
 using KafeYana.Domain.Entities.Inventario;
 using KafeYana.Domain.TiposDeDatos;
 using KafeYana.Infrastructure.Servicios;
+using KafeYana.Infrastructure.Servicios.Facturacion;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -27,7 +28,7 @@ namespace KafeYana.Api.Controllers
     {
         [HttpPost("pedido")]
         [ServiceFilter(typeof(CajaAbiertaFilter))]
-        public async Task<IActionResult> CrearPedido(DtoniciarMesa datos)
+        public async Task<IActionResult> CrearPedido(DtoIniciarParaLlevar datos)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -40,7 +41,14 @@ namespace KafeYana.Api.Controllers
             if (!paraLlevar.Disponible)
                 return BadRequest(new { message = "Ya existe un pedido para llevar activo" });
 
-            var nuevoPedido = datos.Adapt<Pedido>();
+            var cliente = await ClientePedidoHelper.VincularClienteAlPedidoAsync(
+                _db, datos.Id_Cliente, datos.Nombre, datos.Dni);
+
+            var nuevoPedido = new Pedido
+            {
+                Id_Cliente = cliente?.Id
+            };
+
             await _db.Pedidos.Crear(nuevoPedido);
 
             paraLlevar.Pedido = nuevoPedido;

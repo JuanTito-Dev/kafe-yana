@@ -181,7 +181,7 @@ namespace KafeYana.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_categorias_nombre");
 
-                    b.ToTable("Categorias", (string)null);
+                    b.ToTable("Categorias");
                 });
 
             modelBuilder.Entity("KafeYana.Domain.Entities.AceleradorPuntos", b =>
@@ -484,7 +484,6 @@ namespace KafeYana.Infrastructure.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Celular")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
@@ -534,7 +533,8 @@ namespace KafeYana.Infrastructure.Migrations
 
                     b.HasIndex("Celular")
                         .IsUnique()
-                        .HasDatabaseName("Unique_celular_cliente");
+                        .HasDatabaseName("Unique_celular_cliente")
+                        .HasFilter("\"Celular\" IS NOT NULL AND \"Celular\" <> ''");
 
                     b.HasIndex("Codigo")
                         .IsUnique()
@@ -558,7 +558,7 @@ namespace KafeYana.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("unique_nombre_cliente");
 
-                    b.ToTable("Clientes", null, t =>
+                    b.ToTable("Clientes", t =>
                         {
                             t.HasCheckConstraint("CK_Cliente_Puntos_NonNegative", "\"Puntos\" >= 0");
                         });
