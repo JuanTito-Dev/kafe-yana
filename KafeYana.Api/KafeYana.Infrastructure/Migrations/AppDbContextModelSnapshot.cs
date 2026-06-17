@@ -181,7 +181,7 @@ namespace KafeYana.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_categorias_nombre");
 
-                    b.ToTable("Categorias");
+                    b.ToTable("Categorias", (string)null);
                 });
 
             modelBuilder.Entity("KafeYana.Domain.Entities.AceleradorPuntos", b =>
@@ -558,7 +558,7 @@ namespace KafeYana.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("unique_nombre_cliente");
 
-                    b.ToTable("Clientes", t =>
+                    b.ToTable("Clientes", null, t =>
                         {
                             t.HasCheckConstraint("CK_Cliente_Puntos_NonNegative", "\"Puntos\" >= 0");
                         });
@@ -2404,6 +2404,11 @@ namespace KafeYana.Infrastructure.Migrations
                     b.Property<int?>("EstadoSiat")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("Facturado")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<DateTime>("FechaEmision")
                         .HasColumnType("timestamp with time zone");
 
@@ -2445,7 +2450,7 @@ namespace KafeYana.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<long>("NumeroFactura")
+                    b.Property<long?>("NumeroFactura")
                         .HasColumnType("bigint");
 
                     b.Property<string>("NumeroTarjeta")
@@ -2483,10 +2488,13 @@ namespace KafeYana.Infrastructure.Migrations
 
                     b.HasIndex("EstadoSiat");
 
+                    b.HasIndex("Facturado");
+
                     b.HasIndex("FechaEmision");
 
                     b.HasIndex("NumeroFactura")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"NumeroFactura\" IS NOT NULL");
 
                     b.ToTable("Venta", (string)null);
                 });
