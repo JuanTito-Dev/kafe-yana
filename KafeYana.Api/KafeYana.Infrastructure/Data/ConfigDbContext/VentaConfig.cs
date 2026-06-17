@@ -12,7 +12,10 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.HasKey(x => x.Id);
 
-            builder.HasIndex(x => x.NumeroFactura).IsUnique();
+            builder.HasIndex(x => x.NumeroFactura)
+                .IsUnique()
+                .HasFilter("\"NumeroFactura\" IS NOT NULL");
+            builder.HasIndex(x => x.Facturado);
             builder.HasIndex(x => x.Cuf).IsUnique();
             builder.HasIndex(x => x.EstadoSiat);
             builder.HasIndex(x => x.FechaEmision);
@@ -52,6 +55,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.Property(x => x.ErrorMensaje).HasMaxLength(1000);
             builder.Property(x => x.XmlBase64).HasColumnType("text");
             builder.Property(x => x.EstadoSiat).HasConversion<int?>();
+            builder.Property(x => x.Facturado).IsRequired().HasDefaultValue(false);
         }
     }
 }

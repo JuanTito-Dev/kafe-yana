@@ -27,6 +27,9 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             if (venta is null)
                 throw new VentaException("Venta no encontrada.");
 
+            if (!venta.Facturado)
+                throw new VentaException("La venta no fue emitida como factura electrónica y no puede anularse en el SIAT.");
+
             if (venta.EstadoSiat == FacturaEstado.Anulada)
             {
                 return new ResultadoAnulacionFacturaDto

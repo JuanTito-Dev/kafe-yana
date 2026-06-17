@@ -44,7 +44,7 @@ namespace KafeYana.Infrastructure.Servicios
             if (pedido.Rondas.Count == 0 || !pedido.Rondas.Any(r => r.Detalle.Count > 0))
                 throw new VentaException("El pedido no tiene productos para cobrar.");
 
-            var (cliente, numeroDocumento) = await ClientePedidoHelper.ResolverParaFacturacionAsync(
+            var (cliente, numeroDocumento) = await ClientePedidoHelper.ResolverClienteParaCobroAsync(
                 _db, datos, pedido);
 
             if (!cliente.Estado)
@@ -52,59 +52,29 @@ namespace KafeYana.Infrastructure.Servicios
 
             var fechaEmision = SiatFechaEmision.AhoraUtc();
             var anio = fechaEmision.Year;
-            var numeroFactura = await _db.ventas.SiguienteNumeroVentaAsync();
-            var codigoVenta = $"VTA-{anio}-{numeroFactura:D3}";
+            long numeroFacturaSiat = 0;
+            string codigoVenta;
+            if (datos.Factura)
+            {
+                numeroFacturaSiat = await _db.ventas.SiguienteNumeroFacturaSiatAsync();
+                codigoVenta = GenerarCodigoVentaFacturada(anio, numeroFacturaSiat);
+            }
+            else
+            {
+                codigoVenta = $"VTA-{anio}-C{pedido.Id}-{DateTime.UtcNow:HHmmssfff}";
+            }
 
             await _inventarioPedidoCompromiso.AplicarMovimientosYCerrarAsync(datos.Id_Pedido, codigoVenta);
 
-            // Lista DETALLE SIAT: un ítem por producto en todas las rondas del pedido.
-            var detallesVenta = new List<Detalle_Pago>();
-            var tieneCombo = false;
-
-            foreach (var ronda in pedido.Rondas)
-            {
-                foreach (var detalle in ronda.Detalle)
-                {
-                    detallesVenta.Add(new Detalle_Pago
-                    {
-                        ActividadEconomica = _empresa.CodigoActividad,
-                        CodigoProductoSin = ResolverCodigoProductoSin(detalle),
-                        CodigoProducto = ResolverCodigoProducto(detalle),
-                        Descripcion = detalle.Nombre_Producto,
-                        Cantidad = detalle.Cantidad,
-                        UnidadMedida = ResolverUnidadMedidaSiat(detalle),
-                        PrecioUnitario = detalle.Precio,
-                        MontoDescuento = null,
-                        SubTotal = detalle.Precio * detalle.Cantidad,
-                        NumeroSerie = null,
-                        NumeroImei = null
-                    });
-
-                    if (detalle.ItemsCombo.Count > 0)
-                        tieneCombo = true;
-                }
-            }
-
+            var (detallesVenta, tieneCombo) = ConstruirDetalles(pedido, validarUnidadSiat: datos.Factura);
             if (detallesVenta.Count == 0)
-                throw new VentaException("No se pudo armar el detalle de la factura. Verifique los productos del pedido.");
+                throw new VentaException("No se pudo armar el detalle de la venta. Verifique los productos del pedido.");
 
             var subtotal = pedido.Rondas.Sum(r => r.SubTotal);
-
             if (subtotal <= 0)
                 throw new VentaException("El total del pedido debe ser mayor a cero.");
 
-            ResultadoAplicacionDescuentoPromocion? descuento = null;
-
-            var totalCobrar = subtotal;
-
-            if (datos.AplicarDescuentos)
-            {
-                descuento = await _promocionDescuento.AplicarDescuentoAsync(cliente!, subtotal, codigoVenta);
-                if (descuento is null)
-                    throw new InventarioException("No hay descuentos aplicables para este pedido y cliente.");
-
-                totalCobrar = descuento.TotalConDescuento;
-            }
+            var (totalCobrar, descuento) = await ResolverTotalCobrarAsync(datos, cliente, subtotal, codigoVenta);
 
             if (datos.Pagos.Total != totalCobrar)
             {
@@ -115,10 +85,45 @@ namespace KafeYana.Infrastructure.Servicios
                 throw new InventarioException($"El total de los pagos no coincide con el {esperado}.");
             }
 
-            var cuf = $"PENDIENTE-{codigoVenta}";
+            var venta = datos.Factura
+                ? await ConstruirVentaFacturadaAsync(datos, cajero, cliente, numeroDocumento, fechaEmision, numeroFacturaSiat, totalCobrar, descuento, detallesVenta)
+                : ConstruirVentaSinFactura(datos, cajero, cliente, numeroDocumento, fechaEmision, codigoVenta, totalCobrar, descuento, detallesVenta);
+
+            await _db.Pedidos.Remove(pedido);
+
+            var puntosPorVenta = await _puntos.CalcularYAplicarPuntosAsync(cliente, subtotal, tieneCombo, codigoVenta);
+            var promocionPermanente = await _promocionPermanenteVenta.ProcesarAlFinalizarVentaAsync(
+                cliente, subtotal, codigoVenta);
+
+            await _productoGratis.RegistrarProgresoPostVentaAsync(cliente.Id, subtotal);
+            cliente.RegistrarCompra();
+
+            return new ResultadoProcesarVenta
+            {
+                Venta = venta,
+                PuntosPorVenta = puntosPorVenta,
+                PromocionPermanente = promocionPermanente,
+                DescuentoPromocion = descuento
+            };
+        }
+
+        private static string GenerarCodigoVentaFacturada(int anio, long numeroFactura) =>
+            $"VTA-{anio}-{numeroFactura:D3}";
+
+        private async Task<Venta> ConstruirVentaFacturadaAsync(
+            DtoVentaPedido datos,
+            string cajero,
+            Cliente cliente,
+            string numeroDocumento,
+            DateTime fechaEmision,
+            long numeroFactura,
+            decimal totalCobrar,
+            ResultadoAplicacionDescuentoPromocion? descuento,
+            List<Detalle_Pago> detallesVenta)
+        {
+            var cuf = $"PENDIENTE-VTA-{fechaEmision.Year}-{numeroFactura:D3}";
             var cufdCodigo = "PENDIENTE";
 
-            // ── CUF + CUFD ──────────────────────────────────────────────────────
             try
             {
                 var cufd = await _cufdService.ObtenerCufdVigenteAsync(
@@ -126,7 +131,6 @@ namespace KafeYana.Infrastructure.Servicios
                     _siat.CodigoPuntoVenta);
 
                 cufdCodigo = cufd.Codigo;
-
                 cuf = _cufGenerator.Generar(new CufGeneracionRequest(
                     Nit: _siat.Nit,
                     FechaEmision: fechaEmision,
@@ -144,20 +148,95 @@ namespace KafeYana.Infrastructure.Servicios
                 logger.LogWarning(ex, "CUF/CUFD no generado; se guarda PENDIENTE");
             }
 
-            var venta = new Venta
+            var venta = CrearVentaBase(
+                datos, cajero, cliente, numeroDocumento, fechaEmision, totalCobrar, descuento, detallesVenta);
+            venta.Facturado = true;
+            venta.NumeroFactura = numeroFactura;
+            venta.Cuf = cuf;
+            venta.Cufd = cufdCodigo;
+            venta.CodigoTipoDocumentoIdentidad = datos.CodigoTipoDocumento!.Value;
+            venta.Leyenda = LeyendaSiatService.ObtenerAleatoria();
+            venta.EstadoSiat = FacturaEstado.Pendiente;
+
+            try
+            {
+                var xml = _facturaXmlGenerator.Generar(venta);
+                var archivo = SiatGzip.ComprimirXmlABase64(xml);
+                venta.XmlBase64 = archivo;
+                venta.CodigoHash = _recepcionFactura.CalcularHashArchivo(archivo);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "XML/archivo/hash de factura no generado");
+                throw new InventarioException("No se pudo generar el archivo de factura para enviar al SIAT.");
+            }
+
+            return venta;
+        }
+
+        private async Task<(decimal Total, ResultadoAplicacionDescuentoPromocion? Descuento)> ResolverTotalCobrarAsync(
+            DtoVentaPedido datos,
+            Cliente cliente,
+            decimal subtotal,
+            string codigoVenta)
+        {
+            if (!datos.AplicarDescuentos)
+                return (subtotal, null);
+
+            var descuento = await _promocionDescuento.AplicarDescuentoAsync(cliente, subtotal, codigoVenta);
+            if (descuento is null)
+                throw new InventarioException("No hay descuentos aplicables para este pedido y cliente.");
+
+            return (descuento.TotalConDescuento, descuento);
+        }
+
+        private Venta ConstruirVentaSinFactura(
+            DtoVentaPedido datos,
+            string cajero,
+            Cliente cliente,
+            string numeroDocumento,
+            DateTime fechaEmision,
+            string codigoVenta,
+            decimal totalCobrar,
+            ResultadoAplicacionDescuentoPromocion? descuento,
+            List<Detalle_Pago> detallesVenta)
+        {
+            var venta = CrearVentaBase(
+                datos, cajero, cliente, numeroDocumento, fechaEmision, totalCobrar, descuento, detallesVenta);
+            venta.Facturado = false;
+            venta.NumeroFactura = null;
+            venta.Cuf = $"NF-{codigoVenta}";
+            venta.Cufd = "N/A";
+            venta.CodigoTipoDocumentoIdentidad = datos.CodigoTipoDocumento ?? 1;
+            venta.Leyenda = "Venta sin factura electrónica";
+            venta.EstadoSiat = null;
+            venta.XmlBase64 = null;
+            venta.CodigoHash = null;
+            venta.CodigoRecepcion = null;
+            venta.ErrorMensaje = null;
+            return venta;
+        }
+
+        private Venta CrearVentaBase(
+            DtoVentaPedido datos,
+            string cajero,
+            Cliente cliente,
+            string numeroDocumento,
+            DateTime fechaEmision,
+            decimal totalCobrar,
+            ResultadoAplicacionDescuentoPromocion? descuento,
+            List<Detalle_Pago> detallesVenta)
+        {
+            return new Venta
             {
                 NitEmisor = _siat.Nit,
                 RazonSocialEmisor = _empresa.RazonSocial,
                 Municipio = _empresa.Municipio,
                 Telefono = string.IsNullOrWhiteSpace(_empresa.Telefono) ? null : _empresa.Telefono.Trim(),
-                NumeroFactura = numeroFactura,
-                Cuf = cuf,
-                Cufd = cufdCodigo,
                 CodigoSucursal = _siat.CodigoSucursal,
                 CodigoPuntoVenta = _siat.CodigoPuntoVenta,
                 Direccion = _empresa.Direccion,
                 FechaEmision = fechaEmision,
-                CodigoTipoDocumentoIdentidad = datos.CodigoTipoDocumento,
                 NumeroDocumento = numeroDocumento,
                 Complemento = ResolverComplemento(datos),
                 CodigoCliente = ResolverCodigoCliente(cliente),
@@ -172,7 +251,6 @@ namespace KafeYana.Infrastructure.Servicios
                 CodigoMoneda = _siat.CodigoMoneda,
                 TipoCambio = _siat.TipoCambio,
                 MontoTotalMoneda = totalCobrar,
-                Leyenda = LeyendaSiatService.ObtenerAleatoria(),
                 Usuario = cajero,
                 CodigoDocumentoSector = _siat.CodigoDocumentoSector,
                 TipoEmision = _siat.CodigoEmision,
@@ -180,41 +258,54 @@ namespace KafeYana.Infrastructure.Servicios
                     ? null
                     : cliente.Nombre.Trim(),
                 Detalles = detallesVenta,
-                EstadoSiat = FacturaEstado.Pendiente
+                Cuf = string.Empty,
+                Cufd = string.Empty,
+                Leyenda = string.Empty
             };
+        }
 
-            // ── XML → GZIP → Base64 → hash (envío SIAT después de guardar) ──
-            try
+        private (List<Detalle_Pago> Detalles, bool TieneCombo) ConstruirDetalles(
+            Pedido pedido,
+            bool validarUnidadSiat)
+        {
+            var detallesVenta = new List<Detalle_Pago>();
+            var tieneCombo = false;
+
+            foreach (var ronda in pedido.Rondas)
             {
-                var xml = _facturaXmlGenerator.Generar(venta);
-                var archivo = SiatGzip.ComprimirXmlABase64(xml);
-                venta.XmlBase64 = archivo;
-                venta.CodigoHash = _recepcionFactura.CalcularHashArchivo(archivo);
+                foreach (var detalle in ronda.Detalle)
+                {
+                    detallesVenta.Add(new Detalle_Pago
+                    {
+                        ActividadEconomica = _empresa.CodigoActividad,
+                        CodigoProductoSin = ResolverCodigoProductoSin(detalle),
+                        CodigoProducto = ResolverCodigoProducto(detalle),
+                        Descripcion = detalle.Nombre_Producto,
+                        Cantidad = detalle.Cantidad,
+                        UnidadMedida = validarUnidadSiat
+                            ? ResolverUnidadMedidaSiat(detalle)
+                            : ResolverUnidadMedidaInterna(detalle),
+                        PrecioUnitario = detalle.Precio,
+                        MontoDescuento = null,
+                        SubTotal = detalle.Precio * detalle.Cantidad,
+                        NumeroSerie = null,
+                        NumeroImei = null
+                    });
+
+                    if (detalle.ItemsCombo.Count > 0)
+                        tieneCombo = true;
+                }
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "XML/archivo/hash de factura no generado");
-                throw new InventarioException("No se pudo generar el archivo de factura para guardar en la venta.");
-            }
 
-            await _db.Pedidos.Remove(pedido);
+            return (detallesVenta, tieneCombo);
+        }
 
-            var puntosPorVenta = await _puntos.CalcularYAplicarPuntosAsync(cliente, subtotal, tieneCombo, codigoVenta);
+        private static int ResolverUnidadMedidaInterna(Detalle_ronda detalle)
+        {
+            if (detalle.CodigoUnidadMedida > 0)
+                return detalle.CodigoUnidadMedida;
 
-            var promocionPermanente = await _promocionPermanenteVenta.ProcesarAlFinalizarVentaAsync(
-                cliente, subtotal, codigoVenta);
-
-            await _productoGratis.RegistrarProgresoPostVentaAsync(cliente.Id, subtotal);
-
-            cliente.RegistrarCompra();
-
-            return new ResultadoProcesarVenta
-            {
-                Venta = venta,
-                PuntosPorVenta = puntosPorVenta,
-                PromocionPermanente = promocionPermanente,
-                DescuentoPromocion = descuento
-            };
+            return 58;
         }
 
         private static int ResolverUnidadMedidaSiat(Detalle_ronda detalle)

@@ -28,11 +28,12 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                 .CountAsync();
         }
 
-        /// <summary>Número de factura correlativo: MAX(NumeroFactura) + 1.</summary>
-        public async Task<long> SiguienteNumeroVentaAsync()
+        /// <summary>Correlativo SIAT: MAX(NumeroFactura) + 1 solo entre ventas facturadas.</summary>
+        public async Task<long> SiguienteNumeroFacturaSiatAsync()
         {
             var result = await _db.Database
-                .SqlQueryRaw<long>("SELECT COALESCE(MAX(\"NumeroFactura\"), 0) + 1 FROM \"Venta\"")
+                .SqlQueryRaw<long>(
+                    "SELECT COALESCE(MAX(\"NumeroFactura\"), 0) + 1 FROM \"Venta\" WHERE \"Facturado\" = true")
                 .ToListAsync();
 
             return result[0];

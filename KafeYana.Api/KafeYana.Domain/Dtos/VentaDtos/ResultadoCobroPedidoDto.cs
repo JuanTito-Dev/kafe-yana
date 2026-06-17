@@ -6,7 +6,7 @@ namespace KafeYana.Application.Dtos.VentaDtos
     {
         public required ResultadoProcesarVenta Resultado { get; init; }
 
-        public required ResultadoEnvioFacturaSiatDto EnvioSiat { get; init; }
+        public ResultadoEnvioFacturaSiatDto? EnvioSiat { get; init; }
 
         public required string OrigenVenta { get; init; }
 
