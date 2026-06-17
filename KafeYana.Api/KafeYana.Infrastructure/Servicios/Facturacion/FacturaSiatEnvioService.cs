@@ -10,6 +10,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 {
     public class FacturaSiatEnvioService(
         IRecepcionFacturaService _recepcionFactura,
+        IFacturaVentaSiatPreparer _facturaVentaSiatPreparer,
         IUnitWork _db,
         ILogger<FacturaSiatEnvioService> logger) : IFacturaSiatEnvioService
     {
@@ -82,17 +83,14 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             int ventaId,
             CancellationToken ct = default)
         {
-            var venta = await _db.ventas.FindByIdAsync(ventaId);
+            var venta = await _db.ventas.TraerVentaConDetallesAsync(ventaId);
             if (venta is null)
                 throw new VentaException("Venta no encontrada.");
-
-            if (!venta.Facturado)
-                throw new VentaException("La venta no fue emitida como factura electrónica y no puede reenviarse al SIAT.");
 
             if (venta.EstadoSiat == FacturaEstado.Anulada)
                 throw new VentaException("No se puede reenviar al SIAT una venta anulada.");
 
-            if (venta.EstadoSiat == FacturaEstado.Validada)
+            if (venta.Facturado && venta.EstadoSiat == FacturaEstado.Validada)
             {
                 return new ResultadoEnvioFacturaSiatDto
                 {
@@ -106,11 +104,18 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 };
             }
 
-            if (string.IsNullOrWhiteSpace(venta.XmlBase64))
-                throw new VentaException("La venta no tiene XML guardado para reenviar al SIAT.");
+            if (!venta.Facturado)
+            {
+                await _facturaVentaSiatPreparer.PrepararVentaSinFacturarAsync(venta, ct);
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(venta.XmlBase64))
+                    throw new VentaException("La venta no tiene XML guardado para reenviar al SIAT.");
 
-            if (string.IsNullOrWhiteSpace(venta.CodigoHash))
-                throw new VentaException("La venta no tiene hash guardado para reenviar al SIAT.");
+                if (string.IsNullOrWhiteSpace(venta.CodigoHash))
+                    throw new VentaException("La venta no tiene hash guardado para reenviar al SIAT.");
+            }
 
             var resultado = await EnviarVentaAsync(venta, ct);
             await _db.SaveUnitWork();

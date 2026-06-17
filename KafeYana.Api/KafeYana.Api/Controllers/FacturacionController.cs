@@ -129,6 +129,7 @@ namespace KafeYana.Api.Controllers
 
         /// <summary>
         /// Anula en el SIAT una factura previamente validada (EstadoSiat = 908).
+        /// Solo aplica a ventas emitidas como factura electrónica (Facturado = true).
         /// </summary>
         [HttpPost("anular/{ventaId:int}")]
         [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
@@ -156,8 +157,9 @@ namespace KafeYana.Api.Controllers
         }
 
         /// <summary>
-        /// Reenvía al SIAT una factura ya guardada (usa XmlBase64 y CodigoHash de la venta).
-        /// Solo reenvía si EstadoSiat no es Validada (908).
+        /// Envía o reenvía al SIAT una venta pendiente.
+        /// Si Facturado = false, genera número, CUF/CUFD, XML y hash antes de enviar.
+        /// Si ya estaba facturada, reutiliza XmlBase64 y CodigoHash guardados.
         /// </summary>
         [HttpPost("reenviar/{ventaId:int}")]
         [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
