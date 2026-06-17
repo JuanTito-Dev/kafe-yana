@@ -34,6 +34,35 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             return await CrearClienteAsync(db, nombre.Trim(), dni.Value);
         }
 
+        public static async Task<(Cliente Cliente, string NumeroDocumento)> ResolverClienteParaCobroAsync(
+            IUnitWork db,
+            DtoVentaPedido datos,
+            Pedido pedido)
+        {
+            if (datos.Factura)
+                return await ResolverParaFacturacionAsync(db, datos, pedido);
+
+            if (datos.Id_Cliente is int idCliente && idCliente > 0)
+            {
+                var cliente = await ObtenerClienteDelPedidoAsync(db, pedido, idCliente);
+                return (cliente, cliente.Dni?.ToString() ?? "0");
+            }
+
+            if (!string.IsNullOrWhiteSpace(datos.Nombre) && datos.Dni is int dni && dni > 0)
+            {
+                var cliente = await CrearClienteAsync(db, datos.Nombre.Trim(), dni);
+                return (cliente, dni.ToString());
+            }
+
+            if (pedido.Id_Cliente is int pedidoClienteId && pedidoClienteId > 0)
+            {
+                var cliente = await ObtenerClienteDelPedidoAsync(db, pedido, pedidoClienteId);
+                return (cliente, cliente.Dni?.ToString() ?? "0");
+            }
+
+            throw new VentaException("Debe indicar el cliente para registrar el cobro.");
+        }
+
         public static async Task<(Cliente Cliente, string NumeroDocumento)> ResolverParaFacturacionAsync(
             IUnitWork db,
             DtoVentaPedido datos,

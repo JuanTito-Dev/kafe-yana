@@ -51,7 +51,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             EscribirElemento(writer, "razonSocialEmisor", venta.RazonSocialEmisor);
             EscribirElemento(writer, "municipio", venta.Municipio);
             EscribirOpcional(writer, "telefono", venta.Telefono);
-            EscribirElemento(writer, "numeroFactura", venta.NumeroFactura.ToString(CultureInfo.InvariantCulture));
+            EscribirElemento(writer, "numeroFactura", venta.NumeroFactura!.Value.ToString(CultureInfo.InvariantCulture));
             EscribirElemento(writer, "cuf", venta.Cuf);
             EscribirElemento(writer, "cufd", venta.Cufd);
             EscribirElemento(writer, "codigoSucursal", venta.CodigoSucursal.ToString(CultureInfo.InvariantCulture));

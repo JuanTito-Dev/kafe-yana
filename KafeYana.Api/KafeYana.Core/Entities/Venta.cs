@@ -15,7 +15,10 @@ namespace KafeYana.Domain.Entities
 
         public required string Municipio { get; set; }
 
-        public long NumeroFactura { get; set; }
+        public long? NumeroFactura { get; set; }
+
+        /// <summary>True cuando la venta fue emitida como factura electrónica (SIAT).</summary>
+        public bool Facturado { get; set; }
 
         public required string Cuf { get; set; }
 

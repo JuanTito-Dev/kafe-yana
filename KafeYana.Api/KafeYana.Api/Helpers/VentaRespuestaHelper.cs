@@ -74,6 +74,7 @@ namespace KafeYana.Api.Helpers
                 VentaId = resultado.Venta.Id,
 
                 NumeroFactura = resultado.Venta.NumeroFactura,
+                Facturado = resultado.Venta.Facturado,
 
                 EstadoSiat = envioSiat?.EstadoSiat ?? resultado.Venta.EstadoSiat,
 

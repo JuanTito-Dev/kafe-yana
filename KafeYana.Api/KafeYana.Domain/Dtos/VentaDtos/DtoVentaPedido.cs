@@ -8,7 +8,7 @@ namespace KafeYana.Application.Dtos.VentaDtos
         [Required]
         public required int Id_Pedido { get; set; }
 
-        /// <summary>Cliente registrado. Si no se envía, son obligatorios Nombre y Dni (C.L.).</summary>
+        /// <summary>Cliente registrado. Si no se envía, son obligatorios Nombre y Dni (C.L.) al facturar.</summary>
         public int? Id_Cliente { get; set; }
 
         [Required]
@@ -17,15 +17,20 @@ namespace KafeYana.Application.Dtos.VentaDtos
         /// <summary>Si es true, aplica el mejor descuento permanente disponible. Default: false.</summary>
         public bool AplicarDescuentos { get; set; } = false;
 
-        /// <summary>Paramétrica SIAT codigoTipoDocumentoIdentidad (1 a 5).</summary>
-        [Required(ErrorMessage = "El código de tipo de documento es requerido.")]
-        [Range(1, 5, ErrorMessage = "El código de tipo de documento debe estar entre 1 y 5.")]
-        public required int CodigoTipoDocumento { get; set; }
+        /// <summary>
+        /// Si es true, genera factura electrónica y envía al SIAT.
+        /// Si es false, solo registra el cobro sin facturación tributaria.
+        /// </summary>
+        public bool Factura { get; set; } = true;
 
-        /// <summary>Nombre del comprador. Obligatorio solo si no se envía Id_Cliente.</summary>
+        /// <summary>Paramétrica SIAT codigoTipoDocumentoIdentidad (1 a 5). Obligatorio solo si Factura=true.</summary>
+        [Range(1, 5, ErrorMessage = "El código de tipo de documento debe estar entre 1 y 5.")]
+        public int? CodigoTipoDocumento { get; set; }
+
+        /// <summary>Nombre del comprador. Obligatorio solo si no se envía Id_Cliente al facturar.</summary>
         public string? Nombre { get; set; }
 
-        /// <summary>Cédula de identidad (C.L.). Obligatoria solo si no se envía Id_Cliente.</summary>
+        /// <summary>Cédula de identidad (C.L.). Obligatoria solo si no se envía Id_Cliente al facturar.</summary>
         public int? Dni { get; set; }
 
         /// <summary>Complemento SEGIP. Opcional; null si no aplica.</summary>
@@ -34,29 +39,43 @@ namespace KafeYana.Application.Dtos.VentaDtos
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            if (!Enum.IsDefined(typeof(TipoDocumentoIdentidadSiat), CodigoTipoDocumento))
+            if (Factura)
+            {
+                if (CodigoTipoDocumento is null)
+                {
+                    yield return new ValidationResult(
+                        "El código de tipo de documento es requerido cuando Factura es true.",
+                        [nameof(CodigoTipoDocumento)]);
+                }
+                else if (!Enum.IsDefined(typeof(TipoDocumentoIdentidadSiat), CodigoTipoDocumento.Value))
+                {
+                    yield return new ValidationResult(
+                        "El código de tipo de documento no es válido. Valores permitidos: 1 (CI), 2 (CEX), 3 (PAS), 4 (OD), 5 (NIT).",
+                        [nameof(CodigoTipoDocumento)]);
+                }
+
+                if (Id_Cliente is int idCliente)
+                {
+                    if (idCliente <= 0)
+                    {
+                        yield return new ValidationResult(
+                            "Id_Cliente debe ser mayor a cero.",
+                            [nameof(Id_Cliente)]);
+                    }
+
+                    yield break;
+                }
+
+                if (!string.IsNullOrWhiteSpace(Nombre) && Dni is > 0)
+                    yield break;
+            }
+            else if (CodigoTipoDocumento is int tipo
+                     && !Enum.IsDefined(typeof(TipoDocumentoIdentidadSiat), tipo))
             {
                 yield return new ValidationResult(
                     "El código de tipo de documento no es válido. Valores permitidos: 1 (CI), 2 (CEX), 3 (PAS), 4 (OD), 5 (NIT).",
                     [nameof(CodigoTipoDocumento)]);
             }
-
-            if (Id_Cliente is int idCliente)
-            {
-                if (idCliente <= 0)
-                {
-                    yield return new ValidationResult(
-                        "Id_Cliente debe ser mayor a cero.",
-                        [nameof(Id_Cliente)]);
-                }
-
-                yield break;
-            }
-
-            if (!string.IsNullOrWhiteSpace(Nombre) && Dni is > 0)
-                yield break;
-
-            // Sin Id_Cliente ni Nombre/C.L. en el body: el servicio usará el cliente del pedido o fallará.
         }
     }
 }

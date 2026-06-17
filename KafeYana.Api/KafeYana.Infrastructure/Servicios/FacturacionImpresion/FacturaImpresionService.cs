@@ -23,6 +23,16 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
             Venta venta,
             CancellationToken ct = default)
         {
+            if (!venta.Facturado)
+            {
+                return new ResultadoImpresionFacturaDto
+                {
+                    Enviado = false,
+                    Ok = false,
+                    ErrorMensaje = "La venta no fue emitida como factura electrónica."
+                };
+            }
+
             if (venta.EstadoSiat == FacturaEstado.Anulada)
             {
                 return new ResultadoImpresionFacturaDto
