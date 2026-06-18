@@ -12,5 +12,7 @@ namespace KafeYana.Application.IRepositorio
         public IQueryable<Cliente> GetClientes();
 
         public Task<Cliente?> GetCliente(int Id);
+
+        Task<Cliente?> GetByDniAsync(int dni);
     }
 }
