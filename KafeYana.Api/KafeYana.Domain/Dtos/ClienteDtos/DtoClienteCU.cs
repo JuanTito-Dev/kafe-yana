@@ -4,9 +4,10 @@ namespace KafeYana.Application.Dtos.ClienteDtos
 {
     public class DtoClienteCU
     {
-        [Required(ErrorMessage = "C.L. requerido")]
-        [Range(1, int.MaxValue, ErrorMessage = "C.L. inválido")]
-        public required int Dni { get; set; }
+        // Opcional: la entidad (Cliente.cs) lo define como int? y la BD tiene
+        // índice único con filtro "Dni IS NOT NULL" — admite NULL. El POS
+        // crea clientes anónimos (solo Nombre + Celular) sin C.L. registrada.
+        public int? Dni { get; set; }
 
         [Required(ErrorMessage = "Nombre requerido")]
         public required string Nombre { get; set; }
