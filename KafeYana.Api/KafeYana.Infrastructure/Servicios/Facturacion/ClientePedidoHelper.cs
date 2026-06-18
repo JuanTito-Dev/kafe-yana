@@ -121,6 +121,14 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
         private static async Task<Cliente> CrearClienteAsync(IUnitWork db, string nombre, int dni)
         {
+            var existente = await db.clientes.GetByDniAsync(dni);
+            if (existente is not null)
+            {
+                throw new VentaException(
+                    $"Ya existe un cliente registrado con el número de documento {dni}. " +
+                    "Envíe Id_Cliente para usar ese cliente en el cobro.");
+            }
+
             var nuevoCliente = new Cliente
             {
                 Nombre = nombre,

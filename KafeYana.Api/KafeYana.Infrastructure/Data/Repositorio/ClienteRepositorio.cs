@@ -27,5 +27,8 @@ namespace KafeYana.Infrastructure.Data.Repositorio
         {
             return await _clientes.FindAsync(Id);
         }
+
+        public async Task<Cliente?> GetByDniAsync(int dni) =>
+            await _clientes.FirstOrDefaultAsync(c => c.Dni == dni);
     }
 }
