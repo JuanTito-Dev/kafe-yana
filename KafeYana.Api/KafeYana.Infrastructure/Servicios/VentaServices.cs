@@ -56,7 +56,7 @@ namespace KafeYana.Infrastructure.Servicios
             string codigoVenta;
             if (datos.Factura)
             {
-                numeroFacturaSiat = await _db.ventas.SiguienteNumeroFacturaSiatAsync();
+                numeroFacturaSiat = await _db.ventas.SiguienteNumeroFacturaSiatAsync() /*+ 20*/;
                 codigoVenta = GenerarCodigoVentaFacturada(anio, numeroFacturaSiat);
             }
             else

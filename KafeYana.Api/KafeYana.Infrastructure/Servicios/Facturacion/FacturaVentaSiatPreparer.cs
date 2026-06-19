@@ -64,7 +64,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
 
 
-            var numeroFactura = await _db.ventas.SiguienteNumeroFacturaSiatAsync();
+            var numeroFactura = await _db.ventas.SiguienteNumeroFacturaSiatAsync() /*+ 20*/;
 
             var fechaEmision = SiatFechaEmision.AhoraUtc();
 
