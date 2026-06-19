@@ -31,7 +31,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                     "Si no envía Id_Cliente, el Nombre y la C.L. son obligatorios.");
             }
 
-            return await CrearClienteAsync(db, nombre.Trim(), dni.Value);
+            return await ResolverOCrearClientePorDocumentoAsync(db, nombre.Trim(), dni.Value);
         }
 
         public static async Task<(Cliente Cliente, string NumeroDocumento)> ResolverClienteParaCobroAsync(
@@ -50,7 +50,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
             if (!string.IsNullOrWhiteSpace(datos.Nombre) && datos.Dni is int dni && dni > 0)
             {
-                var cliente = await CrearClienteAsync(db, datos.Nombre.Trim(), dni);
+                var cliente = await ResolverOCrearClientePorDocumentoAsync(db, datos.Nombre.Trim(), dni);
                 return (cliente, dni.ToString());
             }
 
@@ -76,7 +76,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
             if (!string.IsNullOrWhiteSpace(datos.Nombre) && datos.Dni is int dni && dni > 0)
             {
-                var cliente = await CrearClienteAsync(db, datos.Nombre.Trim(), dni);
+                var cliente = await ResolverOCrearClientePorDocumentoAsync(db, datos.Nombre.Trim(), dni);
                 return (cliente, dni.ToString());
             }
 
@@ -119,14 +119,18 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             return cliente.Dni.Value.ToString();
         }
 
-        private static async Task<Cliente> CrearClienteAsync(IUnitWork db, string nombre, int dni)
+        private static async Task<Cliente> ResolverOCrearClientePorDocumentoAsync(
+            IUnitWork db,
+            string nombre,
+            int dni)
         {
             var existente = await db.clientes.GetByDniAsync(dni);
             if (existente is not null)
             {
-                throw new VentaException(
-                    $"Ya existe un cliente registrado con el número de documento {dni}. " +
-                    "Envíe Id_Cliente para usar ese cliente en el cobro.");
+                if (!string.Equals(existente.Nombre, nombre, StringComparison.Ordinal))
+                    existente.Nombre = nombre;
+
+                return existente;
             }
 
             var nuevoCliente = new Cliente
