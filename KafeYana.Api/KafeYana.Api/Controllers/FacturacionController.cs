@@ -18,6 +18,7 @@ namespace KafeYana.Api.Controllers
         private readonly IVerificaNitService _verificaNit;
         private readonly IFacturaSiatEnvioService _facturaSiatEnvio;
         private readonly IFacturaSiatAnulacionService _facturaSiatAnulacion;
+        private readonly IFacturaSiatReversionAnulacionService _facturaSiatReversionAnulacion;
         private readonly IFacturaImpresionService _facturaImpresion;
         private readonly SiatOptions _opts;
 
@@ -27,6 +28,7 @@ namespace KafeYana.Api.Controllers
             IVerificaNitService verificaNitService,
             IFacturaSiatEnvioService facturaSiatEnvio,
             IFacturaSiatAnulacionService facturaSiatAnulacion,
+            IFacturaSiatReversionAnulacionService facturaSiatReversionAnulacion,
             IFacturaImpresionService facturaImpresion,
             IOptions<SiatOptions> opts)
         {
@@ -35,6 +37,7 @@ namespace KafeYana.Api.Controllers
             _verificaNit = verificaNitService;
             _facturaSiatEnvio = facturaSiatEnvio;
             _facturaSiatAnulacion = facturaSiatAnulacion;
+            _facturaSiatReversionAnulacion = facturaSiatReversionAnulacion;
             _facturaImpresion = facturaImpresion;
             _opts = opts.Value;
         }
@@ -153,6 +156,27 @@ namespace KafeYana.Api.Controllers
                 CodigoMotivo = dto.CodigoMotivo,
                 MotivoDescripcion = MotivoAnulacionSiatCatalogo.ObtenerDescripcion(dto.CodigoMotivo),
                 Siat = anulacion
+            });
+        }
+
+        /// <summary>
+        /// Revierte en el SIAT una anulación errónea (EstadoSiat = 950). Solo permitido una vez por factura.
+        /// </summary>
+        [HttpPost("revertir-anulacion/{ventaId:int}")]
+        [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
+        public async Task<IActionResult> RevertirAnulacionFactura(int ventaId, CancellationToken ct)
+        {
+            var reversion = await _facturaSiatReversionAnulacion.RevertirAnulacionVentaAsync(ventaId, ct);
+
+            var mensaje = reversion.Transaccion
+                ? "Anulación revertida correctamente en el SIAT. La factura volvió a estado Validada (908)."
+                : "El SIAT rechazó la reversión de anulación o hubo error de comunicación.";
+
+            return Ok(new
+            {
+                message = mensaje,
+                VentaId = ventaId,
+                Siat = reversion
             });
         }
 
