@@ -910,8 +910,8 @@ namespace KafeYana.Infrastructure.Migrations
 
                     b.Property<string>("CodigoVenta")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Desglose")
                         .HasMaxLength(500)

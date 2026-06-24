@@ -14,7 +14,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.CodigoVenta)
                 .IsRequired()
-                .HasMaxLength(30);
+                .HasMaxLength(50);
 
             builder.Property(x => x.PuntosBase).IsRequired();
 
