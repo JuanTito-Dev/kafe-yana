@@ -61,7 +61,9 @@ namespace KafeYana.Infrastructure.Servicios
             }
             else
             {
-                codigoVenta = $"VTA-{anio}-C{pedido.Id}-{DateTime.UtcNow:HHmmssfff}";
+                // Guid.NewGuid():N garantiza unicidad aunque el frontend reintente
+                // o haga doble clic (el milisegundo podría colisionar).
+                codigoVenta = $"VTA-{anio}-C{pedido.Id}-{Guid.NewGuid():N}";
             }
 
             await _inventarioPedidoCompromiso.AplicarMovimientosYCerrarAsync(datos.Id_Pedido, codigoVenta);
@@ -121,9 +123,14 @@ namespace KafeYana.Infrastructure.Servicios
             ResultadoAplicacionDescuentoPromocion? descuento,
             List<Detalle_Pago> detallesVenta)
         {
-            var cuf = $"PENDIENTE-VTA-{fechaEmision.Year}-{numeroFactura:D3}";
-            var cufdCodigo = "PENDIENTE";
-
+            // ─── Generar CUF/CUFD REAL antes de armar la venta ─────────────────
+            // Si la generación falla, lanzamos excepción para que la transacción
+            // de EjecutarCobroAsync haga rollback y la venta NO quede persistida
+            // con un placeholder "PENDIENTE-VTA-...". Un placeholder así bloquearía
+            // cualquier reintento por colisión en IX_Venta_Cuf si el numeroFactura
+            // se reutilizara (race condition histórica, ya mitigada con sequence).
+            string cuf;
+            string cufdCodigo;
             try
             {
                 var cufd = await _cufdService.ObtenerCufdVigenteAsync(
@@ -145,7 +152,13 @@ namespace KafeYana.Infrastructure.Servicios
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "CUF/CUFD no generado; se guarda PENDIENTE");
+                logger.LogError(
+                    ex,
+                    "CUF/CUFD no generado al facturar número {NumeroFactura}; abortando cobro para no persistir PENDIENTE",
+                    numeroFactura);
+                throw new VentaException(
+                    "No se pudo generar el CUF/CUFD para la factura. "
+                    + "El CUFD puede haber vencido o el SIAT no responde. Intente nuevamente.");
             }
 
             var venta = CrearVentaBase(

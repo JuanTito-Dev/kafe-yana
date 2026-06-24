@@ -51,6 +51,10 @@ namespace KafeYana.Infrastructure.Data
 
         public DbSet<Detalle_Pago> Detalle_Pagos { get; set; }
 
+        public DbSet<NotaAjuste> NotasAjuste { get; set; }
+
+        public DbSet<NotaAjusteDetalle> NotasAjusteDetalles { get; set; }
+
         public DbSet<Pedido> Pedidos { get; set; }
 
         public DbSet<Ronda> Rondas { get; set; }
@@ -154,6 +158,10 @@ namespace KafeYana.Infrastructure.Data
             builder.ApplyConfigurationsFromAssembly(typeof(VentaConfig).Assembly);
 
             builder.ApplyConfigurationsFromAssembly(typeof(Detalle_PagoConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(NotaAjusteConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(NotaAjusteDetalleConfig).Assembly);
 
             builder.ApplyConfigurationsFromAssembly(typeof(PedidoConfig).Assembly);
 

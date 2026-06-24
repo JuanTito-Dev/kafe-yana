@@ -53,6 +53,12 @@ namespace KafeYana.Infrastructure
             services.AddSingleton<ICufGenerator, CufGenerator>();
             services.AddSingleton<IFacturaXmlGenerator, FacturaXmlGenerator>();
 
+            // Nota de Crédito/Débito (SIAT — sector 24, tipoFactura 3)
+            services.AddScoped<INotaAjusteXmlGenerator, NotaAjusteXmlGenerator>();
+            services.AddScoped<IRecepcionNotaAjusteService, RecepcionNotaAjusteService>();
+            services.AddScoped<INotaAjusteSiatPreparer, NotaAjusteSiatPreparer>();
+            services.AddScoped<INotaAjusteSiatEnvioService, NotaAjusteSiatEnvioService>();
+
             return services;
         }
     }

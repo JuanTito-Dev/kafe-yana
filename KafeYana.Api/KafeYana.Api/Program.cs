@@ -251,6 +251,7 @@ builder.Services.AddScoped<IMesaRepositorio, MesaRepositorio>();
 builder.Services.AddScoped<IPedidoRepositorio, PedidoRepositorio>();
 builder.Services.AddScoped<IRondaRepositorio, RondaRepositorio>();
 builder.Services.AddScoped<IVentaRepositorio, VentaRepositorio>();
+builder.Services.AddScoped<INotaAjusteRepositorio, NotaAjusteRepositorio>();
 builder.Services.AddScoped<IOpcionRepositorio, OpcionRepositorio>();
 builder.Services.AddScoped<IUnitWork, UnitWork>();
 builder.Services.AddScoped<IProveedorRepositorio, ProveedorRepositorio>();
