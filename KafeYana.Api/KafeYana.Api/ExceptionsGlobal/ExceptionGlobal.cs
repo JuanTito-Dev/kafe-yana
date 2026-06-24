@@ -31,7 +31,10 @@ namespace KafeYana.Application.Exceptions
                     "23503" => new ForeignKeyException(ResolverFK(pgEx.ConstraintName, pgEx.MessageText)),
                     "23001" => new ForeignKeyException(ResolverFK_Eliminacion(pgEx.ConstraintName)),
                     "23502" => new InventarioException($"Campo obligatorio sin valor: {pgEx.ColumnName ?? pgEx.MessageText}"),
-                    "22001" => new InventarioException("Uno de los valores excede la longitud permitida en base de datos."),
+                    "22001" => new InventarioException(
+                        $"Uno de los valores excede la longitud permitida en base de datos. "
+                        + $"Tabla: {pgEx.TableName ?? "?"}. Columna: {pgEx.ColumnName ?? "?"}. "
+                        + $"Detalle: {pgEx.MessageText}"),
                     "42703" => new InventarioException("El esquema de base de datos no coincide con la aplicación. Aplique las migraciones pendientes."),
 
                     _ => exception
