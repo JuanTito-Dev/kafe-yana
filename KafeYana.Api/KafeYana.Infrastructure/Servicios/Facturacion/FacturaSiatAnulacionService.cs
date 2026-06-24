@@ -30,6 +30,12 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             if (!venta.Facturado)
                 throw new VentaException("La venta no fue emitida como factura electrónica y no puede anularse en el SIAT.");
 
+            if (venta.RevertidaAnulacion)
+            {
+                throw new VentaException(
+                    "No se puede anular en el SIAT una factura cuya anulación ya fue revertida.");
+            }
+
             if (venta.EstadoSiat == FacturaEstado.Anulada)
             {
                 return new ResultadoAnulacionFacturaDto

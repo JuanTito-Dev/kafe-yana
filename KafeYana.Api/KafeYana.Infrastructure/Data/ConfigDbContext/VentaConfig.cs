@@ -56,6 +56,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.Property(x => x.XmlBase64).HasColumnType("text");
             builder.Property(x => x.EstadoSiat).HasConversion<int?>();
             builder.Property(x => x.Facturado).IsRequired().HasDefaultValue(false);
+            builder.Property(x => x.RevertidaAnulacion).IsRequired().HasDefaultValue(false);
         }
     }
 }

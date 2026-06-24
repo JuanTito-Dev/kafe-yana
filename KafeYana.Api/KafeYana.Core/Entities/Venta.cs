@@ -86,6 +86,9 @@ namespace KafeYana.Domain.Entities
 
         public FacturaEstado? EstadoSiat { get; set; }
 
+        /// <summary>True si la anulación errónea ya fue revertida en el SIAT (solo permitido una vez).</summary>
+        public bool RevertidaAnulacion { get; set; }
+
         public string? CodigoRecepcion { get; set; }
 
         public string? ErrorMensaje { get; set; }
