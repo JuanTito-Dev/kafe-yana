@@ -110,8 +110,14 @@ namespace KafeYana.Application.Exceptions
 
                 // ==================== VENTAS ====================
                 "Codigo-repetido" => "Ya existe una venta con ese código. Intente de nuevo.",
-                "IX_Venta_Cuf" => "Ya existe una venta con ese CUF.",
-                "IX_Venta_NumeroFactura" => "Ya existe una venta con ese número de factura.",
+                "IX_Venta_Cuf" => "Conflicto de CUF: reintenta el cobro en unos segundos.",
+                "IX_Venta_NumeroFactura" => "Conflicto de correlativo: reintenta el cobro en unos segundos.",
+                "PK_Venta" => "Conflicto interno: reintenta el cobro. Si persiste, contacta al administrador.",
+                "PK_Detalle_Pago" => "Conflicto interno: reintenta el cobro. Si persiste, contacta al administrador.",
+
+                // ==================== NOTAS DE AJUSTE ====================
+                "IX_NotaAjuste_Cuf" => "Conflicto de CUF en nota de ajuste: reintenta la emisión en unos segundos.",
+                "IX_NotaAjuste_NumeroNotaCreditoDebito" => "Conflicto de correlativo en nota de ajuste: reintenta la emisión en unos segundos.",
 
                 // ==================== PRODUCTOS ====================
                 "id_nombre_producto" => "Ya existe un producto con ese nombre.",

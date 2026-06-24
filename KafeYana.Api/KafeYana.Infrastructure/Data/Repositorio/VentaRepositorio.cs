@@ -28,12 +28,23 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                 .CountAsync();
         }
 
-        /// <summary>Correlativo SIAT: MAX(NumeroFactura) + 1 solo entre ventas facturadas.</summary>
+        /// <summary>
+        /// Correlativo SIAT atómico vía sequence de Postgres.
+        /// Reemplaza el MAX(NumeroFactura) + 1 que sufría race condition bajo
+        /// cobros concurrentes (dos requests leían el mismo MAX → mismo NumeroFactura
+        /// → colisión en IX_Venta_NumeroFactura). La sequence es atómica por
+        /// diseño: cada nextval() devuelve un valor único e irrepetible.
+        ///
+        /// REQUISITO: la BD debe tener la sequence "Venta_NumeroFactura_seq".
+        /// Si no existe, crearla con:
+        ///   CREATE SEQUENCE IF NOT EXISTS "Venta_NumeroFactura_seq" START 1;
+        /// (ajustar START al MAX(NumeroFactura)+1 actual de la tabla para no
+        ///  duplicar números ya emitidos al SIAT).
+        /// </summary>
         public async Task<long> SiguienteNumeroFacturaSiatAsync()
         {
             var result = await _db.Database
-                .SqlQueryRaw<long>(
-                    "SELECT COALESCE(MAX(\"NumeroFactura\"), 0) + 1 FROM \"Venta\" WHERE \"Facturado\" = true")
+                .SqlQueryRaw<long>("SELECT nextval('\"Venta_NumeroFactura_seq\"')")
                 .ToListAsync();
 
             return result[0];

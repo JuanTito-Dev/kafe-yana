@@ -81,6 +81,18 @@ namespace KafeYana.Infrastructure.Configuration
         /// </summary>
         public string ServicioReversionAnulacionFactura { get; set; } = "ServicioFacturacionCompraVenta";
 
+        /// <summary>
+        /// Servicio SOAP para notas de crédito/débito computarizadas.
+        /// Piloto: ServicioFacturacionDocumentoAjuste (distinto de CompraVenta).
+        /// </summary>
+        public string ServicioRecepcionNotaAjuste { get; set; } = "ServicioFacturacionDocumentoAjuste";
+
+        /// <summary>Sector SIAT para notas de crédito/débito (24 por defecto).</summary>
+        public int CodigoDocumentoSectorNotaAjuste { get; set; } = 24;
+
+        /// <summary>Tipo de documento para notas de crédito/débito (3 por defecto).</summary>
+        public int TipoFacturaDocumentoNotaAjuste { get; set; } = 3;
+
         /// <summary>0 por defecto. 1 solo si el SIN autoriza factura a NIT inválido.</summary>
         public int CodigoExcepcion { get; set; } = 0;
 

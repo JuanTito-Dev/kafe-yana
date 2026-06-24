@@ -34,6 +34,8 @@ namespace KafeYana.Application.IRepositorio
 
         IVentaRepositorio ventas { get; }
 
+        INotaAjusteRepositorio notasAjuste { get; }
+
         IVariacionReposiotorio variaciones { get; }
 
         IProductoMovimientoRepositorio movimientos { get; }

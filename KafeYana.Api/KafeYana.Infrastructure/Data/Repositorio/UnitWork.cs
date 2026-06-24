@@ -38,6 +38,8 @@ namespace KafeYana.Infrastructure.Data.Repositorio
         
         public IVentaRepositorio ventas { get; private set; }
 
+        public INotaAjusteRepositorio notasAjuste { get; private set; }
+
         public IVariacionReposiotorio variaciones { get; private set; }
          
         public IProductoMovimientoRepositorio movimientos { get ; private set; }
@@ -97,6 +99,7 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                 IOpcionRepositorio opciones,
                 IComboRepositorio combo,
                 IVentaRepositorio ventas,
+                INotaAjusteRepositorio notasAjuste,
                 IVariacionReposiotorio variacion,
                 IProductoMovimientoRepositorio movimientos,
                 IInsumoMovimientoRepositorio insumomovientos,
@@ -137,6 +140,7 @@ namespace KafeYana.Infrastructure.Data.Repositorio
             this.opciones = opciones;
             Combo = combo;
             this.ventas = ventas;
+            this.notasAjuste = notasAjuste;
             variaciones = variacion;
             this.movimientos = movimientos;
             Insumomovientos = insumomovientos;

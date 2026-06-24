@@ -181,7 +181,7 @@ namespace KafeYana.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_categorias_nombre");
 
-                    b.ToTable("Categorias", (string)null);
+                    b.ToTable("Categorias");
                 });
 
             modelBuilder.Entity("KafeYana.Domain.Entities.AceleradorPuntos", b =>
@@ -558,7 +558,7 @@ namespace KafeYana.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("unique_nombre_cliente");
 
-                    b.ToTable("Clientes", null, t =>
+                    b.ToTable("Clientes", t =>
                         {
                             t.HasCheckConstraint("CK_Cliente_Puntos_NonNegative", "\"Puntos\" >= 0");
                         });
@@ -1952,6 +1952,242 @@ namespace KafeYana.Infrastructure.Migrations
                     b.ToTable("Variacion", (string)null);
                 });
 
+            modelBuilder.Entity("KafeYana.Domain.Entities.NotaAjuste", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodigoCliente")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("CodigoDocumentoSector")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(24);
+
+                    b.Property<int?>("CodigoExcepcion")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CodigoHash")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<int>("CodigoMotivoAjuste")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CodigoPuntoVenta")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("CodigoRecepcion")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("CodigoSucursal")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CodigoTipoDocumentoIdentidad")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Complemento")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("Cuf")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Cufd")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Direccion")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("ErrorMensaje")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<int?>("EstadoSiat")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("FechaEmision")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("FechaEmisionFactura")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("IdVenta")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Leyenda")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<decimal>("MontoDescuentoCreditoDebito")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("MontoEfectivoCreditoDebito")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("MontoTotalDevuelto")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("MontoTotalOriginal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("Municipio")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<long>("NitEmisor")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("NombreRazonSocial")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("NumeroAutorizacionCuf")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("NumeroDocumento")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<long>("NumeroFacturaOriginal")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("NumeroNotaCreditoDebito")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("RazonSocialEmisor")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<bool>("RevertidaAnulacion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Telefono")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int?>("TipoEmision")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Usuario")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("XmlBase64")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Cuf")
+                        .IsUnique();
+
+                    b.HasIndex("EstadoSiat");
+
+                    b.HasIndex("FechaEmision");
+
+                    b.HasIndex("IdVenta");
+
+                    b.HasIndex("NumeroNotaCreditoDebito")
+                        .IsUnique()
+                        .HasFilter("\"NumeroNotaCreditoDebito\" IS NOT NULL");
+
+                    b.ToTable("NotaAjuste", (string)null);
+                });
+
+            modelBuilder.Entity("KafeYana.Domain.Entities.NotaAjusteDetalle", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ActividadEconomica")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<decimal>("Cantidad")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("CodigoDetalleTransaccion")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CodigoProducto")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("CodigoProductoSin")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("IdDetallePagoOriginal")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IdNotaAjuste")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("MontoDescuento")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("NumeroLineaOriginal")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("PrecioUnitario")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("SubTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("UnidadMedida")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdDetallePagoOriginal");
+
+                    b.HasIndex("IdNotaAjuste");
+
+                    b.ToTable("NotaAjusteDetalle", (string)null);
+                });
+
             modelBuilder.Entity("KafeYana.Domain.Entities.ParaLlevar", b =>
                 {
                     b.Property<int>("Id")
@@ -2461,6 +2697,11 @@ namespace KafeYana.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.Property<bool>("RevertidaAnulacion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Telefono")
                         .HasMaxLength(50)
@@ -3098,6 +3339,30 @@ namespace KafeYana.Infrastructure.Migrations
                     b.Navigation("Elaborado");
                 });
 
+            modelBuilder.Entity("KafeYana.Domain.Entities.NotaAjuste", b =>
+                {
+                    b.HasOne("KafeYana.Domain.Entities.Venta", "Venta")
+                        .WithMany()
+                        .HasForeignKey("IdVenta")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_NotaAjuste_Venta");
+
+                    b.Navigation("Venta");
+                });
+
+            modelBuilder.Entity("KafeYana.Domain.Entities.NotaAjusteDetalle", b =>
+                {
+                    b.HasOne("KafeYana.Domain.Entities.NotaAjuste", "NotaAjuste")
+                        .WithMany("Detalles")
+                        .HasForeignKey("IdNotaAjuste")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_NotaAjusteDetalle_NotaAjuste");
+
+                    b.Navigation("NotaAjuste");
+                });
+
             modelBuilder.Entity("KafeYana.Domain.Entities.ParaLlevar", b =>
                 {
                     b.HasOne("KafeYana.Domain.Entities.Pedido", "Pedido")
@@ -3339,6 +3604,11 @@ namespace KafeYana.Infrastructure.Migrations
             modelBuilder.Entity("KafeYana.Domain.Entities.Inventario.Variacion", b =>
                 {
                     b.Navigation("Opciones");
+                });
+
+            modelBuilder.Entity("KafeYana.Domain.Entities.NotaAjuste", b =>
+                {
+                    b.Navigation("Detalles");
                 });
 
             modelBuilder.Entity("KafeYana.Domain.Entities.Pedido", b =>
