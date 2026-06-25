@@ -115,10 +115,20 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 throw new InvalidOperationException(
                     "La nota debe tener al menos un detalle.");
 
-            // NOTA: NO exigimos mínimo 2 líneas. El XSD real (notaComputarizadaCreditoDebito.xsd)
-            // usa minOccurs="1" en <detalle>. La creencia histórica de que pedía 2 llevó a un
-            // "split natural" en el frontend que duplicaba el idDetallePagoOriginal y hacía que
-            // el SIAT rechazara con 1049/1029. Ver [[kafeyana-notaajuste-siat-reglas]].
+            // El XSD oficial (notaComputarizadaCreditoDebito.xsd, línea 215) exige
+            // <xs:element name="detalle" minOccurs="2" maxOccurs="500">.
+            // Cada nota DEBE contener al menos un par (trans=1 + trans=2) por producto
+            // a devolver. El servicio de envío (NotaAjusteSiatEnvioService) ya garantiza
+            // esta estructura antes de llegar aquí.
+            if (nota.Detalles.Count < 2)
+                throw new InvalidOperationException(
+                    $"La nota debe tener al menos 2 detalles (XSD minOccurs=2). Actual: {nota.Detalles.Count}.");
+
+            if (!nota.Detalles.Any(d => d.CodigoDetalleTransaccion == 1) ||
+                !nota.Detalles.Any(d => d.CodigoDetalleTransaccion == 2))
+                throw new InvalidOperationException(
+                    "La nota debe contener al menos un detalle con codigoDetalleTransaccion=1 "
+                    + "(referencia al item original) y otro con codigoDetalleTransaccion=2 (devolución).");
 
             // Cada detalle debe referenciar una línea original (XSD obliga).
             for (var i = 0; i < nota.Detalles.Count; i++)
@@ -135,16 +145,35 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                         $"Detalle #{i + 1}: CodigoDetalleTransaccion debe ser > 0.");
             }
 
-            // ═══ Validaciones anti-rechazo SIAT (errores 1029 / 1031) ═══
-            // 1029: suma de subtotales no cuadra con montoTotalDevuelto
+            // ═══ Validaciones anti-rechazo SIAT (errores 1029 / 1030 / 1031) ═══
+            // 1029: suma de subtotales de líneas con codigoDetalleTransaccion=2 no cuadra
+            //       con montoTotalDevuelto (el SIAT computa este valor a partir de los detalles).
+            // 1030: suma de subtotales de líneas con codigoDetalleTransaccion=1 no cuadra
+            //       con montoTotalOriginal. NO es venta.MontoTotal: en devoluciones parciales
+            //       el SIAT espera sólo el subtotal de los items seleccionados.
             // 1031: montoEfectivoCreditoDebito no cuadra con (montoTotalDevuelto - descuento) * 0.13
-            //       (es el IVA / crédito fiscal de la nota, NO el total devuelto)
-            var sumaSubtotales = nota.Detalles.Sum(d => d.SubTotal);
-            if (Math.Abs(sumaSubtotales - nota.MontoTotalDevuelto) > ToleranciaCentavos)
+            //       (es el IVA / crédito fiscal de la nota, NO el total devuelto).
+            var sumaTrans1 = nota.Detalles
+                .Where(d => d.CodigoDetalleTransaccion == 1)
+                .Sum(d => d.SubTotal);
+            if (Math.Abs(sumaTrans1 - nota.MontoTotalOriginal) > ToleranciaCentavos)
             {
                 throw new InvalidOperationException(
-                    $"La suma de los subtotales ({sumaSubtotales:0.00}) no coincide con montoTotalDevuelto " +
-                    $"({nota.MontoTotalDevuelto:0.00}). Diferencia: {(sumaSubtotales - nota.MontoTotalDevuelto):0.00}. " +
+                    $"La suma de subtotales con codigoDetalleTransaccion=1 ({sumaTrans1:0.00}) " +
+                    $"no coincide con montoTotalOriginal ({nota.MontoTotalOriginal:0.00}). " +
+                    $"Diferencia: {(sumaTrans1 - nota.MontoTotalOriginal):0.00}. " +
+                    "Revise los detalles antes de enviar al SIAT (esto sería rechazado con error 1030).");
+            }
+
+            var sumaTrans2 = nota.Detalles
+                .Where(d => d.CodigoDetalleTransaccion == 2)
+                .Sum(d => d.SubTotal);
+            if (Math.Abs(sumaTrans2 - nota.MontoTotalDevuelto) > ToleranciaCentavos)
+            {
+                throw new InvalidOperationException(
+                    $"La suma de subtotales con codigoDetalleTransaccion=2 ({sumaTrans2:0.00}) " +
+                    $"no coincide con montoTotalDevuelto ({nota.MontoTotalDevuelto:0.00}). " +
+                    $"Diferencia: {(sumaTrans2 - nota.MontoTotalDevuelto):0.00}. " +
                     "Revise los detalles antes de enviar al SIAT (esto sería rechazado con error 1029).");
             }
 
