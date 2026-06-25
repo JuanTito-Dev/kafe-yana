@@ -4,11 +4,14 @@ using KafeYana.Application.IRepositorio;
 using KafeYana.Application.IServicios;
 using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Domain.Entities;
+using KafeYana.Domain.Entities.Catalogos;
 using KafeYana.Domain.Entities.Inventario;
 using KafeYana.Domain.TiposDeDatos;
 using KafeYana.Infrastructure.Configuration;
+using KafeYana.Infrastructure.Data;
 using KafeYana.Infrastructure.Servicios.Facturacion;
 using KafeYana.Infrastructure.Servicios.Facturacion.Utilidades;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -27,6 +30,7 @@ namespace KafeYana.Infrastructure.Servicios
         ICufGenerator _cufGenerator,
         IOptions<SiatOptions> siatOpts,
         IOptions<DatosEmpresaOptions> empresaOpts,
+        IDbContextFactory<AppDbContext> dbFactory,
         ILogger<VentaServices> logger) : IVentaServices
     {
         private readonly SiatOptions _siat = siatOpts.Value;
@@ -316,7 +320,7 @@ namespace KafeYana.Infrastructure.Servicios
                     {
                         detallesPorProducto[key] = new Detalle_Pago
                         {
-                            ActividadEconomica = _empresa.CodigoActividad,
+                            ActividadEconomica = ResolverActividadEconomica(),
                             CodigoProductoSin = ResolverCodigoProductoSin(detalle),
                             CodigoProducto = codigo,
                             Descripcion = detalle.Nombre_Producto,
@@ -380,6 +384,56 @@ namespace KafeYana.Infrastructure.Servicios
             throw new VentaException(
                 $"El producto '{detalle.Nombre_Producto}' no tiene código SIN configurado. "
                 + "Configure el código SIN en el producto antes de facturar.");
+        }
+
+        /// <summary>
+        /// Obtiene el código de actividad económica (CAEB) vigente desde la tabla
+        /// CatActividades (refrescada periódicamente por SincronizadorCatActividades).
+        ///
+        /// Reglas de selección, en orden:
+        ///   1) Actividad marcada por el SIN como "P" (Principal).
+        ///   2) Si el SIN no marcó ninguna Principal, la que coincida con
+        ///      DatosEmpresaOptions.CodigoActividad (appsettings.json).
+        ///   3) Como último recurso, la primera fila de la tabla.
+        /// Si la tabla está vacía, lanza CatalogoNoSincronizadoException para
+        /// forzar la sincronización antes de facturar.
+        /// </summary>
+        private string ResolverActividadEconomica()
+        {
+            using var db = dbFactory.CreateDbContext();
+
+            // 1) Preferir la Principal marcada por el SIN (TipoActividad == "P")
+            var principal = db.CatActividades
+                .AsNoTracking()
+                .FirstOrDefault(a => a.TipoActividad == "P");
+            if (principal is not null)
+                return principal.CodigoCaeb;
+
+            // 2) Si el SIN no devolvió ninguna como Principal, usar la del appsettings
+            var codigoConfig = _empresa.CodigoActividad;
+            if (!string.IsNullOrWhiteSpace(codigoConfig))
+            {
+                var delConfig = db.CatActividades
+                    .AsNoTracking()
+                    .FirstOrDefault(a => a.CodigoCaeb == codigoConfig);
+                if (delConfig is not null)
+                    return delConfig.CodigoCaeb;
+            }
+
+            // 3) Tabla vacía → exigir sincronización
+            if (!db.CatActividades.AsNoTracking().Any())
+                throw new CatalogoNoSincronizadoException("CatActividades");
+
+            // 4) Último recurso: primera fila + warning (NO debería llegar aquí)
+            logger.LogWarning(
+                "CatActividades sin marca Principal y CodigoActividad={Codigo} no encontrada en la tabla. "
+                + "Usando la primera actividad disponible como fallback.",
+                codigoConfig);
+            return db.CatActividades
+                .AsNoTracking()
+                .OrderBy(a => a.Id)
+                .First()
+                .CodigoCaeb;
         }
 
         private static string ResolverCodigoProducto(Detalle_ronda detalle)

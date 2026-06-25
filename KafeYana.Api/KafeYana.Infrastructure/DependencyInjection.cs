@@ -1,6 +1,8 @@
 ﻿using KafeYana.Application.IServicios.IFacturacion;
+using KafeYana.Infrastructure.BackgroundServices;
 using KafeYana.Infrastructure.Configuration;
 using KafeYana.Infrastructure.Options;
+using KafeYana.Infrastructure.Servicios;
 using KafeYana.Infrastructure.Servicios.Facturacion;
 using KafeYana.Infrastructure.Servicios.FacturacionImpresion;
 using KafeYana.Infrastructure.SiatClient;
@@ -62,6 +64,11 @@ namespace KafeYana.Infrastructure
             services.AddScoped<IRecepcionNotaAjusteService, RecepcionNotaAjusteService>();
             services.AddScoped<INotaAjusteSiatPreparer, NotaAjusteSiatPreparer>();
             services.AddScoped<INotaAjusteSiatEnvioService, NotaAjusteSiatEnvioService>();
+
+            // Sincronización de catálogos del SIAT
+            // (Scoped porque depende de ICuisService que también es Scoped)
+            services.AddScoped<SincronizadorCatActividades>();
+            services.AddHostedService<SincronizacionCatActividadesHostedService>();
 
             return services;
         }

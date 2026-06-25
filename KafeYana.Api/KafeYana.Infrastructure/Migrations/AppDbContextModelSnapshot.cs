@@ -475,6 +475,41 @@ namespace KafeYana.Infrastructure.Migrations
                     b.ToTable("CajaMovimientos", (string)null);
                 });
 
+            modelBuilder.Entity("KafeYana.Domain.Entities.Catalogos.CatActividad", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodigoCaeb")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("FechaSincronizacion")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TipoActividad")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CodigoCaeb")
+                        .IsUnique()
+                        .HasDatabaseName("IX_CatActividades_CodigoCaeb");
+
+                    b.ToTable("CatActividades", (string)null);
+                });
+
             modelBuilder.Entity("KafeYana.Domain.Entities.Cliente", b =>
                 {
                     b.Property<int>("Id")
@@ -3342,7 +3377,7 @@ namespace KafeYana.Infrastructure.Migrations
             modelBuilder.Entity("KafeYana.Domain.Entities.NotaAjuste", b =>
                 {
                     b.HasOne("KafeYana.Domain.Entities.Venta", "Venta")
-                        .WithMany()
+                        .WithMany("NotasAjuste")
                         .HasForeignKey("IdVenta")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
@@ -3633,6 +3668,8 @@ namespace KafeYana.Infrastructure.Migrations
             modelBuilder.Entity("KafeYana.Domain.Entities.Venta", b =>
                 {
                     b.Navigation("Detalles");
+
+                    b.Navigation("NotasAjuste");
                 });
 #pragma warning restore 612, 618
         }

@@ -147,6 +147,79 @@ namespace KafeYana.Infrastructure.SiatClient
         }
 
         // ─────────────────────────────────────────────
+        // Sincronizar Actividades (FacturacionSincronizacion)
+        // ─────────────────────────────────────────────
+        public async Task<SincronizarActividadesResponse> SincronizarActividadesAsync(
+            string cuis,
+            int codigoSucursal,
+            int codigoPuntoVenta,
+            CancellationToken ct = default)
+        {
+            // IMPORTANTE: el nombre del elemento interno es "SolicitudSincronizacion"
+            // (no "SolicitudSincronizarActividades"). Verificado por respuesta del SIAT.
+            var body = new XElement(SiatNs + "sincronizarActividades",
+                Solicitud("SolicitudSincronizacion",
+                    Campo("codigoAmbiente", _opts.CodigoAmbiente),
+                    Campo("codigoPuntoVenta", codigoPuntoVenta),
+                    Campo("codigoSistema", _opts.CodigoSistema),
+                    Campo("codigoSucursal", codigoSucursal),
+                    Campo("cuis", cuis),
+                    Campo("nit", _opts.Nit)
+                )
+            );
+
+            var xml = await EnviarSoapAsync("FacturacionSincronizacion", body, ct);
+
+            // El SIAT responde con <RespuestaListaActividades> envolviendo la lista.
+            var respEl = BuscarElemento(xml, "RespuestaListaActividades")
+                ?? BuscarElemento(xml, "sincronizarActividadesResponse");
+
+            var respuesta = new SincronizarActividadesResponse
+            {
+                Transaccion = ParseTransaccion(respEl),
+                CodigosRespuesta = ParseCodigos(respEl)
+                    .Select(c => new CodigoRespuestaSiatDto
+                    {
+                        Codigo = c.Codigo,
+                        Descripcion = c.Descripcion
+                    }).ToList()
+            };
+
+            // Estructura observada en piloto (jun-2026):
+            // <RespuestaListaActividades>
+            //     <transaccion>true</transaccion>
+            //     <listaActividades>
+            //         <codigoCaeb>6920000</codigoCaeb>
+            //         <descripcion>...</descripcion>
+            //         <tipoActividad>S</tipoActividad>
+            //     </listaActividades>
+            //     <listaActividades>...</listaActividades>
+            // </RespuestaListaActividades>
+            //
+            // OJO: el SIAT NO usa un contenedor único. CADA actividad
+            // es un elemento <listaActividades> independiente.
+            if (respEl is not null)
+            {
+                foreach (var act in respEl.Elements()
+                    .Where(e => e.Name.LocalName == "listaActividades"))
+                {
+                    var caeb = ValorElemento(act, "codigoCaeb");
+                    if (string.IsNullOrWhiteSpace(caeb))
+                        continue;
+
+                    respuesta.Actividades.Add(new ActividadSiatDto
+                    {
+                        CodigoCaeb = caeb,
+                        Descripcion = ValorElemento(act, "descripcion") ?? string.Empty,
+                        TipoActividad = ValorElemento(act, "tipoActividad") ?? string.Empty
+                    });
+                }
+            }
+
+            return respuesta;
+        }
+
+        // ─────────────────────────────────────────────
         // Recepción Factura
         // ─────────────────────────────────────────────
         public async Task<RespuestaRecepcionFacturaDto> RecepcionFacturaAsync(
