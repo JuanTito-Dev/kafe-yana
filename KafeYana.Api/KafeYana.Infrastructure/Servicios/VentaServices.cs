@@ -284,31 +284,57 @@ namespace KafeYana.Infrastructure.Servicios
             var detallesVenta = new List<Detalle_Pago>();
             var tieneCombo = false;
 
+            // Diccionario de consolidación: si el mismo producto aparece en varias
+            // rondas (ej: 2x Café en ronda 1, 3x Café en ronda 2), lo agrupamos en
+            // una sola línea de Detalle_Pago sumando Cantidad y SubTotal. Clave:
+            // CodigoProducto (más estable que el nombre). Fallback al nombre
+            // normalizado para productos sin código resuelto.
+            var detallesPorProducto = new Dictionary<string, Detalle_Pago>(StringComparer.Ordinal);
+
             foreach (var ronda in pedido.Rondas)
             {
                 foreach (var detalle in ronda.Detalle)
                 {
-                    detallesVenta.Add(new Detalle_Pago
-                    {
-                        ActividadEconomica = _empresa.CodigoActividad,
-                        CodigoProductoSin = ResolverCodigoProductoSin(detalle),
-                        CodigoProducto = ResolverCodigoProducto(detalle),
-                        Descripcion = detalle.Nombre_Producto,
-                        Cantidad = detalle.Cantidad,
-                        UnidadMedida = validarUnidadSiat
-                            ? ResolverUnidadMedidaSiat(detalle)
-                            : ResolverUnidadMedidaInterna(detalle),
-                        PrecioUnitario = detalle.Precio,
-                        MontoDescuento = null,
-                        SubTotal = detalle.Precio * detalle.Cantidad,
-                        NumeroSerie = null,
-                        NumeroImei = null
-                    });
-
                     if (detalle.ItemsCombo.Count > 0)
                         tieneCombo = true;
+
+                    var codigo = ResolverCodigoProducto(detalle);
+                    var key = !string.IsNullOrWhiteSpace(codigo)
+                        ? $"cod:{codigo}"
+                        : $"nom:{detalle.Nombre_Producto.Trim().ToLowerInvariant()}";
+
+                    var subtotalLinea = detalle.Precio * detalle.Cantidad;
+
+                    if (detallesPorProducto.TryGetValue(key, out var existente))
+                    {
+                        // Sumar Cantidad y SubTotal; mantener el resto del primer
+                        // registro (descripción, precio unitario, código SIN, etc.).
+                        existente.Cantidad += detalle.Cantidad;
+                        existente.SubTotal += subtotalLinea;
+                    }
+                    else
+                    {
+                        detallesPorProducto[key] = new Detalle_Pago
+                        {
+                            ActividadEconomica = _empresa.CodigoActividad,
+                            CodigoProductoSin = ResolverCodigoProductoSin(detalle),
+                            CodigoProducto = codigo,
+                            Descripcion = detalle.Nombre_Producto,
+                            Cantidad = detalle.Cantidad,
+                            UnidadMedida = validarUnidadSiat
+                                ? ResolverUnidadMedidaSiat(detalle)
+                                : ResolverUnidadMedidaInterna(detalle),
+                            PrecioUnitario = detalle.Precio,
+                            MontoDescuento = null,
+                            SubTotal = subtotalLinea,
+                            NumeroSerie = null,
+                            NumeroImei = null
+                        };
+                    }
                 }
             }
+
+            detallesVenta.AddRange(detallesPorProducto.Values);
 
             return (detallesVenta, tieneCombo);
         }
