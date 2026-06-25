@@ -4,7 +4,7 @@ using KafeYana.Application.IRepositorio;
 using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Domain.Entities;
 using KafeYana.Domain.TiposDeDatos;
-using KafeYana.Infrastructure.Configuration;
+using KafeYana.Infrastructure.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net.Sockets;
@@ -12,17 +12,28 @@ using System.Text;
 
 namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
 {
+    /// <summary>
+    /// Construye el ticket ESC/POS de la factura fiscal (con QR SIAT) y lo
+    /// envía por TCP a uno o varios destinos configurados en la sección
+    /// unificada `Impresoras.Destinos` del appsettings.
+    /// </summary>
     public class FacturaImpresionService(
         IUnitWork _db,
-        IOptions<FacturaImpresoraOptions> options,
+        IOptions<ImpresoraOptions> options,
         ILogger<FacturaImpresionService> logger) : IFacturaImpresionService
     {
-        private readonly FacturaImpresoraOptions _opts = options.Value;
+        private readonly ImpresoraOptions _opts = options.Value;
 
-        public async Task<ResultadoImpresionFacturaDto> ImprimirVentaAsync(
-            Venta venta,
+        public async Task<ResultadoImpresionFacturaDto> ImprimirPorIdAsync(
+            int ventaId,
+            IReadOnlyList<string> destinos,
+            int? anchoCaracteres,
             CancellationToken ct = default)
         {
+            var venta = await _db.ventas.TraerVentaConDetallesAsync(ventaId);
+            if (venta is null)
+                throw new VentaException("Venta no encontrada.");
+
             if (!venta.Facturado)
             {
                 return new ResultadoImpresionFacturaDto
@@ -63,44 +74,64 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
                 };
             }
 
+            if (destinos is null || destinos.Count == 0)
+            {
+                return new ResultadoImpresionFacturaDto
+                {
+                    Enviado = false,
+                    Ok = false,
+                    ErrorMensaje = "Debe seleccionar al menos una impresora de destino."
+                };
+            }
+
+            var ancho = anchoCaracteres ?? _opts.AnchoCaracteres;
             var urlQr = FacturaQrUrlBuilder.Construir(venta);
-            var builder = new FacturaTicketBuilder(_opts.AnchoCaracteres);
+            var builder = new FacturaTicketBuilder(ancho);
             var ticket = builder.Construir(venta, urlQr);
 
-            var (ok, error) = await EnviarTcpAsync(ticket, ct);
+            var erroresPorDestino = new List<string>();
+            var aciertos = 0;
+
+            foreach (var destino in destinos)
+            {
+                if (!_opts.Destinos.TryGetValue(destino, out var cfg))
+                {
+                    erroresPorDestino.Add($"[{destino}] no existe en Impresoras.Destinos");
+                    logger.LogWarning("Destino '{Destino}' no configurado en Impresoras.Destinos", destino);
+                    continue;
+                }
+
+                var (ok, error) = await EnviarTcpAsync(ticket, destino, cfg.Ip, cfg.Port, ct);
+                if (ok) aciertos++;
+                else if (!string.IsNullOrWhiteSpace(error))
+                    erroresPorDestino.Add($"[{destino}] {error}");
+            }
 
             return new ResultadoImpresionFacturaDto
             {
                 Enviado = true,
-                Ok = ok,
-                ErrorMensaje = error,
+                Ok = aciertos > 0,
+                ErrorMensaje = erroresPorDestino.Count == 0
+                    ? null
+                    : string.Join(" | ", erroresPorDestino),
                 UrlQr = urlQr
             };
         }
 
-        public async Task<ResultadoImpresionFacturaDto> ImprimirPorIdAsync(
-            int ventaId,
-            CancellationToken ct = default)
-        {
-            var venta = await _db.ventas.TraerVentaConDetallesAsync(ventaId);
-            if (venta is null)
-                throw new VentaException("Venta no encontrada.");
-
-            return await ImprimirVentaAsync(venta, ct);
-        }
-
-        private async Task<(bool ok, string? error)> EnviarTcpAsync(byte[] data, CancellationToken ct)
+        private async Task<(bool ok, string? error)> EnviarTcpAsync(
+            byte[] data, string destino, string ip, int port, CancellationToken ct)
         {
             if (_opts.DevMode)
             {
                 logger.LogInformation(
-                    "[SIM:FACTURA]\n{Texto}\n--- fin ticket ---",
+                    "[SIM:FACTURA -> {Destino}]\n{Texto}\n--- fin ticket ---",
+                    destino,
                     DecodificarTicket(data));
                 return (true, null);
             }
 
-            if (string.IsNullOrWhiteSpace(_opts.Ip))
-                return (false, "FacturaImpresora.Ip no configurada.");
+            if (string.IsNullOrWhiteSpace(ip))
+                return (false, $"Impresoras.Destinos.{destino}.Ip no configurada.");
 
             string? ultimoError = null;
             for (var intento = 1; intento <= 3; intento++)
@@ -111,36 +142,29 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
                     using var tcp = new TcpClient();
                     tcp.SendTimeout = 3000;
                     tcp.ReceiveTimeout = 3000;
-                    await tcp.ConnectAsync(_opts.Ip, _opts.Port, ct);
+                    await tcp.ConnectAsync(ip, port, ct);
                     await using var stream = tcp.GetStream();
                     await stream.WriteAsync(data, ct);
                     await stream.FlushAsync(ct);
                     logger.LogInformation(
-                        "Factura impresa OK en {Ip}:{Port} (intento {N})",
-                        _opts.Ip,
-                        _opts.Port,
-                        intento);
+                        "Factura impresa OK en {Destino} {Ip}:{Port} (intento {N})",
+                        destino, ip, port, intento);
                     return (true, null);
                 }
                 catch (Exception ex)
                 {
                     ultimoError = ex.Message;
                     logger.LogWarning(
-                        "Impresion factura intento {N}/3 fallido -> {Ip}:{Port} — {Error}",
-                        intento,
-                        _opts.Ip,
-                        _opts.Port,
-                        ex.Message);
+                        "Impresion factura destino {Destino} intento {N}/3 fallido -> {Ip}:{Port} — {Error}",
+                        destino, intento, ip, port, ex.Message);
                     if (intento < 3)
                         await Task.Delay(500, ct);
                 }
             }
 
             logger.LogError(
-                "Impresion factura fallo -> {Ip}:{Port} — {Error}",
-                _opts.Ip,
-                _opts.Port,
-                ultimoError);
+                "Impresion factura destino {Destino} fallo -> {Ip}:{Port} — {Error}",
+                destino, ip, port, ultimoError);
             return (false, ultimoError);
         }
 

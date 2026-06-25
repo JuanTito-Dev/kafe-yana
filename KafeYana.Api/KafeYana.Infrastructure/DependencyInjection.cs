@@ -1,5 +1,6 @@
 ﻿using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Infrastructure.Configuration;
+using KafeYana.Infrastructure.Options;
 using KafeYana.Infrastructure.Servicios.Facturacion;
 using KafeYana.Infrastructure.Servicios.FacturacionImpresion;
 using KafeYana.Infrastructure.SiatClient;
@@ -27,8 +28,11 @@ namespace KafeYana.Infrastructure
             services.Configure<DatosEmpresaOptions>(
                 configuration.GetSection(DatosEmpresaOptions.SeccionNombre));
 
-            services.Configure<FacturaImpresoraOptions>(
-                configuration.GetSection(FacturaImpresoraOptions.SeccionNombre));
+            // Impresoras térmicas: la sección unificada `Impresoras` cubre
+            // comandas/cuentas/recibos Y la factura fiscal (selección por
+            // destino enviada desde el frontend).
+            services.Configure<ImpresoraOptions>(
+                configuration.GetSection(ImpresoraOptions.Key));
 
             // 2. HttpClient con la URL base y timeout configurados
             services.AddHttpClient<SiatHttpClient>((sp, client) =>

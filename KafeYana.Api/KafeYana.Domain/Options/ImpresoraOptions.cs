@@ -5,6 +5,13 @@ namespace KafeYana.Infrastructure.Options
         public const string Key = "Impresoras";
 
         public bool DevMode { get; set; } = true;
+
+        /// <summary>
+        /// Ancho por defecto en caracteres para tickets (comanda/cuenta/factura).
+        /// 48 = 80mm@FontA (default Bolivia). Se puede sobreescribir por request.
+        /// </summary>
+        public int AnchoCaracteres { get; set; } = 48;
+
         public Dictionary<string, DestinoConfig> Destinos { get; set; } = [];
     }
 

@@ -273,7 +273,7 @@ namespace KafeYana.Api.Controllers
             await _notificador.NotificarVentaProcesada(
                 new VentaPayload(cobro.OrigenVenta, datos.Id_Pedido, cobro.Resultado.Venta.MontoTotal));
 
-            return Ok(VentaRespuestaHelper.ConstruirRespuestaCobro(cobro.Resultado, cobro.EnvioSiat, cobro.ImpresionFactura));
+            return Ok(VentaRespuestaHelper.ConstruirRespuestaCobro(cobro.Resultado, cobro.EnvioSiat));
         }
 
         // ─── helper compartido ────────────────────────────────────────────────

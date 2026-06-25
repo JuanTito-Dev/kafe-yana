@@ -14,7 +14,6 @@ namespace KafeYana.Api.Helpers
         public static object ConstruirRespuestaCobro(
             ResultadoProcesarVenta resultado,
             ResultadoEnvioFacturaSiatDto? envioSiat = null,
-            ResultadoImpresionFacturaDto? impresionFactura = null,
             string mensajeBase = "Venta procesada correctamente")
 
         {
@@ -110,14 +109,6 @@ namespace KafeYana.Api.Helpers
                 },
 
                 XmlGenerado = !string.IsNullOrWhiteSpace(resultado.Venta.XmlBase64),
-
-                ImpresionFactura = impresionFactura is null ? null : new
-                {
-                    impresionFactura.Enviado,
-                    impresionFactura.Ok,
-                    impresionFactura.ErrorMensaje,
-                    impresionFactura.UrlQr
-                },
 
                 SubtotalPedido = resultado.Venta.MontoTotal + (resultado.Venta.DescuentoAdicional ?? 0m),
 
