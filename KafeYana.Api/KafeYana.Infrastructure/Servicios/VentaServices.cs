@@ -346,10 +346,14 @@ namespace KafeYana.Infrastructure.Servicios
                 && int.TryParse(detalle.CodigoSin.Trim(), out var codigo))
                 return codigo;
 
-            if (detalle.Producto is null || string.IsNullOrWhiteSpace(detalle.Producto.CodigoSin))
-                return 0;
+            if (detalle.Producto is not null
+                && !string.IsNullOrWhiteSpace(detalle.Producto.CodigoSin)
+                && int.TryParse(detalle.Producto.CodigoSin.Trim(), out var legacy))
+                return legacy;
 
-            return int.TryParse(detalle.Producto.CodigoSin.Trim(), out var legacy) ? legacy : 0;
+            throw new VentaException(
+                $"El producto '{detalle.Nombre_Producto}' no tiene código SIN configurado. "
+                + "Configure el código SIN en el producto antes de facturar.");
         }
 
         private static string ResolverCodigoProducto(Detalle_ronda detalle)
