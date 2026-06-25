@@ -122,6 +122,10 @@ namespace KafeYana.Infrastructure.Data
 
         public DbSet<CatActividad> CatActividades { get; set; }
 
+        public DbSet<PuntoVentaSiat> PuntosVentaSiat { get; set; }
+
+        public DbSet<CatDocumentoSector> CatDocumentosSector { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -197,6 +201,10 @@ namespace KafeYana.Infrastructure.Data
             builder.ApplyConfigurationsFromAssembly(typeof(CodigoSiatConfig).Assembly);
 
             builder.ApplyConfigurationsFromAssembly(typeof(CatActividadConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(PuntoVentaSiatConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CatDocumentoSectorConfig).Assembly);
         }
     }
 }

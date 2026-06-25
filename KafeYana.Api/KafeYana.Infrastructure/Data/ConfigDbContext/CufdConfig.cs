@@ -38,6 +38,10 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
                 .HasColumnType("timestamp with time zone")
                 .HasDefaultValueSql("NOW()")
                 .IsRequired();
+
+            builder.Property(x => x.FechaEmisionSolicitud)
+                .HasColumnType("timestamp with time zone")
+                .IsRequired();
         }
     }
 }

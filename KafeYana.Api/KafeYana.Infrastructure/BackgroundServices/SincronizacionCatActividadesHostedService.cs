@@ -60,14 +60,15 @@ namespace KafeYana.Infrastructure.BackgroundServices
 
         private async Task IntentarSincronizarAsync(CancellationToken ct)
         {
+            // Cada sincronizador es Scoped (depende de ICuisService que también es Scoped),
+            // por eso creamos un scope explícito desde el HostedService (Singleton).
+            // Si uno falla, seguimos con el otro: un fallo no debe bloquear la sync del otro catálogo.
+            using var scope = _services.CreateScope();
+
             try
             {
-                // SincronizadorCatActividades es Scoped (depende de ICuisService que también es Scoped),
-                // por eso creamos un scope explícito desde el HostedService (Singleton).
-                using var scope = _services.CreateScope();
                 var sincronizador = scope.ServiceProvider
                     .GetRequiredService<SincronizadorCatActividades>();
-
                 var cantidad = await sincronizador.SincronizarAsync(ct);
                 _logger.LogInformation(
                     "Sincronización CatActividades OK ({Cantidad} filas)",
@@ -77,6 +78,22 @@ namespace KafeYana.Infrastructure.BackgroundServices
             {
                 _logger.LogError(ex,
                     "Error en sincronización periódica de CatActividades. "
+                    + "Se reintentará en el siguiente tick.");
+            }
+
+            try
+            {
+                var sincronizador = scope.ServiceProvider
+                    .GetRequiredService<SincronizadorCatDocumentoSector>();
+                var cantidad = await sincronizador.SincronizarAsync(ct);
+                _logger.LogInformation(
+                    "Sincronización CatDocumentosSector OK ({Cantidad} filas)",
+                    cantidad);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Error en sincronización periódica de CatDocumentosSector. "
                     + "Se reintentará en el siguiente tick.");
             }
         }

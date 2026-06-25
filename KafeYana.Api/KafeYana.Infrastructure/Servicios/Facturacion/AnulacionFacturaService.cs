@@ -1,6 +1,7 @@
 using KafeYana.Application.Dtos.FacturacionDtos;
 using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Infrastructure.Configuration;
+using KafeYana.Infrastructure.Servicios.Facturacion.Utilidades;
 using KafeYana.Infrastructure.SiatClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -41,7 +42,9 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 throw new ArgumentException("El CUF de la factura es requerido.", nameof(cuf));
 
             var cuis = await _cuisService.ObtenerCuisVigenteAsync(codigoSucursal, codigoPuntoVenta, ct);
-            var cufd = await _cufdService.ObtenerCufdVigenteAsync(codigoSucursal, codigoPuntoVenta, ct);
+            // Para anulación usamos la hora UTC actual como fechaEmision del CUFD.
+            var fechaEmisionAnulacion = SiatFechaEmision.AhoraUtc();
+            var cufd = await _cufdService.ObtenerCufdVigenteAsync(codigoSucursal, codigoPuntoVenta, fechaEmisionAnulacion, ct);
 
             if (!cuis.EsVigente())
                 throw new InvalidOperationException("CUIS vencido. Solicite uno nuevo antes de anular la factura.");

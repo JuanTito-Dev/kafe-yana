@@ -46,6 +46,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
         public async Task<SolicitudRecepcionNotaAjusteDto> PrepararSolicitudAsync(
             string archivo,
             string? hashArchivo = null,
+            DateTime? fechaEmision = null,
             CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(archivo))
@@ -89,9 +90,10 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
         public async Task<RespuestaRecepcionNotaAjusteDto> EnviarRecepcionAsync(
             string archivo,
             string? hashArchivo = null,
+            DateTime? fechaEmision = null,
             CancellationToken ct = default)
         {
-            var dto = await PrepararSolicitudAsync(archivo, hashArchivo, ct);
+            var dto = await PrepararSolicitudAsync(archivo, hashArchivo, fechaEmision, ct);
             var respuesta = await _siat.RecepcionDocumentoAjusteAsync(dto, ct);
 
             if (!respuesta.Transaccion)

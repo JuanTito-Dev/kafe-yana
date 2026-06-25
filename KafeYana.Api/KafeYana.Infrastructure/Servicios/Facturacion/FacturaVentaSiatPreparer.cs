@@ -84,6 +84,8 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
                     _siat.CodigoPuntoVenta,
 
+                    fechaEmision,
+
                     ct);
 
 

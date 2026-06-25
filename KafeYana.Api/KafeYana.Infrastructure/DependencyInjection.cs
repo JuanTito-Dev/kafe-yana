@@ -47,6 +47,7 @@ namespace KafeYana.Infrastructure
             // Servicios de facturación — Scoped (usan EF Core / BD por request)
             services.AddScoped<ICuisService, CuisService>();
             services.AddScoped<ICufdService, CufdService>();
+            services.AddScoped<IFechaHoraSiatService, FechaHoraSiatService>();
             services.AddScoped<IVerificaNitService, VerificaNitService>();
             services.AddScoped<IRecepcionFacturaService, RecepcionFacturaService>();
             services.AddScoped<IAnulacionFacturaService, AnulacionFacturaService>();
@@ -68,6 +69,7 @@ namespace KafeYana.Infrastructure
             // Sincronización de catálogos del SIAT
             // (Scoped porque depende de ICuisService que también es Scoped)
             services.AddScoped<SincronizadorCatActividades>();
+            services.AddScoped<SincronizadorCatDocumentoSector>();
             services.AddHostedService<SincronizacionCatActividadesHostedService>();
 
             return services;

@@ -41,16 +41,22 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
         public async Task<SolicitudRecepcionFacturaDto> PrepararSolicitudAsync(
             string archivo,
             string? hashArchivo = null,
+            DateTime? fechaEmision = null,
             CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(archivo))
                 throw new ArgumentException("El archivo de factura es requerido.", nameof(archivo));
 
+            // Si el caller no pasa fechaEmision, usamos la hora UTC actual.
+            // Lo importante es que el CUFD que se consulte/vuelva a pedir coincida
+            // con la fechaEmision usada al generar el CUF (error 1002/1003 si no).
+            var fechaEmisionRef = fechaEmision ?? SiatFechaEmision.AhoraUtc();
+
             var cuis = await _cuisService.ObtenerCuisVigenteAsync(
                 _opts.CodigoSucursal, _opts.CodigoPuntoVenta, ct);
 
             var cufd = await _cufdService.ObtenerCufdVigenteAsync(
-                _opts.CodigoSucursal, _opts.CodigoPuntoVenta, ct);
+                _opts.CodigoSucursal, _opts.CodigoPuntoVenta, fechaEmisionRef, ct);
 
             if (!cuis.EsVigente())
                 throw new InvalidOperationException("CUIS vencido. Solicite uno nuevo antes de facturar.");
@@ -92,9 +98,10 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
         public async Task<RespuestaRecepcionFacturaDto> EnviarRecepcionAsync(
             string archivo,
             string? hashArchivo = null,
+            DateTime? fechaEmision = null,
             CancellationToken ct = default)
         {
-            var dto = await PrepararSolicitudAsync(archivo, hashArchivo, ct);
+            var dto = await PrepararSolicitudAsync(archivo, hashArchivo, fechaEmision, ct);
             var respuesta = await _siat.RecepcionFacturaAsync(dto, ct);
 
             if (!respuesta.Transaccion)

@@ -14,11 +14,15 @@ namespace KafeYana.Api.Controllers
     [ApiController]
     public class CatalogosController : ControllerBase
     {
-        private readonly SincronizadorCatActividades _sincronizador;
+        private readonly SincronizadorCatActividades _sincronizadorActividades;
+        private readonly SincronizadorCatDocumentoSector _sincronizadorDocumentosSector;
 
-        public CatalogosController(SincronizadorCatActividades sincronizador)
+        public CatalogosController(
+            SincronizadorCatActividades sincronizadorActividades,
+            SincronizadorCatDocumentoSector sincronizadorDocumentosSector)
         {
-            _sincronizador = sincronizador;
+            _sincronizadorActividades = sincronizadorActividades;
+            _sincronizadorDocumentosSector = sincronizadorDocumentosSector;
         }
 
         /// <summary>
@@ -33,7 +37,7 @@ namespace KafeYana.Api.Controllers
         {
             try
             {
-                var cantidad = await _sincronizador.SincronizarAsync(ct);
+                var cantidad = await _sincronizadorActividades.SincronizarAsync(ct);
                 return Ok(new
                 {
                     transaccion = true,
@@ -45,6 +49,35 @@ namespace KafeYana.Api.Controllers
                 // El SIAT rechazó la operación (transaccion=false o SOAP Fault).
                 // Devolvemos 502 Bad Gateway para que el panel del SIAT sepa
                 // que la dependencia externa falló.
+                return StatusCode(StatusCodes.Status502BadGateway, new
+                {
+                    transaccion = false,
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// POST /api/catalogos/sincronizar-documentos-sector
+        ///
+        /// Ejecuta la sincronización del catálogo de documentos sectoriales
+        /// (sincronizarParametricaTipoDocumentoSector) contra el SIAT de forma
+        /// síncrona. Devuelve { transaccion: true, cantidad: N } cuando completa.
+        /// </summary>
+        [HttpPost("sincronizar-documentos-sector")]
+        public async Task<IActionResult> SincronizarDocumentosSector(CancellationToken ct)
+        {
+            try
+            {
+                var cantidad = await _sincronizadorDocumentosSector.SincronizarAsync(ct);
+                return Ok(new
+                {
+                    transaccion = true,
+                    cantidad = cantidad
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
                 return StatusCode(StatusCodes.Status502BadGateway, new
                 {
                     transaccion = false,

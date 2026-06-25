@@ -96,7 +96,7 @@ namespace KafeYana.Api.Controllers
         {
             try
             {
-                var cufd = await _cufd.ObtenerCufdVigenteAsync(sucursal, puntoVenta, ct);
+                var cufd = await _cufd.ObtenerCufdVigenteAsync(sucursal, puntoVenta, DateTime.UtcNow, ct);
                 return Ok(new
                 {
                     id = cufd.Id,

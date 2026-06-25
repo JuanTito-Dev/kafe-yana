@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using KafeYana.Application.Dtos.FacturacionDtos;
@@ -15,11 +16,13 @@ namespace KafeYana.Application.IServicios.IFacturacion
         Task<SolicitudRecepcionNotaAjusteDto> PrepararSolicitudAsync(
             string archivo,
             string? hashArchivo = null,
+            DateTime? fechaEmision = null,
             CancellationToken ct = default);
 
         Task<RespuestaRecepcionNotaAjusteDto> EnviarRecepcionAsync(
             string archivo,
             string? hashArchivo = null,
+            DateTime? fechaEmision = null,
             CancellationToken ct = default);
     }
 }

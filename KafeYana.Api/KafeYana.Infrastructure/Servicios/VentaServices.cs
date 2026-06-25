@@ -28,6 +28,7 @@ namespace KafeYana.Infrastructure.Servicios
         IFacturaXmlGenerator _facturaXmlGenerator,
         ICufdService _cufdService,
         ICufGenerator _cufGenerator,
+        IFechaHoraSiatService _fechaHoraSiat,
         IOptions<SiatOptions> siatOpts,
         IOptions<DatosEmpresaOptions> empresaOpts,
         IDbContextFactory<AppDbContext> dbFactory,
@@ -54,8 +55,15 @@ namespace KafeYana.Infrastructure.Servicios
             if (!cliente.Estado)
                 throw new VentaException("El cliente está inactivo y no puede realizarse el cobro.");
 
-            var fechaEmision = SiatFechaEmision.AhoraUtc();
-            var anio = fechaEmision.Year;
+            // Resolver el (sucursal, puntoVenta) activo UNA VEZ por request.
+            // Si hay varios PVs activos, usa el primero (orden estable por código).
+            // Si NO hay ninguno, cae a appsettings.json.
+            var pvActual = ResolverPuntoVentaActivo();
+
+            // fechaEmision la asigna el SIAT dentro de ConstruirVentaFacturadaAsync
+            // (así garantizamos que fechaEmision y CUF usen la MISMA hora oficial).
+            DateTime fechaEmision = default;
+            var anio = SiatFechaEmision.AhoraUtc().Year; // para codigoVenta humano, no para SIAT
             long numeroFacturaSiat = 0;
             string codigoVenta;
             if (datos.Factura)
@@ -92,7 +100,7 @@ namespace KafeYana.Infrastructure.Servicios
             }
 
             var venta = datos.Factura
-                ? await ConstruirVentaFacturadaAsync(datos, cajero, cliente, numeroDocumento, fechaEmision, numeroFacturaSiat, totalCobrar, descuento, detallesVenta)
+                ? await ConstruirVentaFacturadaAsync(datos, cajero, cliente, numeroDocumento, fechaEmision, numeroFacturaSiat, totalCobrar, descuento, detallesVenta, pvActual)
                 : ConstruirVentaSinFactura(datos, cajero, cliente, numeroDocumento, fechaEmision, codigoVenta, totalCobrar, descuento, detallesVenta);
 
             await _db.Pedidos.Remove(pedido);
@@ -125,7 +133,8 @@ namespace KafeYana.Infrastructure.Servicios
             long numeroFactura,
             decimal totalCobrar,
             ResultadoAplicacionDescuentoPromocion? descuento,
-            List<Detalle_Pago> detallesVenta)
+            List<Detalle_Pago> detallesVenta,
+            (int CodigoSucursal, int CodigoPuntoVenta) pvActual)
         {
             // ─── Generar CUF/CUFD REAL antes de armar la venta ─────────────────
             // Si la generación falla, lanzamos excepción para que la transacción
@@ -137,22 +146,40 @@ namespace KafeYana.Infrastructure.Servicios
             string cufdCodigo;
             try
             {
+                // 1) Obtener fecha/hora oficial del SIN antes de generar el CUF.
+                //    Si el SIAT está caído, esto lanza VentaException y bloquea el cobro
+                //    (no usamos hora local porque sería rechazada).
+                fechaEmision = await _fechaHoraSiat.ObtenerFechaHoraOficialAsync(
+                    pvActual.CodigoSucursal,
+                    pvActual.CodigoPuntoVenta);
+                // El SIAT devuelve hora BOT. La convertimos a UTC (+4h) con Kind=Utc
+                // para que Npgsql pueda escribirla en la columna "timestamp with time zone".
+                // El XML recibe la hora BOT original (vía SiatFechaEmision.Formatear).
+                fechaEmision = SiatFechaEmision.ToUtcForDb(fechaEmision);
+
+                // 2) Obtener CUFD vigente (con la misma fechaEmision que usaremos en el CUF)
                 var cufd = await _cufdService.ObtenerCufdVigenteAsync(
-                    _siat.CodigoSucursal,
-                    _siat.CodigoPuntoVenta);
+                    pvActual.CodigoSucursal,
+                    pvActual.CodigoPuntoVenta,
+                    fechaEmision);
 
                 cufdCodigo = cufd.Codigo;
                 cuf = _cufGenerator.Generar(new CufGeneracionRequest(
                     Nit: _siat.Nit,
                     FechaEmision: fechaEmision,
-                    CodigoSucursal: _siat.CodigoSucursal,
+                    CodigoSucursal: pvActual.CodigoSucursal,
                     CodigoModalidad: _siat.CodigoModalidad,
                     TipoEmision: _siat.CodigoEmision,
                     TipoFacturaDocumento: _siat.TipoFacturaDocumento,
                     CodigoDocumentoSector: _siat.CodigoDocumentoSector,
                     NumeroFactura: numeroFactura,
-                    CodigoPuntoVenta: _siat.CodigoPuntoVenta,
+                    CodigoPuntoVenta: pvActual.CodigoPuntoVenta,
                     CodigoControl: cufd.CodigoControl));
+            }
+            catch (VentaException)
+            {
+                // Relanzar: el SIAT no respondió o rechazó fechaHora
+                throw;
             }
             catch (Exception ex)
             {
@@ -160,9 +187,15 @@ namespace KafeYana.Infrastructure.Servicios
                     ex,
                     "CUF/CUFD no generado al facturar número {NumeroFactura}; abortando cobro para no persistir PENDIENTE",
                     numeroFactura);
+                // Propagamos el mensaje real para no quedar a ciegas. Logueamos
+                // también la inner exception por si quedó envuelta en otra capa.
+                var detalle = ex.Message;
+                if (ex.InnerException is not null)
+                    detalle = $"{detalle} → Inner: {ex.InnerException.Message}";
                 throw new VentaException(
                     "No se pudo generar el CUF/CUFD para la factura. "
-                    + "El CUFD puede haber vencido o el SIAT no responde. Intente nuevamente.");
+                    + "El CUFD puede haber vencido o el SIAT no responde. "
+                    + $"Detalle: {detalle}");
             }
 
             var venta = CrearVentaBase(
@@ -384,6 +417,29 @@ namespace KafeYana.Infrastructure.Servicios
             throw new VentaException(
                 $"El producto '{detalle.Nombre_Producto}' no tiene código SIN configurado. "
                 + "Configure el código SIN en el producto antes de facturar.");
+        }
+
+        /// <summary>
+        /// Resuelve el (sucursal, puntoVenta) activo desde la tabla PuntosVentaSiat.
+        /// Si no hay ninguno activo, cae a appsettings.json (SiatOptions) como fallback.
+        /// </summary>
+        private (int CodigoSucursal, int CodigoPuntoVenta) ResolverPuntoVentaActivo()
+        {
+            using var db = dbFactory.CreateDbContext();
+            var pv = db.PuntosVentaSiat
+                .AsNoTracking()
+                .Where(p => p.Activo)
+                .OrderBy(p => p.CodigoSucursal)
+                .ThenBy(p => p.CodigoPuntoVenta)
+                .FirstOrDefault();
+
+            if (pv is not null)
+                return (pv.CodigoSucursal, pv.CodigoPuntoVenta);
+
+            logger.LogWarning(
+                "No hay PuntosVentaSiat activos. Usando fallback de appsettings: ({Suc},{PV}).",
+                _siat.CodigoSucursal, _siat.CodigoPuntoVenta);
+            return (_siat.CodigoSucursal, _siat.CodigoPuntoVenta);
         }
 
         /// <summary>

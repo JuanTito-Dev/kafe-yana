@@ -35,7 +35,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             try
             {
                 var hash = string.IsNullOrWhiteSpace(venta.CodigoHash) ? null : venta.CodigoHash;
-                var respuesta = await _recepcionFactura.EnviarRecepcionAsync(venta.XmlBase64, hash, ct);
+                var respuesta = await _recepcionFactura.EnviarRecepcionAsync(venta.XmlBase64, hash, venta.FechaEmision, ct);
                 AplicarResultadoSiat(venta, respuesta);
 
                 if (!respuesta.Transaccion)

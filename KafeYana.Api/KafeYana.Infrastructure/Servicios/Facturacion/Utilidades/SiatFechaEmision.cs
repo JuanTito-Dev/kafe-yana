@@ -9,11 +9,8 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion.Utilidades
 {
 
     /// <summary>
-
     /// Fechas SIAT en hora de Bolivia (America/La_Paz, UTC-4).
-
     /// Formato XML/WS: "yyyy-MM-ddTHH:mm:ss.fff" sin sufijo de zona.
-
     /// </summary>
 
     public static class SiatFechaEmision
@@ -43,6 +40,30 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion.Utilidades
         public static DateTime AhoraBolivia() =>
 
             TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ZonaBolivia);
+
+
+
+        /// <summary>
+        /// Convierte una fecha BOT (Unspecified) a DateTime con Kind=Utc sumando 4h,
+        /// para persistir en columnas "timestamp with time zone" de PostgreSQL.
+        /// Si la fecha ya viene Utc o Local, primero la normaliza a UTC.
+        /// </summary>
+        public static DateTime ToUtcForDb(DateTime fecha)
+        {
+
+            return fecha.Kind switch
+            {
+
+                DateTimeKind.Utc => fecha,
+
+                DateTimeKind.Local => fecha.ToUniversalTime(),
+
+                _ => TimeZoneInfo.ConvertTimeToUtc(
+                        DateTime.SpecifyKind(fecha, DateTimeKind.Unspecified), ZonaBolivia)
+
+            };
+
+        }
 
 
 
@@ -76,26 +97,26 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion.Utilidades
 
         {
 
-            var utc = fecha.Kind switch
+            // El SIAT devuelve hora BOT (marcada como Unspecified por SiatHttpClient.ParseFecha).
+            // Como ya viene en hora BOT, la devolvemos tal cual para que el XML lleve exactamente
+            // lo que devolvió el SIAT (sin doble conversión que provocaba el error 1009).
+            // Si llega como UTC, se convierte a BOT; si llega como Local, primero a UTC.
+            return fecha.Kind switch
 
             {
 
-                DateTimeKind.Utc => fecha,
+                DateTimeKind.Unspecified => fecha,
 
-                DateTimeKind.Local => fecha.ToUniversalTime(),
+                DateTimeKind.Utc => TimeZoneInfo.ConvertTimeFromUtc(fecha, ZonaBolivia),
 
-                _ => DateTime.SpecifyKind(fecha, DateTimeKind.Utc)
+                DateTimeKind.Local => TimeZoneInfo.ConvertTimeFromUtc(fecha.ToUniversalTime(), ZonaBolivia),
+
+                _ => fecha
 
             };
-
-
-
-            return TimeZoneInfo.ConvertTimeFromUtc(utc, ZonaBolivia);
 
         }
 
     }
 
 }
-
-

@@ -10,30 +10,28 @@ namespace KafeYana.Infrastructure.Servicios
 {
     /// <summary>
     /// Servicio singleton que orquesta la sincronización del catálogo
-    /// de actividades económicas (CAEB) contra el SIAT.
+    /// de documentos sectoriales contra el SIAT.
     ///
-    /// Estrategia multi-punto-de-venta:
-    ///   1) Lee todos los PuntosVentaSiat activos.
-    ///   2) Para cada uno: obtiene CUIS vigente y llama al SOAP de sincronización.
-    ///   3) Como el SIN devuelve la misma lista por NIT, se sincroniza la tabla
-    ///      MAESTRA CatActividades UNA SOLA VEZ con la primera respuesta exitosa.
-    ///   4) Actualiza UltimaSyncActividades de CADA PV procesado.
+    /// El SIAT devuelve la misma lista por NIT para todos los puntos de venta.
+    /// Se itera cada PV activo, se toma la primera respuesta exitosa y se
+    /// reemplaza la tabla maestra CatDocumentosSector atómicamente
+    /// (DELETE ALL + INSERT ALL en una transacción).
     ///
-    /// Si un PV falla (CUIS vencido, error de red, etc.), se loguea y se continúa
-    /// con los siguientes.
+    /// Si un PV falla o el SIAT devuelve transaccion=false, se loguea y se
+    /// continúa con el siguiente (un fallo en un PV no bloquea la sync).
     /// </summary>
-    public class SincronizadorCatActividades
+    public class SincronizadorCatDocumentoSector
     {
         private readonly SiatHttpClient _siat;
         private readonly ICuisService _cuisService;
         private readonly IDbContextFactory<AppDbContext> _dbFactory;
-        private readonly ILogger<SincronizadorCatActividades> _logger;
+        private readonly ILogger<SincronizadorCatDocumentoSector> _logger;
 
-        public SincronizadorCatActividades(
+        public SincronizadorCatDocumentoSector(
             SiatHttpClient siat,
             ICuisService cuisService,
             IDbContextFactory<AppDbContext> dbFactory,
-            ILogger<SincronizadorCatActividades> logger)
+            ILogger<SincronizadorCatDocumentoSector> logger)
         {
             _siat = siat;
             _cuisService = cuisService;
@@ -42,8 +40,8 @@ namespace KafeYana.Infrastructure.Servicios
         }
 
         /// <summary>
-        /// Sincroniza el catálogo de actividades para todos los PuntosVentaSiat activos.
-        /// Devuelve la cantidad total de filas insertadas en la tabla maestra.
+        /// Sincroniza el catálogo de documentos sectoriales para todos los PVs activos.
+        /// Devuelve la cantidad de filas insertadas en la tabla maestra.
         /// </summary>
         public async Task<int> SincronizarAsync(CancellationToken ct = default)
         {
@@ -62,13 +60,13 @@ namespace KafeYana.Infrastructure.Servicios
             if (puntosVenta.Count == 0)
             {
                 _logger.LogWarning(
-                    "No hay PuntosVentaSiat activos. CatActividades no se sincronizará.");
+                    "No hay PuntosVentaSiat activos. CatDocumentosSector no se sincronizará.");
                 return 0;
             }
 
             // 2) Iterar cada PV. Acumular el primer resultado exitoso para la maestra.
-            List<ActividadSiatDto> actividadesMaestra = null;
-            var pvsExitosos = new List<int>(); // Ids de PuntoVentaSiat que devolvieron OK
+            List<DocumentoSectorSiatDto> documentosMaestra = null;
+            var pvsExitosos = new List<int>();
 
             foreach (var pv in puntosVenta)
             {
@@ -79,7 +77,7 @@ namespace KafeYana.Infrastructure.Servicios
                         pv.CodigoPuntoVenta,
                         ct);
 
-                    var respuesta = await _siat.SincronizarActividadesAsync(
+                    var respuesta = await _siat.SincronizarDocumentosSectorAsync(
                         cuis.Codigo,
                         pv.CodigoSucursal,
                         pv.CodigoPuntoVenta,
@@ -90,84 +88,70 @@ namespace KafeYana.Infrastructure.Servicios
                         var errores = string.Join(" | ", respuesta.CodigosRespuesta
                             .Select(c => $"[{c.Codigo}] {c.Descripcion}"));
                         _logger.LogWarning(
-                            "SIAT rechazó sincronización para PV {Nombre} ({Suc},{PV}). Errores: {Errores}",
+                            "SIAT rechazó sincronización de documentos sector para PV {Nombre} ({Suc},{PV}). Errores: {Errores}",
                             pv.Nombre, pv.CodigoSucursal, pv.CodigoPuntoVenta, errores);
                         continue;
                     }
 
                     _logger.LogInformation(
-                        "SIAT OK para PV {Nombre} ({Suc},{PV}): {Cantidad} actividades",
+                        "SIAT OK para PV {Nombre} ({Suc},{PV}): {Cantidad} documentos sector",
                         pv.Nombre, pv.CodigoSucursal, pv.CodigoPuntoVenta,
-                        respuesta.Actividades.Count);
+                        respuesta.DocumentosSector.Count);
 
-                    // Guardamos la primera respuesta exitosa para la tabla maestra
-                    if (actividadesMaestra is null && respuesta.Actividades.Count > 0)
-                        actividadesMaestra = respuesta.Actividades;
+                    if (documentosMaestra is null && respuesta.DocumentosSector.Count > 0)
+                        documentosMaestra = respuesta.DocumentosSector;
 
                     pvsExitosos.Add(pv.Id);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex,
-                        "Error sincronizando actividades para PV {Nombre} ({Suc},{PV}). Se continúa con los demás.",
+                        "Error sincronizando documentos sector para PV {Nombre} ({Suc},{PV}). Se continúa con los demás.",
                         pv.Nombre, pv.CodigoSucursal, pv.CodigoPuntoVenta);
                 }
             }
 
-            if (actividadesMaestra is null || pvsExitosos.Count == 0)
+            if (documentosMaestra is null || pvsExitosos.Count == 0)
             {
                 _logger.LogWarning(
-                    "Ningún PV devolvió datos. CatActividades NO se actualizará.");
+                    "Ningún PV devolvió datos. CatDocumentosSector NO se actualizará.");
                 return 0;
             }
 
-            // 3) Upsert atómico en la tabla MAESTRA
-            var cantidad = await ReemplazarTablaMaestraAsync(actividadesMaestra, ct);
-
-            // 4) Marcar UltimaSyncActividades para todos los PVs exitosos
-            var ahora = DateTime.UtcNow;
-            await using (var dbUpdate = await _dbFactory.CreateDbContextAsync(ct))
-            {
-                var pvsAMarcar = await dbUpdate.PuntosVentaSiat
-                    .Where(p => pvsExitosos.Contains(p.Id))
-                    .ToListAsync(ct);
-                foreach (var pv in pvsAMarcar)
-                    pv.UltimaSyncActividades = ahora;
-                await dbUpdate.SaveChangesAsync(ct);
-            }
+            // 3) Upsert atómico de la tabla MAESTRA
+            var cantidad = await ReemplazarTablaMaestraAsync(documentosMaestra, ct);
 
             _logger.LogInformation(
-                "Sincronización CatActividades OK: {Cantidad} actividades, {PVs} PVs actualizados",
+                "Sincronización CatDocumentosSector OK: {Cantidad} documentos, {PVs} PVs actualizados",
                 cantidad, pvsExitosos.Count);
 
             return cantidad;
         }
 
         private async Task<int> ReemplazarTablaMaestraAsync(
-            List<ActividadSiatDto> actividades,
+            List<DocumentoSectorSiatDto> documentos,
             CancellationToken ct)
         {
             await using var db = await _dbFactory.CreateDbContextAsync(ct);
             await using var tx = await db.Database.BeginTransactionAsync(ct);
 
             // EF genera el SQL con identificadores entrecomillados (preserva mayúsculas).
-            await db.CatActividades.ExecuteDeleteAsync(ct);
+            await db.CatDocumentosSector.ExecuteDeleteAsync(ct);
 
             var ahora = DateTime.UtcNow;
-            var nuevas = actividades
-                .Where(a => !string.IsNullOrWhiteSpace(a.CodigoCaeb))
-                .Select(a => new CatActividad
+            var nuevas = documentos
+                .Where(d => d.CodigoClasificador > 0)
+                .Select(d => new CatDocumentoSector
                 {
-                    CodigoCaeb = a.CodigoCaeb.Trim(),
-                    Descripcion = (a.Descripcion ?? string.Empty).Trim(),
-                    TipoActividad = (a.TipoActividad ?? string.Empty).Trim(),
+                    CodigoClasificador = d.CodigoClasificador,
+                    Descripcion = (d.Descripcion ?? string.Empty).Trim(),
                     FechaSincronizacion = ahora
                 })
                 .ToList();
 
             if (nuevas.Count > 0)
             {
-                db.CatActividades.AddRange(nuevas);
+                db.CatDocumentosSector.AddRange(nuevas);
                 await db.SaveChangesAsync(ct);
             }
 

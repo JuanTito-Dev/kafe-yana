@@ -353,6 +353,7 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await KafeYana.Infrastructure.Data.Seeders.AceleradorPuntosSeeder.SeedAsync(db);
     await KafeYana.Infrastructure.Data.Seeders.ReferidosConfigSeeder.SeedAsync(db);
+    await KafeYana.Infrastructure.Data.Seeders.PuntoVentaSiatSeeder.SeedAsync(db);
 }
 
 app.Run();

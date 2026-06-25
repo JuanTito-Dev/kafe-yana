@@ -8,6 +8,7 @@ using KafeYana.Domain.Entities;
 using KafeYana.Infrastructure.Data;
 using KafeYana.Infrastructure.Servicios.Facturacion;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace KafeYana.Infrastructure.Servicios
 {
@@ -20,7 +21,8 @@ namespace KafeYana.Infrastructure.Servicios
         IUnitWork _db,
         AppDbContext _dbContext,
         IVentaServices _venta,
-        IFacturaSiatEnvioService _facturaSiatEnvio) : ICobroPedidoService
+        IFacturaSiatEnvioService _facturaSiatEnvio,
+        ILogger<CobroPedidoService> logger) : ICobroPedidoService
     {
 
         public async Task<ResultadoCobroPedidoDto> CobrarPedidoActivoAsync(
@@ -141,8 +143,23 @@ namespace KafeYana.Infrastructure.Servicios
                     IdMesa = idMesa,
                 };
             }
-            catch
+            catch (Exception ex)
             {
+                // Logueamos la inner exception completa (PostgresException.Message, SqlState, etc.)
+                // para que un cobro fallido muestre QUÉ columna/constraint reventó en consola.
+                logger.LogError(ex,
+                    "Error en cobro (pedidoId={PedidoId}, factura={Factura}): {Error}",
+                    datos.Id_Pedido, datos.Factura, ex.Message);
+                if (ex.InnerException is not null)
+                {
+                    logger.LogError("  Inner exception: {Inner}",
+                        ex.InnerException.Message);
+                    if (ex.InnerException.InnerException is not null)
+                    {
+                        logger.LogError("    Inner.inner: {InnerInner}",
+                            ex.InnerException.InnerException.Message);
+                    }
+                }
                 await transaction.RollbackAsync(ct);
                 throw;
             }

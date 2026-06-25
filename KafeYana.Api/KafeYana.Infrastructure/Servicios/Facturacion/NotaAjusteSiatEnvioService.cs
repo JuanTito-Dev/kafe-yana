@@ -274,7 +274,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             try
             {
                 var hash = string.IsNullOrWhiteSpace(nota.CodigoHash) ? null : nota.CodigoHash;
-                var respuesta = await _recepcionNota.EnviarRecepcionAsync(nota.XmlBase64, hash, ct);
+                var respuesta = await _recepcionNota.EnviarRecepcionAsync(nota.XmlBase64, hash, nota.FechaEmision, ct);
                 AplicarResultadoSiat(nota, respuesta);
 
                 await _db.SaveUnitWork();

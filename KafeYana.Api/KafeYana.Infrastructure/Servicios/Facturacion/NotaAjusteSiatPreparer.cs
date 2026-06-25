@@ -1,9 +1,12 @@
 using KafeYana.Application.Exceptions;
 using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Domain.Entities;
+using KafeYana.Domain.Entities.Catalogos;
 using KafeYana.Domain.TiposDeDatos;
 using KafeYana.Infrastructure.Configuration;
+using KafeYana.Infrastructure.Data;
 using KafeYana.Infrastructure.Servicios.Facturacion.Utilidades;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -25,6 +28,8 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
         private readonly INotaAjusteXmlGenerator _notaXmlGenerator;
         private readonly ICufdService _cufdService;
         private readonly ICufGenerator _cufGenerator;
+        private readonly IFechaHoraSiatService _fechaHoraSiat;
+        private readonly IDbContextFactory<AppDbContext> _dbFactory;
         private readonly SiatOptions _siat;
         private readonly ILogger<NotaAjusteSiatPreparer> _logger;
 
@@ -33,6 +38,8 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             INotaAjusteXmlGenerator notaXmlGenerator,
             ICufdService cufdService,
             ICufGenerator cufGenerator,
+            IFechaHoraSiatService fechaHoraSiat,
+            IDbContextFactory<AppDbContext> dbFactory,
             IOptions<SiatOptions> siatOpts,
             ILogger<NotaAjusteSiatPreparer> logger)
         {
@@ -40,15 +47,37 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             _notaXmlGenerator = notaXmlGenerator;
             _cufdService = cufdService;
             _cufGenerator = cufGenerator;
+            _fechaHoraSiat = fechaHoraSiat;
+            _dbFactory = dbFactory;
             _siat = siatOpts.Value;
             _logger = logger;
+        }
+
+        private (int CodigoSucursal, int CodigoPuntoVenta) ResolverPuntoVentaActivo()
+        {
+            using var db = _dbFactory.CreateDbContext();
+            var pv = db.PuntosVentaSiat
+                .AsNoTracking()
+                .Where(p => p.Activo)
+                .OrderBy(p => p.CodigoSucursal)
+                .ThenBy(p => p.CodigoPuntoVenta)
+                .FirstOrDefault();
+
+            if (pv is not null)
+                return (pv.CodigoSucursal, pv.CodigoPuntoVenta);
+
+            return (_siat.CodigoSucursal, _siat.CodigoPuntoVenta);
         }
 
         public async Task PrepararNotaAsync(NotaAjuste nota, CancellationToken ct = default)
         {
             ValidarEstructura(nota);
 
-            var fechaEmision = SiatFechaEmision.AhoraUtc();
+            // Resolver el PV activo para usar en CUFD/CUF
+            var pvActual = ResolverPuntoVentaActivo();
+
+            // fechaEmision la asigna el SIAT (sincronizarFechaHora) justo después.
+            DateTime fechaEmision = default;
             nota.FechaEmision = fechaEmision;
             nota.Leyenda = LeyendaSiatService.ObtenerAleatoria();
             nota.CodigoDocumentoSector = _siat.CodigoDocumentoSectorNotaAjuste;
@@ -62,21 +91,34 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
             try
             {
+                // 1) Fecha/hora oficial del SIN (bloquea si el SIAT no responde).
+                fechaEmision = await _fechaHoraSiat.ObtenerFechaHoraOficialAsync(
+                    pvActual.CodigoSucursal, pvActual.CodigoPuntoVenta, ct);
+                // El SIAT devuelve hora BOT. La convertimos a UTC (+4h) con Kind=Utc
+                // para que Npgsql pueda escribirla en la columna "timestamp with time zone".
+                fechaEmision = SiatFechaEmision.ToUtcForDb(fechaEmision);
+
+                // 2) CUFD vigente del PV activo (con la misma fechaEmision del CUF)
                 var cufd = await _cufdService.ObtenerCufdVigenteAsync(
-                    _siat.CodigoSucursal, _siat.CodigoPuntoVenta, ct);
+                    pvActual.CodigoSucursal, pvActual.CodigoPuntoVenta, fechaEmision, ct);
 
                 cufdCodigo = cufd.Codigo;
                 cuf = _cufGenerator.Generar(new CufGeneracionRequest(
                     Nit: _siat.Nit,
                     FechaEmision: fechaEmision,
-                    CodigoSucursal: _siat.CodigoSucursal,
+                    CodigoSucursal: pvActual.CodigoSucursal,
                     CodigoModalidad: _siat.CodigoModalidad,
                     TipoEmision: _siat.CodigoEmision,
                     TipoFacturaDocumento: _siat.TipoFacturaDocumentoNotaAjuste,
                     CodigoDocumentoSector: _siat.CodigoDocumentoSectorNotaAjuste,
                     NumeroFactura: nota.NumeroNotaCreditoDebito,
-                    CodigoPuntoVenta: _siat.CodigoPuntoVenta,
+                    CodigoPuntoVenta: pvActual.CodigoPuntoVenta,
                     CodigoControl: cufd.CodigoControl));
+            }
+            catch (VentaException)
+            {
+                // Relanzar: el SIAT no respondió o rechazó fechaHora
+                throw;
             }
             catch (Exception ex)
             {

@@ -17,6 +17,13 @@ namespace KafeYana.Domain.Entities.Facturacion
         public int CodigoPuntoVenta { get; set; }
         public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
 
+        /// <summary>
+        /// Fecha/hora oficial del SIAT con la que se solicitó este CUFD.
+        /// Se usa para validar que el CUF generado use la MISMA fechaEmision
+        /// que el SIAT embebió en el CUFD (si difieren, el SIAT rechaza con 1002/1003).
+        /// </summary>
+        public DateTime FechaEmisionSolicitud { get; set; }
+
         public bool EsVigente() => DateTime.UtcNow < FechaVigencia;
     }
 }

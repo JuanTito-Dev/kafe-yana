@@ -220,6 +220,110 @@ namespace KafeYana.Infrastructure.SiatClient
         }
 
         // ─────────────────────────────────────────────
+        // Sincronizar Fecha Hora (FacturacionSincronizacion)
+        // Devuelve la hora oficial del SIN — se usa en fechaEmision y fechaEnvio
+        // del XML para evitar rechazo por reloj desincronizado.
+        // ─────────────────────────────────────────────
+        public async Task<SincronizarFechaHoraResponse> SincronizarFechaHoraAsync(
+            string cuis,
+            int codigoSucursal,
+            int codigoPuntoVenta,
+            CancellationToken ct = default)
+        {
+            var body = new XElement(SiatNs + "sincronizarFechaHora",
+                Solicitud("SolicitudSincronizacion",
+                    Campo("codigoAmbiente", _opts.CodigoAmbiente),
+                    Campo("codigoPuntoVenta", codigoPuntoVenta),
+                    Campo("codigoSistema", _opts.CodigoSistema),
+                    Campo("codigoSucursal", codigoSucursal),
+                    Campo("cuis", cuis),
+                    Campo("nit", _opts.Nit)
+                )
+            );
+
+            var xml = await EnviarSoapAsync("FacturacionSincronizacion", body, ct);
+
+            var respEl = BuscarElemento(xml, "RespuestaFechaHora")
+                ?? BuscarElemento(xml, "sincronizarFechaHoraResponse");
+
+            return new SincronizarFechaHoraResponse
+            {
+                Transaccion = ParseTransaccion(respEl),
+                FechaHora = ParseFecha(ValorElemento(respEl, "fechaHora"))
+            };
+        }
+
+        // ─────────────────────────────────────────────
+        // Sincronizar Paramétrica Tipo Documento Sector (FacturacionSincronizacion)
+        // Devuelve el catálogo de documentos sectoriales que el SIN acepta
+        // (Factura Compra-Venta, Nota Crédito-Débito, etc.). Se usa para llenar
+        // <codigoDocumentoSector> en el XML de la factura.
+        // ─────────────────────────────────────────────
+        public async Task<SincronizarDocumentosSectorResponse> SincronizarDocumentosSectorAsync(
+            string cuis,
+            int codigoSucursal,
+            int codigoPuntoVenta,
+            CancellationToken ct = default)
+        {
+            var body = new XElement(SiatNs + "sincronizarParametricaTipoDocumentoSector",
+                Solicitud("SolicitudSincronizacion",
+                    Campo("codigoAmbiente", _opts.CodigoAmbiente),
+                    Campo("codigoPuntoVenta", codigoPuntoVenta),
+                    Campo("codigoSistema", _opts.CodigoSistema),
+                    Campo("codigoSucursal", codigoSucursal),
+                    Campo("cuis", cuis),
+                    Campo("nit", _opts.Nit)
+                )
+            );
+
+            var xml = await EnviarSoapAsync("FacturacionSincronizacion", body, ct);
+
+            // Estructura observada en piloto (jun-2026):
+            // <sincronizarParametricaTipoDocumentoSectorResponse>
+            //   <RespuestaListaParametricas>
+            //     <transaccion>true</transaccion>
+            //     <listaCodigos>
+            //       <codigoClasificador>1</codigoClasificador>
+            //       <descripcion>FACTURA COMPRA-VENTA</descripcion>
+            //     </listaCodigos>
+            //     <listaCodigos>...</listaCodigos>
+            //   </RespuestaListaParametricas>
+            // </sincronizarParametricaTipoDocumentoSectorResponse>
+            var respEl = BuscarElemento(xml, "RespuestaListaParametricas")
+                ?? BuscarElemento(xml, "sincronizarParametricaTipoDocumentoSectorResponse");
+
+            var respuesta = new SincronizarDocumentosSectorResponse
+            {
+                Transaccion = ParseTransaccion(respEl),
+                CodigosRespuesta = ParseCodigos(respEl)
+                    .Select(c => new CodigoRespuestaSiatDto
+                    {
+                        Codigo = c.Codigo,
+                        Descripcion = c.Descripcion
+                    }).ToList()
+            };
+
+            if (respEl is not null)
+            {
+                foreach (var item in respEl.Elements()
+                    .Where(e => e.Name.LocalName == "listaCodigos"))
+                {
+                    var codigoStr = ValorElemento(item, "codigoClasificador");
+                    if (string.IsNullOrWhiteSpace(codigoStr)) continue;
+                    if (!int.TryParse(codigoStr, out var codigo)) continue;
+
+                    respuesta.DocumentosSector.Add(new DocumentoSectorSiatDto
+                    {
+                        CodigoClasificador = codigo,
+                        Descripcion = (ValorElemento(item, "descripcion") ?? string.Empty).Trim()
+                    });
+                }
+            }
+
+            return respuesta;
+        }
+
+        // ─────────────────────────────────────────────
         // Recepción Factura
         // ─────────────────────────────────────────────
         public async Task<RespuestaRecepcionFacturaDto> RecepcionFacturaAsync(
@@ -475,7 +579,12 @@ namespace KafeYana.Infrastructure.SiatClient
         private static DateTime? ParseFecha(string? valor)
         {
             if (string.IsNullOrWhiteSpace(valor)) return null;
-            return DateTime.TryParse(valor, out var dt) ? dt : null;
+            if (!DateTime.TryParse(valor, out var dt)) return null;
+            // El SIAT devuelve la hora de Bolivia (America/La_Paz, UTC-4) sin sufijo de zona.
+            // La marcamos como Unspecified para que SiatFechaEmision.Formatear la devuelva
+            // tal cual (es la hora que se envía al XML y al propio SIAT en sincronizarFechaHora).
+            // La conversión a UTC para la BD se hace con ToUtcForDb() en VentaServices.
+            return DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
         }
 
         private static string? ValorElemento(XElement? el, params string[] nombres)

@@ -1,4 +1,4 @@
-﻿using KafeYana.Application.IServicios.IFacturacion;
+using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Domain.Entities.Facturacion;
 using KafeYana.Infrastructure.Data;
 using KafeYana.Infrastructure.SiatClient;
@@ -9,6 +9,14 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 {
     public class CufdService : ICufdService
     {
+        /// <summary>
+        /// Tolerancia entre la FechaEmisionSolicitud del CUFD y la fechaEmision
+        /// del cobro actual. Si difieren más que esto, se descarta el CUFD viejo
+        /// y se solicita uno nuevo al SIAT (porque el CUF que se generará debe
+        /// coincidir con la fecha embebida en el CUFD).
+        /// </summary>
+        private static readonly TimeSpan ToleranciaReuso = TimeSpan.FromSeconds(2);
+
         private readonly SiatHttpClient _siat;
         private readonly ICuisService _cuisService;
         private readonly IDbContextFactory<AppDbContext> _dbFactory;
@@ -29,6 +37,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
         public async Task<Cufd> SolicitarCufdAsync(
             int codigoSucursal,
             int codigoPuntoVenta,
+            DateTime fechaEmision,
             CancellationToken ct = default)
         {
             var cuis = await _cuisService.ObtenerCuisVigenteAsync(codigoSucursal, codigoPuntoVenta, ct);
@@ -59,7 +68,11 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 FechaVigencia = NormalizarUtc(resp.FechaVigencia ?? DateTime.UtcNow.AddHours(24)),
                 CodigoSucursal = codigoSucursal,
                 CodigoPuntoVenta = codigoPuntoVenta,
-                FechaRegistro = DateTime.UtcNow
+                FechaRegistro = DateTime.UtcNow,
+                // Guardamos la fechaEmision del SIAT con la que se pidió este CUFD.
+                // Al generar el CUF después, deberemos usar EXACTAMENTE esta misma fecha,
+                // si no el SIAT rechaza con 1002/1003.
+                FechaEmisionSolicitud = NormalizarUtc(fechaEmision)
             };
 
             await using var db = await _dbFactory.CreateDbContextAsync(ct);
@@ -67,9 +80,10 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             await db.SaveChangesAsync(ct);
 
             _logger.LogInformation(
-                "CUFD obtenido del SIAT y guardado (Id:{Id}). Vigente hasta: {Vigencia}",
+                "CUFD obtenido del SIAT y guardado (Id:{Id}). Vigente hasta: {Vigencia}. FechaEmisionSolicitud: {FechaSoli}",
                 cufd.Id,
-                cufd.FechaVigencia.ToString("yyyy-MM-dd HH:mm:ss"));
+                cufd.FechaVigencia.ToString("yyyy-MM-dd HH:mm:ss"),
+                cufd.FechaEmisionSolicitud.ToString("yyyy-MM-dd HH:mm:ss.fff"));
 
             return cufd;
         }
@@ -77,6 +91,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
         public async Task<Cufd> ObtenerCufdVigenteAsync(
             int codigoSucursal,
             int codigoPuntoVenta,
+            DateTime fechaEmision,
             CancellationToken ct = default)
         {
             await using var db = await _dbFactory.CreateDbContextAsync(ct);
@@ -89,17 +104,42 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 .OrderByDescending(c => c.FechaRegistro)
                 .FirstOrDefaultAsync(ct);
 
+            var fechaEmisionUtc = NormalizarUtc(fechaEmision);
+
             if (vigente is not null)
             {
-                _logger.LogDebug(
-                    "CUFD vigente desde BD (Id:{Id}). Vigente hasta: {V}",
+                // Comparar la fechaEmision del cobro actual contra la fecha con la que
+                // se pidió el CUFD. Si difieren más allá de la tolerancia, descartar.
+                var diferencia = (vigente.FechaEmisionSolicitud - fechaEmisionUtc).Duration();
+                if (diferencia <= ToleranciaReuso)
+                {
+                    _logger.LogDebug(
+                        "CUFD vigente reusado (Id:{Id}). FechaEmisionSolicitud coincide con fechaEmision actual (Δ={Delta} ms)",
+                        vigente.Id, (long)diferencia.TotalMilliseconds);
+                    return vigente;
+                }
+
+                _logger.LogInformation(
+                    "CUFD vigente descartado (Id:{Id}) porque su FechaEmisionSolicitud ({F1}) "
+                    + "difiere {Delta} ms de la fechaEmision actual ({F2}). "
+                    + "Se solicitará uno nuevo al SIAT para evitar error 1002/1003.",
                     vigente.Id,
-                    vigente.FechaVigencia);
-                return vigente;
+                    vigente.FechaEmisionSolicitud.ToString("yyyy-MM-dd HH:mm:ss.fff"),
+                    (long)diferencia.TotalMilliseconds,
+                    fechaEmisionUtc.ToString("yyyy-MM-dd HH:mm:ss.fff"));
+                // Lo marcamos como vencido para que no se reconsidere en esta consulta.
+                // No lo eliminamos para conservar trazabilidad histórica.
+                vigente.FechaVigencia = DateTime.UtcNow;
+                await db.SaveChangesAsync(ct);
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "No hay CUFD vigente para PV ({Suc},{PV}). Solicitando al SIAT...",
+                    codigoSucursal, codigoPuntoVenta);
             }
 
-            _logger.LogWarning("CUFD vencido o inexistente en BD → solicitando al SIAT...");
-            return await SolicitarCufdAsync(codigoSucursal, codigoPuntoVenta, ct);
+            return await SolicitarCufdAsync(codigoSucursal, codigoPuntoVenta, fechaEmision, ct);
         }
 
         private static DateTime NormalizarUtc(DateTime fecha) =>
