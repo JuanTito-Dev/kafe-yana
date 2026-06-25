@@ -99,6 +99,14 @@ namespace KafeYana.Domain.Entities
 
         public List<Detalle_Pago> Detalles { get; set; } = new List<Detalle_Pago>();
 
+        /// <summary>
+        /// Notas de Crédito/Débito SIAT que ajustan esta venta (relación inversa del FK
+        /// <c>NotaAjuste.IdVenta</c>). No requiere migración: EF infiere la FK del lado de
+        /// <c>NotaAjuste</c> ya existente. HotChocolate la expone como <c>notasAjuste</c>
+        /// en <c>VentaNode</c> para que la lista y el detalle lleguen con JOIN en una sola query.
+        /// </summary>
+        public List<NotaAjuste> NotasAjuste { get; set; } = new();
+
         public CajaMovimiento Reembolso(Caja caja, decimal monto, TipoPagos tipoPago, string motivo)
         {
             EstadoSiat = FacturaEstado.Anulada;

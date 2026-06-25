@@ -109,24 +109,26 @@ namespace KafeYana.Api.Controllers
         public async Task<IActionResult> ListarPorVenta(int ventaId)
         {
             var notas = await _db.notasAjuste.ListarPorVentaAsync(ventaId);
+            var resumen = notas.Select(n => new DtoNotaAjusteResumen
+            {
+                Id = n.Id,
+                IdVenta = n.IdVenta,
+                NumeroNotaCreditoDebito = n.NumeroNotaCreditoDebito,
+                Cuf = n.Cuf,
+                EstadoSiat = n.EstadoSiat?.ToString(),
+                CodigoRecepcion = n.CodigoRecepcion,
+                CodigoMotivoAjuste = n.CodigoMotivoAjuste,
+                FechaEmision = n.FechaEmision,
+                MontoTotalOriginal = n.MontoTotalOriginal,
+                MontoTotalDevuelto = n.MontoTotalDevuelto,
+                MontoEfectivoCreditoDebito = n.MontoEfectivoCreditoDebito
+            }).ToList();
+
             return Ok(new
             {
                 ventaId,
-                total = notas.Count,
-                notas = notas.Select(n => new
-                {
-                    n.Id,
-                    n.IdVenta,
-                    n.NumeroNotaCreditoDebito,
-                    n.Cuf,
-                    n.EstadoSiat,
-                    n.CodigoRecepcion,
-                    n.MontoTotalOriginal,
-                    n.MontoTotalDevuelto,
-                    n.MontoEfectivoCreditoDebito,
-                    n.CodigoMotivoAjuste,
-                    n.FechaEmision
-                })
+                total = resumen.Count,
+                notas = resumen
             });
         }
     }
