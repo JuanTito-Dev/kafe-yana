@@ -1,6 +1,7 @@
 ﻿using KafeYana.Core.Entities.Entity;
 using KafeYana.Core.Entities.Inventario;
 using KafeYana.Domain.Entities;
+using KafeYana.Domain.Entities.Catalogos;
 using KafeYana.Domain.Entities.Facturacion;
 using KafeYana.Domain.Entities.Inventario;
 using KafeYana.Infrastructure.Data.ConfigDbContext;
@@ -119,6 +120,8 @@ namespace KafeYana.Infrastructure.Data
 
         public DbSet<CodigoSiat> CodigosSiat { get; set; }
 
+        public DbSet<CatActividad> CatActividades { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -192,6 +195,8 @@ namespace KafeYana.Infrastructure.Data
             builder.ApplyConfigurationsFromAssembly(typeof(CufdConfig).Assembly);
 
             builder.ApplyConfigurationsFromAssembly(typeof(CodigoSiatConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CatActividadConfig).Assembly);
         }
     }
 }
