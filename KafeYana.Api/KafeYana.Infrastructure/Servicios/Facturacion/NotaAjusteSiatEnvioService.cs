@@ -4,6 +4,7 @@ using KafeYana.Application.IRepositorio;
 using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Domain.Entities;
 using KafeYana.Domain.TiposDeDatos;
+using KafeYana.Infrastructure.Servicios.Facturacion.Utilidades;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
@@ -87,16 +88,43 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             // Ver [[kafeyana-notaajuste-siat-reglas]] para el detalle de los códigos 1029/1030/1031/1049.
             //
             // Reglas clave (validadas contra rechazos reales del SIAT):
-            //   • montoTotalDevuelto = suma de subTotal de los detalles de la nota
-            //   • montoTotalOriginal = suma de subTotal de los detalles de la nota
-            //     (NO venta.MontoTotal — para devoluciones parciales el SIAT compara
-            //      contra lo que esta nota está ajustando, no contra la factura entera)
-            //   • montoEfectivoCreditoDebito = montoTotalDevuelto * 0.13
-            //     (es el IVA componente / crédito fiscal, NO el total devuelto)
-            //   • montoDescuentoCreditoDebito = descuento global aplicado (si hay)
-            var sumaSubtotales = dto.Detalles.Sum(x => x.SubTotal);
+            //   • montoTotalOriginal = suma de subTotal de líneas con codigoDetalleTransaccion=1
+            //     (referencias a los items seleccionados). NO es venta.MontoTotal: cuando el
+            //     cajero devuelve sólo algunos items, el SIAT espera el subtotal de lo
+            //     seleccionado, no el total de la factura. Validado contra error 1030:
+            //     "Monto original esperado 22.00 enviado 42.00" cuando venta.MontoTotal=42
+            //     y la nota cubre 22.
+            //   • montoTotalDevuelto = suma de subTotal de líneas con codigoDetalleTransaccion=2
+            //     (NO la suma de TODOS los subtotales). El SIAT computa este valor a partir
+            //     de los detalles y rechaza con 1029 si no coincide.
+            //   • montoEfectivoCreditoDebito = (montoTotalDevuelto - descuento) * 0.13
+            //     (crédito fiscal / IVA, NO el total devuelto). Regla 1031.
+            //   • Estructura: por cada producto seleccionado, la UI envía UN detalle con
+            //     codigoDetalleTransaccion=1 (marcador semántico). El backend expande
+            //     cada uno en un PAR canónico SIAT:
+            //       trans=1 → referencia al item original (cantidad=1, subTotal=precioUnitario)
+            //       trans=2 → devolución efectiva (cantidad=cantidad devuelta, subTotal=cant*precio)
+            //     XSD exige minOccurs=2 en <detalle>.
             var descuento = dto.MontoDescuentoCreditoDebito ?? 0m;
-            var montoDevueltoNeto = sumaSubtotales - descuento;
+
+            // El frontend DEBE enviar codigoDetalleTransaccion=1 (marcador semántico por producto).
+            // Si envía 2 u otro valor, rechazar — el par lo genera este servicio.
+            foreach (var item in dto.Detalles)
+            {
+                if (item.CodigoDetalleTransaccion != 1)
+                    throw new VentaException(
+                        $"CodigoDetalleTransaccion debe ser 1 (Devolución) en el body. "
+                        + $"Recibido: {item.CodigoDetalleTransaccion} para IdDetallePagoOriginal "
+                        + $"{item.IdDetallePagoOriginal}. El par trans=2 lo genera el backend.");
+            }
+
+            var detallesExpandidos = ExpandirParesTransaccion(dto.Detalles, detallesPorId, posicionPorId);
+            var sumaTrans1 = detallesExpandidos
+                .Where(d => d.CodigoDetalleTransaccion == 1)
+                .Sum(d => d.SubTotal);
+            var sumaTrans2 = detallesExpandidos
+                .Where(d => d.CodigoDetalleTransaccion == 2)
+                .Sum(d => d.SubTotal);
 
             var nota = new NotaAjuste
             {
@@ -122,10 +150,10 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 FechaEmisionFactura = venta.FechaEmision,
 
                 // Montos según reglas SIAT (ver comentario de bloque arriba)
-                MontoTotalOriginal = sumaSubtotales,
-                MontoTotalDevuelto = sumaSubtotales,
+                MontoTotalOriginal = sumaTrans1,
+                MontoTotalDevuelto = sumaTrans2,
                 MontoDescuentoCreditoDebito = descuento,
-                MontoEfectivoCreditoDebito = Math.Round(montoDevueltoNeto * 0.13m, 2, MidpointRounding.AwayFromZero),
+                MontoEfectivoCreditoDebito = Math.Round((sumaTrans2 - descuento) * 0.13m, 2, MidpointRounding.AwayFromZero),
 
                 // Catálogo
                 CodigoMotivoAjuste = dto.CodigoMotivoAjuste,
@@ -139,31 +167,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 Leyenda = string.Empty,
                 Usuario = string.IsNullOrWhiteSpace(dto.Usuario) ? "SISTEMA" : dto.Usuario,
 
-                Detalles = dto.Detalles.Select((item, idx) =>
-                {
-                    var original = detallesPorId[item.IdDetallePagoOriginal];
-                    // Regla SIAT 1049: el detalle de la nota debe coincidir con la factura
-                    // original en codigoProducto, precioUnitario, unidadMedida, actividadEconomica.
-                    // El frontend puede enviar precioUnitario/subTotal distintos, pero el SIAT
-                    // rechaza si no coinciden exactamente. Por eso forzamos desde `original`.
-                    var precioUnitario = original.PrecioUnitario;
-                    var subTotal = Math.Round(item.Cantidad * precioUnitario, 2, MidpointRounding.AwayFromZero);
-                    return new NotaAjusteDetalle
-                    {
-                        ActividadEconomica = original.ActividadEconomica,
-                        CodigoProductoSin = original.CodigoProductoSin,
-                        CodigoProducto = original.CodigoProducto,
-                        Descripcion = original.Descripcion,
-                        Cantidad = item.Cantidad,
-                        UnidadMedida = original.UnidadMedida,
-                        PrecioUnitario = precioUnitario,
-                        SubTotal = subTotal,
-                        MontoDescuento = item.MontoDescuento,
-                        CodigoDetalleTransaccion = item.CodigoDetalleTransaccion,
-                        IdDetallePagoOriginal = item.IdDetallePagoOriginal,
-                        NumeroLineaOriginal = posicionPorId[item.IdDetallePagoOriginal]
-                    };
-                }).ToList()
+                Detalles = detallesExpandidos
             };
 
             // ─── Preparar ANTES de persistir ─────────────────────────────────
@@ -242,13 +246,25 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 await _db.SaveUnitWork();
 
                 if (!respuesta.Transaccion)
+                {
+                    // Log nivel Error del XML interno decodificado para que el operador
+                    // pueda compararlo contra la factura original y diagnosticar el 1049.
                     _logger.LogWarning(
-                        "SIAT rechazó nota {Numero} (NotaId={NotaId}). {Error}",
-                        nota.NumeroNotaCreditoDebito, nota.Id, nota.ErrorMensaje);
+                        "SIAT rechazó nota {Numero} (NotaId={NotaId}). {Error}. " +
+                        "CufOriginal={CufOriginal} NumeroFactura={NumeroFactura}",
+                        nota.NumeroNotaCreditoDebito, nota.Id, nota.ErrorMensaje,
+                        nota.NumeroAutorizacionCuf, nota.NumeroFacturaOriginal);
+                    _logger.LogError(
+                        "XML enviado al SIAT (base64+gzip decodificado) — NotaId={NotaId}:\n{Xml}",
+                        nota.Id,
+                        SiatGzip.DescomprimirBase64(nota.XmlBase64));
+                }
                 else
+                {
                     _logger.LogInformation(
                         "Nota {Numero} (NotaId={NotaId}) validada por SIAT. CodigoRecepcion={Codigo}",
                         nota.NumeroNotaCreditoDebito, nota.Id, nota.CodigoRecepcion);
+                }
 
                 return MapearResultado(nota, respuesta);
             }
@@ -272,6 +288,74 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                     ErrorMensaje = nota.ErrorMensaje
                 };
             }
+        }
+
+        /// <summary>
+        /// Expande cada producto seleccionado en el PAR canónico SIAT (línea trans=1
+        /// de referencia + línea trans=2 con la devolución efectiva).
+        ///
+        /// Por cada item del DTO:
+        ///   • Línea A (trans=1): referencia al item original. Cantidad y SubTotal
+        ///     se copian EXACTAMENTE del detalle original (regla SIAT 1049 — el SIAT
+        ///     compara esta línea contra la línea original de la factura y rechaza
+        ///     si difieren en cualquier campo, incluyendo cantidad/subTotal).
+        ///   • Línea B (trans=2): devolución efectiva. Cantidad = cantidad
+        ///     devuelta del DTO, subTotal = cant × precioUnitario.
+        ///
+        /// N items en la entrada ⇒ 2N líneas en el XML final (cumple XSD minOccurs=2).
+        /// </summary>
+        private static List<NotaAjusteDetalle> ExpandirParesTransaccion(
+            List<DtoNotaAjusteDetalle> detallesDto,
+            Dictionary<int, Detalle_Pago> detallesPorId,
+            Dictionary<int, int> posicionPorId)
+        {
+            var resultado = new List<NotaAjusteDetalle>(detallesDto.Count * 2);
+            foreach (var item in detallesDto)
+            {
+                if (!detallesPorId.TryGetValue(item.IdDetallePagoOriginal, out var original))
+                    continue; // ya validado en el foreach anterior; blindamos por si cambia el flujo.
+
+                var precioUnitario = original.PrecioUnitario;
+                var lineaOriginal = posicionPorId[item.IdDetallePagoOriginal];
+
+                // Línea A: referencia al item original (regla SIAT 1049 — debe coincidir
+                // EXACTAMENTE con la factura original, así que copiamos Cantidad y
+                // SubTotal del Detalle_Pago en vez de recalcularlos).
+                resultado.Add(new NotaAjusteDetalle
+                {
+                    ActividadEconomica = original.ActividadEconomica,
+                    CodigoProductoSin = original.CodigoProductoSin,
+                    CodigoProducto = original.CodigoProducto,
+                    Descripcion = original.Descripcion,
+                    Cantidad = original.Cantidad,
+                    UnidadMedida = original.UnidadMedida,
+                    PrecioUnitario = original.PrecioUnitario,
+                    SubTotal = original.SubTotal,
+                    MontoDescuento = original.MontoDescuento ?? 0m,
+                    CodigoDetalleTransaccion = 1,
+                    IdDetallePagoOriginal = item.IdDetallePagoOriginal,
+                    NumeroLineaOriginal = lineaOriginal
+                });
+
+                // Línea B: devolución efectiva.
+                var subTotalTrans2 = Math.Round(item.Cantidad * precioUnitario, 2, MidpointRounding.AwayFromZero);
+                resultado.Add(new NotaAjusteDetalle
+                {
+                    ActividadEconomica = original.ActividadEconomica,
+                    CodigoProductoSin = original.CodigoProductoSin,
+                    CodigoProducto = original.CodigoProducto,
+                    Descripcion = original.Descripcion,
+                    Cantidad = item.Cantidad,
+                    UnidadMedida = original.UnidadMedida,
+                    PrecioUnitario = precioUnitario,
+                    SubTotal = subTotalTrans2,
+                    MontoDescuento = item.MontoDescuento,
+                    CodigoDetalleTransaccion = 2,
+                    IdDetallePagoOriginal = item.IdDetallePagoOriginal,
+                    NumeroLineaOriginal = lineaOriginal
+                });
+            }
+            return resultado;
         }
 
         private static void AplicarResultadoSiat(NotaAjuste nota, RespuestaRecepcionNotaAjusteDto respuesta)

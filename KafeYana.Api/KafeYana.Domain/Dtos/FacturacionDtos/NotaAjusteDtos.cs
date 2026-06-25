@@ -39,23 +39,25 @@ namespace KafeYana.Application.Dtos.FacturacionDtos
     /// Entrada del POST /api/NotaAjuste.
     ///
     /// REGLAS DE NEGOCIO NO NEGOCIABLES (replican restricciones del XSD
-    /// notaComputarizadaCreditoDebito.xsd y previenen rechazos SIAT 1031/1029):
+    /// notaComputarizadaCreditoDebito.xsd y previenen rechazos SIAT 1029/1030/1031/1049):
     ///
     /// 1. <see cref="IdVenta"/> debe corresponder a una venta con
     ///    <c>EstadoSiat == Validada (908)</c>. Otros estados devuelven 400.
-    /// 2. <see cref="Detalles"/> DEBE contener mínimo 2 elementos.
-    ///    - No es burocracia: el XSD exige al menos 2 eventos de ajuste por nota.
-    ///    - Si en el negocio solo hay 1 producto a devolver, la UI debe agregar
-    ///      explícitamente una 2da línea técnica (SubTotal=0.01,
-    ///      CodigoDetalleTransaccion=3 'Ajuste manual') con el consentimiento
-    ///      del cajero. La inyección silenciosa desde el frontend está prohibida
-    ///      porque rompe la auditoría fiscal y suele ser rechazada por el SIAT.
-    /// 3. La suma de <see cref="DtoNotaAjusteDetalle.SubTotal"/> de los detalles
-    ///    DEBE coincidir exactamente con el monto total devuelto al cliente
-    ///    (tolerancia ±0.01 por redondeo decimal). Si no, se lanza
-    ///    <c>InvalidOperationException</c> con código 400 antes de enviar al SIAT.
+    /// 2. <see cref="Detalles"/> representa los PRODUCTOS seleccionados por el
+    ///    cajero para devolver (no las líneas SIAT finales). El servicio de
+    ///    envío expande cada producto en un PAR canónico SIAT:
+    ///       - línea trans=1: referencia al item original (cantidad=1, subTotal=precio original)
+    ///       - línea trans=2: devolución efectiva (cantidad devuelta, subTotal=cant*precioUnitario)
+    ///    Por eso N productos en la entrada ⇒ 2N líneas en el XML final.
+    ///    Seleccionar al menos 1 producto cumple el mínimo XSD (minOccurs=2 en detalle).
+    /// 3. Cada <see cref="DtoNotaAjusteDetalle"/> del body DEBE tener
+    ///    <c>CodigoDetalleTransaccion == 1</c> (marcador semántico de producto
+    ///    a devolver). El backend rechaza con 400 cualquier otro valor; el par
+    ///    trans=2 lo genera el servicio de envío.
     /// 4. Cada <see cref="DtoNotaAjusteDetalle.IdDetallePagoOriginal"/> debe
     ///    corresponder a una línea real de la venta original; si no, 400.
+    /// 5. <see cref="DtoNotaAjusteDetalle.Cantidad"/> no puede superar la
+    ///    cantidad facturada del item original; si no, 400.
     /// </summary>
     public class DtoCrearNotaAjuste
     {
@@ -70,25 +72,32 @@ namespace KafeYana.Application.Dtos.FacturacionDtos
         /// <summary>Usuario que emite la nota (opcional — si null, se usa el del token).</summary>
         public string? Usuario { get; set; }
 
-        /// <summary>Mínimo 2 elementos (ver regla #2 en el summary de la clase).</summary>
+        /// <summary>Productos seleccionados por el cajero. El backend expande cada uno en par SIAT.</summary>
         public List<DtoNotaAjusteDetalle> Detalles { get; set; } = new();
     }
 
     /// <summary>
-    /// Línea de detalle de la Nota de Crédito/Débito.
+    /// Línea de detalle de la Nota de Crédito/Débito — entrada del body.
+    ///
+    /// El body NO contiene las líneas SIAT finales: cada producto seleccionado
+    /// se traduce en el backend a un PAR (trans=1 + trans=2). Por eso el
+    /// frontend siempre envía <see cref="CodigoDetalleTransaccion"/> = 1.
     ///
     /// Campos obligatorios por XSD (validación anti-rechazo SIAT):
     /// - <see cref="IdDetallePagoOriginal"/>: FK a una línea real de la venta original.
     ///   El backend rechaza con 400 si la línea no pertenece a la venta.
-    /// - <see cref="NumeroLineaOriginal"/>: posición (1, 2, ...) de la línea original.
-    /// - <see cref="CodigoDetalleTransaccion"/>: 1=Devolución, 2=Descuento, 3=Ajuste técnico.
+    /// - <see cref="Cantidad"/>: cantidad devuelta. El backend valida que no exceda
+    ///   la cantidad facturada del item original.
+    /// - <see cref="CodigoDetalleTransaccion"/>: SIEMPRE 1 en el body (marcador
+    ///   semántico). El backend genera el trans=2 complementario.
     /// </summary>
     public class DtoNotaAjusteDetalle
     {
         /// <summary>FK a la línea original de la Venta que se ajusta (Id del Detalle_Pago).</summary>
         public int IdDetallePagoOriginal { get; set; }
 
-        /// <summary>1=Devolución, 2=Descuento, 3=Ajuste técnico.</summary>
+        /// <summary>Marcador semántico. El frontend siempre envía 1 (Devolución);
+        /// el backend genera el trans=2 complementario.</summary>
         public int CodigoDetalleTransaccion { get; set; }
 
         public decimal Cantidad { get; set; }
