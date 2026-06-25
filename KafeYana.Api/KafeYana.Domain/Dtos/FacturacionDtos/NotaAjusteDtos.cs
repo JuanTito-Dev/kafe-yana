@@ -119,4 +119,24 @@ namespace KafeYana.Application.Dtos.FacturacionDtos
         public string? ErrorMensaje { get; init; }
         public List<CodigoRespuestaSiatDto> CodigosRespuesta { get; init; } = new();
     }
+
+    /// <summary>
+    /// Resumen de NotaAjuste para listas (ej: "GET /api/NotaAjuste/por-venta/{id}").
+    /// Proyección delgada de <c>NotaAjuste</c> sin detalles ni XML pesado,
+    /// apta para mostrar badges y montos en listados sin cargar el grafo completo.
+    /// </summary>
+    public class DtoNotaAjusteResumen
+    {
+        public int Id { get; set; }
+        public int IdVenta { get; set; }
+        public long NumeroNotaCreditoDebito { get; set; }
+        public string? Cuf { get; set; }
+        public string? EstadoSiat { get; set; }
+        public string? CodigoRecepcion { get; set; }
+        public int CodigoMotivoAjuste { get; set; }
+        public DateTime FechaEmision { get; set; }
+        public decimal MontoTotalOriginal { get; set; }
+        public decimal MontoTotalDevuelto { get; set; }
+        public decimal MontoEfectivoCreditoDebito { get; set; }
+    }
 }

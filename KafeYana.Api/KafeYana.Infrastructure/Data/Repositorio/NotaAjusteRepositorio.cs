@@ -51,5 +51,28 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                 .OrderByDescending(n => n.FechaEmision)
                 .ToListAsync();
         }
+
+        /// <summary>
+        /// Suma las cantidades devueltas por producto en notas VÁLIDAS (SIAT).
+        /// Sólo se contabilizan las líneas con CodigoDetalleTransaccion = 2
+        /// (la línea trans=1 del par SIAT es sólo referencia semántica del item
+        /// original; sumar ambas duplicaría).
+        ///
+        /// Coherente con la regla del frontend
+        /// (<c>frontend/src/pages/sales/sales.mapper.ts:85-86</c>), que sólo
+        /// considera notas en estado "Validada" para calcular el saldo efectivo.
+        /// </summary>
+        public async Task<System.Collections.Generic.Dictionary<int, decimal>> ObtenerCantidadDevueltaPorDetallePagoAsync(int ventaId)
+        {
+            return await _db.NotasAjuste
+                .AsNoTracking()
+                .Where(n => n.IdVenta == ventaId
+                         && n.EstadoSiat == Domain.TiposDeDatos.FacturaEstado.Validada)
+                .SelectMany(n => n.Detalles)
+                .Where(d => d.CodigoDetalleTransaccion == 2)
+                .GroupBy(d => d.IdDetallePagoOriginal)
+                .Select(g => new { Id = g.Key, Cantidad = g.Sum(d => d.Cantidad) })
+                .ToDictionaryAsync(x => x.Id, x => x.Cantidad);
+        }
     }
 }

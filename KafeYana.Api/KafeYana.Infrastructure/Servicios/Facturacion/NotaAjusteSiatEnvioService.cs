@@ -71,18 +71,52 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 .Select((d, i) => (d.Id, Posicion: i + 1))
                 .ToDictionary(x => x.Id, x => x.Posicion);
 
+            // Suma de cantidades ya devueltas por línea en notas VÁLIDAS previas.
+            // Permite rechazar una nueva nota que intente devolver más unidades
+            // de las que aún quedan disponibles (no contra la cantidad ORIGINAL,
+            // sino contra lo efectivamente disponible después de devoluciones previas).
+            var devueltasMap = await _db.notasAjuste
+                .ObtenerCantidadDevueltaPorDetallePagoAsync(ventaId);
+
             foreach (var item in dto.Detalles)
             {
                 if (!detallesPorId.TryGetValue(item.IdDetallePagoOriginal, out var original))
                     throw new VentaException(
                         $"DetallePago {item.IdDetallePagoOriginal} no pertenece a la venta {ventaId}.");
 
-                // La cantidad a devolver no puede exceder la cantidad original
-                if (item.Cantidad > original.Cantidad)
+                var yaDevuelto = devueltasMap.GetValueOrDefault(item.IdDetallePagoOriginal, 0m);
+                var cantidadDisponible = original.Cantidad - yaDevuelto;
+
+                if (cantidadDisponible <= 0m)
+                    throw new VentaException(
+                        $"El producto '{original.Descripcion}' ya fue devuelto en su totalidad "
+                        + $"({original.Cantidad} unidades). No queda saldo para devolver.");
+
+                if (item.Cantidad > cantidadDisponible)
                     throw new VentaException(
                         $"Cantidad a devolver ({item.Cantidad}) del producto '{original.Descripcion}' "
-                        + $"excede la cantidad facturada ({original.Cantidad}).");
+                        + $"excede la cantidad disponible ({cantidadDisponible:0.##} = "
+                        + $"{original.Cantidad} facturadas − {yaDevuelto} ya devueltas).");
             }
+
+            // Validación de saldo monetario: la suma de los subtotales de esta nota
+            // no puede superar el saldo restante (venta.MontoTotal − Σ notas válidas).
+            // Alineado con la regla del frontend (sales.mapper.ts:85-103).
+            var devueltoPrevio = (await _db.notasAjuste.ListarPorVentaAsync(ventaId))
+                .Where(n => n.EstadoSiat == FacturaEstado.Validada)
+                .Sum(n => n.MontoTotalDevuelto);
+
+            var montoEstaNota = dto.Detalles
+                .Sum(d => Math.Round(
+                    d.Cantidad * detallesPorId[d.IdDetallePagoOriginal].PrecioUnitario,
+                    2, MidpointRounding.AwayFromZero));
+
+            var saldoDisponible = Math.Max(0m, venta.MontoTotal - devueltoPrevio);
+            if (montoEstaNota - 0.01m > saldoDisponible)
+                throw new VentaException(
+                    $"El monto a devolver ({montoEstaNota:0.00}) excede el saldo disponible "
+                    + $"({saldoDisponible:0.00} = {venta.MontoTotal:0.00} venta − "
+                    + $"{devueltoPrevio:0.00} ya devuelto).");
 
             // Calcular totales según reglas SIAT Bolivia (notaComputarizadaCreditoDebito.xsd)
             // Ver [[kafeyana-notaajuste-siat-reglas]] para el detalle de los códigos 1029/1030/1031/1049.

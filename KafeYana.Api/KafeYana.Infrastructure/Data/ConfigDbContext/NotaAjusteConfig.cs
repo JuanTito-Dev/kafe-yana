@@ -58,9 +58,13 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.Property(x => x.EstadoSiat).HasConversion<int?>();
             builder.Property(x => x.RevertidaAnulacion).IsRequired().HasDefaultValue(false);
 
-            // FK a Venta — Restrict: si la Venta no se puede borrar (protege historial fiscal)
+            // FK a Venta — Restrict: si la Venta no se puede borrar (protege historial fiscal).
+            // IMPORTANTE: declarar la nav inversa `v.NotasAjuste` para que EF NO infiera por
+            // convención una segunda relación con FK "VentaId" (que no existe en la BD — la
+            // columna real es "IdVenta"). Sin este `.WithMany(v => v.NotasAjuste)`, EF genera
+            // SQL con `n."VentaId"` y Postgres devuelve 42703 "column does not exist".
             builder.HasOne(x => x.Venta)
-                   .WithMany()
+                   .WithMany(v => v.NotasAjuste)
                    .HasForeignKey(x => x.IdVenta)
                    .HasConstraintName("FK_NotaAjuste_Venta")
                    .OnDelete(DeleteBehavior.Restrict);
