@@ -5,23 +5,23 @@ using KafeYana.Application.IRepositorio;
 using KafeYana.Application.IServicios;
 using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Domain.Entities;
-using KafeYana.Infrastructure.Configuration;
 using KafeYana.Infrastructure.Data;
 using KafeYana.Infrastructure.Servicios.Facturacion;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 namespace KafeYana.Infrastructure.Servicios
 {
+    /// <summary>
+    /// Servicio de cobro de pedidos. Tras el cobro NO se imprime la factura
+    /// automáticamente; el frontend dispara el modal de impresión con la
+    /// selección de impresoras cuando el cajero lo decide.
+    /// </summary>
     public class CobroPedidoService(
         IUnitWork _db,
         AppDbContext _dbContext,
         IVentaServices _venta,
-        IFacturaSiatEnvioService _facturaSiatEnvio,
-        IFacturaImpresionService _facturaImpresion,
-        IOptions<FacturaImpresoraOptions> facturaImpresoraOpts) : ICobroPedidoService
+        IFacturaSiatEnvioService _facturaSiatEnvio) : ICobroPedidoService
     {
-        private readonly FacturaImpresoraOptions _facturaImpresora = facturaImpresoraOpts.Value;
 
         public async Task<ResultadoCobroPedidoDto> CobrarPedidoActivoAsync(
             DtoVentaPedido datos,
@@ -133,34 +133,12 @@ namespace KafeYana.Infrastructure.Servicios
                 await _db.SaveUnitWork();
                 await transaction.CommitAsync(ct);
 
-                ResultadoImpresionFacturaDto? impresion = null;
-                if (datos.Factura
-                    && _facturaImpresora.AutoImprimirAlCobrar
-                    && envioSiat is not null
-                    && FacturaSiatCobroPolicy.EsValidadaPorSiat(envioSiat))
-                {
-                    try
-                    {
-                        impresion = await _facturaImpresion.ImprimirVentaAsync(resultado.Venta, ct);
-                    }
-                    catch (Exception)
-                    {
-                        impresion = new ResultadoImpresionFacturaDto
-                        {
-                            Enviado = false,
-                            Ok = false,
-                            ErrorMensaje = "No se pudo imprimir la factura, pero la venta fue registrada."
-                        };
-                    }
-                }
-
                 return new ResultadoCobroPedidoDto
                 {
                     Resultado = resultado,
                     EnvioSiat = envioSiat,
                     OrigenVenta = origenVenta,
                     IdMesa = idMesa,
-                    ImpresionFactura = impresion
                 };
             }
             catch

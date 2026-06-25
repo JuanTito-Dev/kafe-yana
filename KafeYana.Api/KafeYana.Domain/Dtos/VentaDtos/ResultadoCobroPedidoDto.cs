@@ -11,7 +11,5 @@ namespace KafeYana.Application.Dtos.VentaDtos
         public required string OrigenVenta { get; init; }
 
         public int? IdMesa { get; init; }
-
-        public ResultadoImpresionFacturaDto? ImpresionFactura { get; init; }
     }
 }

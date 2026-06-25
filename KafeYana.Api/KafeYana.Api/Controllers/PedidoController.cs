@@ -45,7 +45,7 @@ namespace KafeYana.Api.Controllers
                     new ParaLlevarPayload(IdPedido: null, Disponible: true));
             }
 
-            return Ok(VentaRespuestaHelper.ConstruirRespuestaCobro(cobro.Resultado, cobro.EnvioSiat, cobro.ImpresionFactura));
+            return Ok(VentaRespuestaHelper.ConstruirRespuestaCobro(cobro.Resultado, cobro.EnvioSiat));
         }
     }
 }

@@ -9,6 +9,15 @@ using Microsoft.Extensions.Options;
 
 namespace KafeYana.Api.Controllers
 {
+    /// <summary>Body opcional del POST /imprimir/{ventaId}.</summary>
+    public class DtoImprimirFactura
+    {
+        /// <summary>Lista de nombres de impresora (Impresoras.Destinos). Default ["principal"].</summary>
+        public List<string> Destinos { get; set; } = new();
+        /// <summary>Ancho del ticket en caracteres. Default = appsettings Impresoras.AnchoCaracteres.</summary>
+        public int? AnchoCaracteres { get; set; }
+    }
+
     [Route("api/[controller]")]
     [ApiController]
     public class FacturacionController : ControllerBase
@@ -113,12 +122,22 @@ namespace KafeYana.Api.Controllers
 
         /// <summary>
         /// Imprime la representación gráfica de una factura ya guardada (80mm + QR SIAT).
+        /// Acepta body opcional con `Destinos` (lista de impresoras de la sección
+        /// `Impresoras.Destinos` del appsettings: principal/cocina/barra) y
+        /// `AnchoCaracteres` (override del ancho de ticket; default 48 = 80mm@FontA).
         /// </summary>
         [HttpPost("imprimir/{ventaId:int}")]
         [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
-        public async Task<IActionResult> ImprimirFactura(int ventaId, CancellationToken ct)
+        public async Task<IActionResult> ImprimirFactura(
+            int ventaId,
+            [FromBody] DtoImprimirFactura? body,
+            CancellationToken ct = default)
         {
-            var impresion = await _facturaImpresion.ImprimirPorIdAsync(ventaId, ct);
+            var destinos = body?.Destinos ?? new List<string> { "principal" };
+            var ancho = body?.AnchoCaracteres;
+
+            var impresion = await _facturaImpresion.ImprimirPorIdAsync(
+                ventaId, destinos, ancho, ct);
 
             return Ok(new
             {

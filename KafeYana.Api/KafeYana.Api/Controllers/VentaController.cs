@@ -206,7 +206,7 @@ namespace KafeYana.Api.Controllers
             await _notificador.NotificarPedidoParaLlevarActualizado(
                 new ParaLlevarPayload(IdPedido: null, Disponible: true));
 
-            return Ok(VentaRespuestaHelper.ConstruirRespuestaCobro(cobro.Resultado, cobro.EnvioSiat, cobro.ImpresionFactura));
+            return Ok(VentaRespuestaHelper.ConstruirRespuestaCobro(cobro.Resultado, cobro.EnvioSiat));
         }
 
         [HttpPost("{id:int}/enviar-siat")]
