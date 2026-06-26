@@ -1,6 +1,6 @@
 namespace KafeYana.Domain.TiposDeDatos
 {
-    /// <summary>Paramétrica SIAT codigoMotivo para anulación de factura.</summary>
+    /// <summary>Paramétrica SIAT codigoMotivo para anulación de factura y nota C/D.</summary>
     public enum MotivoAnulacionSiat
     {
         FacturaMalEmitida = 1,
@@ -9,18 +9,68 @@ namespace KafeYana.Domain.TiposDeDatos
         Otros = 4
     }
 
+    /// <summary>
+    /// Catálogo de motivos de anulación leído desde la BD (tabla CatMotivosAnulacion,
+    /// sincronizada por SincronizadorCatMotivoAnulacion).
+    ///
+    /// Se mantiene un caché en memoria (inmutable por reemplazo atómico) para no
+    /// golpear la BD en cada anulación. El caché arranca con descripciones
+    /// hardcoded como fallback mientras el primer sync del SIAT no haya corrido;
+    /// apenas el sync termina, llama a <see cref="Refrescar"/> y el sistema pasa a
+    /// usar las descripciones oficiales del SIN.
+    ///
+    /// Es thread-safe: el reemplazo del diccionario es atómico y los lectores
+    /// siempre ven una versión consistente (vieja o nueva, nunca mixta).
+    /// </summary>
     public static class MotivoAnulacionSiatCatalogo
     {
-        public static bool EsValido(int codigo) =>
-            Enum.IsDefined(typeof(MotivoAnulacionSiat), codigo);
+        // Snapshot inmutable de los motivos conocidos. Se reemplaza atómicamente
+        // vía Interlocked.Exchange para que los lectores vean una versión estable.
+        private static volatile IReadOnlyDictionary<int, string> _cache = FallbackHardcoded;
 
-        public static string ObtenerDescripcion(int codigo) => codigo switch
+        private static readonly IReadOnlyDictionary<int, string> FallbackHardcoded =
+            new Dictionary<int, string>
+            {
+                [1] = "Factura mal emitida",
+                [2] = "Nota de crédito/débito",
+                [3] = "Datos del cliente incorrectos",
+                [4] = "Otros",
+            };
+
+        /// <summary>True si el código está en el catálogo vigente (BD o fallback).</summary>
+        public static bool EsValido(int codigo) => _cache.ContainsKey(codigo);
+
+        /// <summary>
+        /// Descripción del motivo. Si no existe en el catálogo, devuelve
+        /// "Motivo {codigo}" en lugar de lanzar para no romper respuestas al cliente.
+        /// </summary>
+        public static string ObtenerDescripcion(int codigo) =>
+            _cache.TryGetValue(codigo, out var d) ? d : $"Motivo {codigo}";
+
+        /// <summary>
+        /// Snapshot de solo-lectura del catálogo actual. Útil para la UI
+        /// (lista de opciones del dropdown).
+        /// </summary>
+        public static IReadOnlyDictionary<int, string> ObtenerTodos() => _cache;
+
+        /// <summary>
+        /// Llamado por <c>SincronizadorCatMotivoAnulacion</c> al terminar una
+        /// sync exitosa. Reemplaza el caché atómicamente con los motivos del SIN.
+        /// </summary>
+        public static void Refrescar(IEnumerable<(int Codigo, string Descripcion)> motivos)
         {
-            1 => "Factura mal emitida",
-            2 => "Nota de crédito/débito",
-            3 => "Datos del cliente incorrectos",
-            4 => "Otros",
-            _ => $"Motivo {codigo}"
-        };
+            if (motivos is null) return;
+
+            var nuevo = motivos
+                .Where(m => m.Codigo > 0 && !string.IsNullOrWhiteSpace(m.Descripcion))
+                .GroupBy(m => m.Codigo)
+                .ToDictionary(g => g.Key, g => g.First().Descripcion.Trim());
+
+            if (nuevo.Count == 0) return;
+
+            // Reemplazo atómico: cualquier lector en vuelo verá el diccionario viejo
+            // o el nuevo, nunca uno parcial.
+            Interlocked.Exchange(ref _cache, nuevo);
+        }
     }
 }

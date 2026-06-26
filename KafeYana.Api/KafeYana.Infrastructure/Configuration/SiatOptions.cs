@@ -87,6 +87,18 @@ namespace KafeYana.Infrastructure.Configuration
         /// </summary>
         public string ServicioRecepcionNotaAjuste { get; set; } = "ServicioFacturacionDocumentoAjuste";
 
+        /// <summary>
+        /// Servicio SOAP de anulación de nota C/D.
+        /// Mismo que recepción: ServicioFacturacionDocumentoAjuste.
+        /// </summary>
+        public string ServicioAnulacionNotaAjuste { get; set; } = "ServicioFacturacionDocumentoAjuste";
+
+        /// <summary>
+        /// Servicio SOAP de reversión de anulación de nota C/D.
+        /// Mismo que recepción: ServicioFacturacionDocumentoAjuste.
+        /// </summary>
+        public string ServicioReversionAnulacionNotaAjuste { get; set; } = "ServicioFacturacionDocumentoAjuste";
+
         /// <summary>Sector SIAT para notas de crédito/débito (24 por defecto).</summary>
         public int CodigoDocumentoSectorNotaAjuste { get; set; } = 24;
 

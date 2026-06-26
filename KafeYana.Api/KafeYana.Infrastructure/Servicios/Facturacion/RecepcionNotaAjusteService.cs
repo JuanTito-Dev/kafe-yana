@@ -47,13 +47,22 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             string archivo,
             string? hashArchivo = null,
             DateTime? fechaEmision = null,
+            int? codigoSucursal = null,
+            int? codigoPuntoVenta = null,
             CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(archivo))
                 throw new ArgumentException("El archivo de la nota es requerido.", nameof(archivo));
 
-            var cuis = await _cuisService.ObtenerCuisVigenteAsync(
-                _opts.CodigoSucursal, _opts.CodigoPuntoVenta, ct);
+            // Sucursal/PV efectivos: si el caller los prefijó (caso de la nota, donde
+            // viene de venta.CodigoSucursal/PuntoVenta), se usan esos. Si no, se cae
+            // a appsettings.json. Esto replica el patrón de RecepcionFacturaService
+            // y arregla la divergencia 1002/1008 cuando la venta se cobró con un PV
+            // distinto al de appsettings.
+            var sucEfectiva = codigoSucursal ?? _opts.CodigoSucursal;
+            var pvEfectivo = codigoPuntoVenta ?? _opts.CodigoPuntoVenta;
+
+            var cuis = await _cuisService.ObtenerCuisVigenteAsync(sucEfectiva, pvEfectivo, ct);
 
             if (!cuis.EsVigente())
                 throw new InvalidOperationException("CUIS vencido. Solicite uno nuevo antes de emitir la nota.");
@@ -68,9 +77,9 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 CodigoDocumentoSector = _opts.CodigoDocumentoSectorNotaAjuste,
                 CodigoEmision = _opts.CodigoEmision,
                 CodigoModalidad = _opts.CodigoModalidad,
-                CodigoPuntoVenta = _opts.CodigoPuntoVenta,
+                CodigoPuntoVenta = pvEfectivo,
                 CodigoSistema = _opts.CodigoSistema,
-                CodigoSucursal = _opts.CodigoSucursal,
+                CodigoSucursal = sucEfectiva,
                 Cuis = cuis.Codigo,
                 Nit = _opts.Nit,
                 TipoFacturaDocumento = _opts.TipoFacturaDocumentoNotaAjuste,
@@ -80,8 +89,9 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             };
 
             _logger.LogInformation(
-                "Solicitud RecepcionDocumentoAjuste preparada. HashArchivo={Hash}. CUIS vigente hasta {CuisVigencia}",
+                "Solicitud RecepcionDocumentoAjuste preparada. HashArchivo={Hash}. Suc={Suc}, PV={PV}. CUIS vigente hasta {CuisVigencia}",
                 hashArchivo,
+                sucEfectiva, pvEfectivo,
                 cuis.FechaVigencia);
 
             return solicitud;
@@ -91,9 +101,11 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             string archivo,
             string? hashArchivo = null,
             DateTime? fechaEmision = null,
+            int? codigoSucursal = null,
+            int? codigoPuntoVenta = null,
             CancellationToken ct = default)
         {
-            var dto = await PrepararSolicitudAsync(archivo, hashArchivo, fechaEmision, ct);
+            var dto = await PrepararSolicitudAsync(archivo, hashArchivo, fechaEmision, codigoSucursal, codigoPuntoVenta, ct);
             var respuesta = await _siat.RecepcionDocumentoAjusteAsync(dto, ct);
 
             if (!respuesta.Transaccion)

@@ -1,4 +1,5 @@
-﻿using KafeYana.Application.IServicios.IFacturacion;
+﻿using KafeYana.Application.IServicios;
+using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Infrastructure.BackgroundServices;
 using KafeYana.Infrastructure.Configuration;
 using KafeYana.Infrastructure.Options;
@@ -65,12 +66,31 @@ namespace KafeYana.Infrastructure
             services.AddScoped<IRecepcionNotaAjusteService, RecepcionNotaAjusteService>();
             services.AddScoped<INotaAjusteSiatPreparer, NotaAjusteSiatPreparer>();
             services.AddScoped<INotaAjusteSiatEnvioService, NotaAjusteSiatEnvioService>();
+            services.AddScoped<INotaAjusteAnulacionService, NotaAjusteAnulacionService>();
+            services.AddScoped<INotaAjusteReversionAnulacionService, NotaAjusteReversionAnulacionService>();
+            services.AddScoped<INotaAjusteSiatAnulacionService, NotaAjusteSiatAnulacionService>();
+            services.AddScoped<INotaAjusteSiatReversionAnulacionService, NotaAjusteSiatReversionAnulacionService>();
 
             // Sincronización de catálogos del SIAT
             // (Scoped porque depende de ICuisService que también es Scoped)
             services.AddScoped<SincronizadorCatActividades>();
             services.AddScoped<SincronizadorCatDocumentoSector>();
+            services.AddScoped<SincronizadorCatMotivoAnulacion>();
+            services.AddScoped<SincronizadorCatActividadDocumentoSector>();
+            services.AddScoped<SincronizadorCatLeyenda>();
+
+            // Resolver compartido del CAEB vigente. Usado por VentaServices y por
+            // los preparers SIAT (FacturaVentaSiatPreparer / NotaAjusteSiatPreparer)
+            // para validar la matriz Actividad↔DocumentoSector.
+            services.AddScoped<ICatActividadResolver, CatActividadResolver>();
+
+            // Resolver de la leyenda obligatoria filtrada por el CAEB del operador.
+            // Reemplaza al antiguo LeyendaSiatService hardcodeado.
+            services.AddScoped<ICatLeyendaResolver, CatLeyendaResolver>();
+
             services.AddHostedService<SincronizacionCatActividadesHostedService>();
+            services.AddHostedService<SincronizacionMotivoAnulacionHostedService>();
+            services.AddHostedService<SincronizacionLeyendaHostedService>();
 
             return services;
         }

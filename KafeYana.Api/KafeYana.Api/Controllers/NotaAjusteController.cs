@@ -17,13 +17,19 @@ namespace KafeYana.Api.Controllers
     public class NotaAjusteController : ControllerBase
     {
         private readonly INotaAjusteSiatEnvioService _envioService;
+        private readonly INotaAjusteSiatAnulacionService _anulacionService;
+        private readonly INotaAjusteSiatReversionAnulacionService _reversionService;
         private readonly IUnitWork _db;
 
         public NotaAjusteController(
             INotaAjusteSiatEnvioService envioService,
+            INotaAjusteSiatAnulacionService anulacionService,
+            INotaAjusteSiatReversionAnulacionService reversionService,
             IUnitWork db)
         {
             _envioService = envioService;
+            _anulacionService = anulacionService;
+            _reversionService = reversionService;
             _db = db;
         }
 
@@ -121,7 +127,8 @@ namespace KafeYana.Api.Controllers
                 FechaEmision = n.FechaEmision,
                 MontoTotalOriginal = n.MontoTotalOriginal,
                 MontoTotalDevuelto = n.MontoTotalDevuelto,
-                MontoEfectivoCreditoDebito = n.MontoEfectivoCreditoDebito
+                MontoEfectivoCreditoDebito = n.MontoEfectivoCreditoDebito,
+                RevertidaAnulacion = n.RevertidaAnulacion
             }).ToList();
 
             return Ok(new
@@ -130,6 +137,83 @@ namespace KafeYana.Api.Controllers
                 total = resumen.Count,
                 notas = resumen
             });
+        }
+
+        /// <summary>
+        /// Anula en el SIAT una nota de crédito/débito previamente validada (EstadoSiat = 908).
+        /// Solo aplica a notas en estado Validada y que no hayan revertido su anulación.
+        /// </summary>
+        [HttpPost("anular/{id:int}")]
+        [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
+        public async Task<IActionResult> AnularNota(
+            int id,
+            [FromBody] DtoAnularNotaAjuste dto,
+            CancellationToken ct)
+        {
+            try
+            {
+                var anulacion = await _anulacionService.AnularNotaAsync(id, dto.CodigoMotivo, ct);
+
+                var nota = await _db.notasAjuste.FindByIdAsync(id);
+
+                var mensaje = anulacion.Transaccion
+                    ? anulacion.EstadoSiat == FacturaEstado.Anulada
+                        ? "Nota de ajuste anulada correctamente en el SIAT."
+                        : "La nota ya estaba anulada."
+                    : "El SIAT rechazó la anulación o hubo error de comunicación.";
+
+                return Ok(new
+                {
+                    message = mensaje,
+                    NotaAjusteId = id,
+                    NumeroNotaCreditoDebito = nota?.NumeroNotaCreditoDebito,
+                    CodigoMotivo = dto.CodigoMotivo,
+                    MotivoDescripcion = MotivoAnulacionSiatCatalogo
+                        .ObtenerDescripcion(dto.CodigoMotivo),
+                    Siat = anulacion
+                });
+            }
+            catch (VentaException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Revierte en el SIAT la anulación errónea de una nota C/D (EstadoSiat = 950).
+        /// Solo permitido una vez por nota.
+        /// </summary>
+        [HttpPost("revertir-anulacion/{id:int}")]
+        [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
+        public async Task<IActionResult> RevertirAnulacionNota(int id, CancellationToken ct)
+        {
+            try
+            {
+                var reversion = await _reversionService.RevertirAnulacionNotaAsync(id, ct);
+
+                var mensaje = reversion.Transaccion
+                    ? "Anulación de la nota revertida correctamente en el SIAT. Volvió a estado Validada (908)."
+                    : "El SIAT rechazó la reversión de anulación o hubo error de comunicación.";
+
+                return Ok(new
+                {
+                    message = mensaje,
+                    NotaAjusteId = id,
+                    Siat = reversion
+                });
+            }
+            catch (VentaException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
     }
 }

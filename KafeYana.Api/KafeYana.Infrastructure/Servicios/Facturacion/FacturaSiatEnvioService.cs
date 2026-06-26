@@ -35,7 +35,24 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             try
             {
                 var hash = string.IsNullOrWhiteSpace(venta.CodigoHash) ? null : venta.CodigoHash;
-                var respuesta = await _recepcionFactura.EnviarRecepcionAsync(venta.XmlBase64, hash, venta.FechaEmision, ct);
+
+                // Diagnóstico: logueamos el CUFD y CUF que vamos a enviar para poder
+                // correlacionar con el error 1002/1003 del SIAT si vuelve a fallar.
+                logger.LogInformation(
+                    "Enviando factura {NumeroFactura} (VentaId={VentaId}). Cuf={Cuf}, Cufd={Cufd}, Suc={Suc}, PV={PV}",
+                    venta.NumeroFactura, venta.Id, venta.Cuf, venta.Cufd,
+                    venta.CodigoSucursal, venta.CodigoPuntoVenta);
+
+                // Pasamos venta.Cufd + CodigoSucursal + CodigoPuntoVenta para que el
+                // sobre SOAP use EXACTAMENTE el mismo CUFD y PV con los que se
+                // construyó el CUF embebido en venta.Cuf. Si no, el servicio de
+                // recepción hace una llamada independiente a ObtenerCufdVigenteAsync
+                // que puede devolver un CUFD distinto (race por la tolerancia de 2s
+                // del CufdService), y el SIAT rechaza con 1002 (CUF inválido) +
+                // 1003 (CUFD inválido). Ver [[kafeyana-cuf-cufd-fechaemision]].
+                var respuesta = await _recepcionFactura.EnviarRecepcionAsync(
+                    venta.XmlBase64, hash, venta.FechaEmision,
+                    venta.Cufd, venta.CodigoSucursal, venta.CodigoPuntoVenta, ct);
                 AplicarResultadoSiat(venta, respuesta);
 
                 if (!respuesta.Transaccion)

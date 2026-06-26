@@ -32,10 +32,13 @@ namespace KafeYana.Infrastructure.Servicios
         IOptions<SiatOptions> siatOpts,
         IOptions<DatosEmpresaOptions> empresaOpts,
         IDbContextFactory<AppDbContext> dbFactory,
+        ICatActividadResolver actividadResolver,
+        ICatLeyendaResolver catLeyendaResolver,
         ILogger<VentaServices> logger) : IVentaServices
     {
         private readonly SiatOptions _siat = siatOpts.Value;
         private readonly DatosEmpresaOptions _empresa = empresaOpts.Value;
+        private readonly ICatActividadResolver _actividadResolver = actividadResolver;
 
         public async Task<ResultadoProcesarVenta> ProcesarVenta(DtoVentaPedido datos, string cajero)
         {
@@ -56,9 +59,12 @@ namespace KafeYana.Infrastructure.Servicios
                 throw new VentaException("El cliente está inactivo y no puede realizarse el cobro.");
 
             // Resolver el (sucursal, puntoVenta) activo UNA VEZ por request.
-            // Si hay varios PVs activos, usa el primero (orden estable por código).
-            // Si NO hay ninguno, cae a appsettings.json.
-            var pvActual = ResolverPuntoVentaActivo();
+            // Si el frontend lo envió (vía navbar), se valida contra BD y se usa.
+            // Si NO, se cae al comportamiento legacy: primer PV activo o appsettings.
+            // Ver [[kafeyana-multipv-resolver]] — el resolver legacy era frágil
+            // porque si había varios PVs activos tomaba siempre el primero y el
+            // PV del CUF no coincidía con el PV del sobre SOAP → SIAT 1002/1003.
+            var pvActual = await ResolverPuntoVentaParaCobroAsync(datos);
 
             // fechaEmision la asigna el SIAT dentro de ConstruirVentaFacturadaAsync
             // (así garantizamos que fechaEmision y CUF usen la MISMA hora oficial).
@@ -80,7 +86,12 @@ namespace KafeYana.Infrastructure.Servicios
 
             await _inventarioPedidoCompromiso.AplicarMovimientosYCerrarAsync(datos.Id_Pedido, codigoVenta);
 
-            var (detallesVenta, tieneCombo) = ConstruirDetalles(pedido, validarUnidadSiat: datos.Factura);
+            // Resolvemos el CAEB UNA vez por venta (no por línea) — un cobro siempre
+            // se imputa a la misma actividad económica. Esto además evita N consultas
+            // a CatActividades en el bucle de ConstruirDetalles.
+            var actividadEconomica = await _actividadResolver.ResolverCaebVigenteAsync();
+
+            var (detallesVenta, tieneCombo) = ConstruirDetalles(pedido, validarUnidadSiat: datos.Factura, actividadEconomica);
             if (detallesVenta.Count == 0)
                 throw new VentaException("No se pudo armar el detalle de la venta. Verifique los productos del pedido.");
 
@@ -100,7 +111,7 @@ namespace KafeYana.Infrastructure.Servicios
             }
 
             var venta = datos.Factura
-                ? await ConstruirVentaFacturadaAsync(datos, cajero, cliente, numeroDocumento, fechaEmision, numeroFacturaSiat, totalCobrar, descuento, detallesVenta, pvActual)
+                ? await ConstruirVentaFacturadaAsync(datos, cajero, cliente, numeroDocumento, fechaEmision, numeroFacturaSiat, totalCobrar, descuento, detallesVenta, pvActual, actividadEconomica)
                 : ConstruirVentaSinFactura(datos, cajero, cliente, numeroDocumento, fechaEmision, codigoVenta, totalCobrar, descuento, detallesVenta);
 
             await _db.Pedidos.Remove(pedido);
@@ -134,7 +145,8 @@ namespace KafeYana.Infrastructure.Servicios
             decimal totalCobrar,
             ResultadoAplicacionDescuentoPromocion? descuento,
             List<Detalle_Pago> detallesVenta,
-            (int CodigoSucursal, int CodigoPuntoVenta) pvActual)
+            (int CodigoSucursal, int CodigoPuntoVenta) pvActual,
+            string actividadEconomica)
         {
             // ─── Generar CUF/CUFD REAL antes de armar la venta ─────────────────
             // Si la generación falla, lanzamos excepción para que la transacción
@@ -200,12 +212,34 @@ namespace KafeYana.Infrastructure.Servicios
 
             var venta = CrearVentaBase(
                 datos, cajero, cliente, numeroDocumento, fechaEmision, totalCobrar, descuento, detallesVenta);
+
+            // FIX: CrearVentaBase usa _siat.CodigoSucursal/_siat.CodigoPuntoVenta
+            // (de appsettings.json), pero el CUF y el CUFD que acabamos de generar
+            // se construyeron con pvActual (de la tabla PuntosVentaSiat en BD).
+            // Si esos valores difieren (caso típico: hay varios PuntosVentaSiat
+            // activos y el cobro está usando uno distinto al de appsettings), la
+            // Venta queda internamente inconsistente:
+            //   - venta.Cuf         → tiene PV de pvActual (ej. 1) embebido en el CUF
+            //   - venta.Cufd        → es un CUFD emitido para (pvActual.Suc, pvActual.PV)
+            //   - venta.CodigoPuntoVenta → queda en appsettings (ej. 0)
+            // Cuando FacturaSiatEnvioService envía el sobre SOAP con
+            // venta.CodigoPuntoVenta, el SIAT busca el CUFD vigente para esa
+            // (Suc, PV) y compara su CodigoControl contra el del CUF → 1002/1003.
+            // Sobrescribimos con pvActual para que los 3 valores estén alineados.
+            venta.CodigoSucursal = pvActual.CodigoSucursal;
+            venta.CodigoPuntoVenta = pvActual.CodigoPuntoVenta;
+
             venta.Facturado = true;
             venta.NumeroFactura = numeroFactura;
             venta.Cuf = cuf;
             venta.Cufd = cufdCodigo;
             venta.CodigoTipoDocumentoIdentidad = datos.CodigoTipoDocumento!.Value;
-            venta.Leyenda = LeyendaSiatService.ObtenerAleatoria();
+
+            // Leyenda obligatoria del SIN, filtrada por el CAEB del operador.
+            // El resolver tira VentaException si CatLeyendas está vacía → fail-closed
+            // (ver [[kafeyana-vservices-throw-on-missing-config]]).
+            venta.Leyenda = await catLeyendaResolver.ObtenerAleatoriaAsync(actividadEconomica, default);
+
             venta.EstadoSiat = FacturaEstado.Pendiente;
 
             try
@@ -316,7 +350,8 @@ namespace KafeYana.Infrastructure.Servicios
 
         private (List<Detalle_Pago> Detalles, bool TieneCombo) ConstruirDetalles(
             Pedido pedido,
-            bool validarUnidadSiat)
+            bool validarUnidadSiat,
+            string actividadEconomica)
         {
             var detallesVenta = new List<Detalle_Pago>();
             var tieneCombo = false;
@@ -353,7 +388,7 @@ namespace KafeYana.Infrastructure.Servicios
                     {
                         detallesPorProducto[key] = new Detalle_Pago
                         {
-                            ActividadEconomica = ResolverActividadEconomica(),
+                            ActividadEconomica = actividadEconomica,
                             CodigoProductoSin = ResolverCodigoProductoSin(detalle),
                             CodigoProducto = codigo,
                             Descripcion = detalle.Nombre_Producto,
@@ -420,77 +455,110 @@ namespace KafeYana.Infrastructure.Servicios
         }
 
         /// <summary>
+        /// Resuelve el (sucursal, puntoVenta) que se usará para este cobro.
+        ///
+        /// Orden de prioridad:
+        /// 1. Si el frontend envió CodigoSucursal + CodigoPuntoVenta en el DTO
+        ///    (vía selector del navbar), se valida contra BD que exista y esté
+        ///    activo. Si no cumple, lanza VentaException claro. Si cumple, se usa.
+        /// 2. Si NO vino del frontend, se cae al comportamiento legacy
+        ///    (<see cref="ResolverPuntoVentaActivo"/>): primer PuntosVentaSiat
+        ///    activo ordenado por (Suc, PV), o appsettings si no hay ninguno.
+        ///
+        /// Esto garantiza que cuando hay varios PVs activos el cobro use
+        /// exactamente el PV que el cajero seleccionó, y que CUF/CUFD/sobre
+        /// SOAP estén alineados (mismo Suc y mismo PV).
+        /// </summary>
+        private async Task<(int CodigoSucursal, int CodigoPuntoVenta)> ResolverPuntoVentaParaCobroAsync(
+            DtoVentaPedido datos)
+        {
+            if (datos.CodigoSucursal is int sucFront && datos.CodigoPuntoVenta is int pvFront)
+            {
+                await using var db = await dbFactory.CreateDbContextAsync();
+                var pvBd = await db.PuntosVentaSiat
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p =>
+                        p.CodigoSucursal == sucFront
+                        && p.CodigoPuntoVenta == pvFront
+                        && p.Activo);
+
+                if (pvBd is null)
+                {
+                    throw new VentaException(
+                        $"El punto de venta (Suc={sucFront}, PV={pvFront}) no existe "
+                        + "o está inactivo. Verifica la configuración de PuntosVentaSiat "
+                        + "o selecciona otra sucursal desde el navbar.");
+                }
+
+                logger.LogInformation(
+                    "PV seleccionado por frontend para este cobro: (Suc={Suc}, PV={PV}) '{Nombre}'",
+                    sucFront, pvFront, pvBd.Nombre);
+                return (sucFront, pvFront);
+            }
+
+            // Fallback: comportamiento legacy (sin breaking change).
+            return ResolverPuntoVentaActivo();
+        }
+
+        /// <summary>
         /// Resuelve el (sucursal, puntoVenta) activo desde la tabla PuntosVentaSiat.
-        /// Si no hay ninguno activo, cae a appsettings.json (SiatOptions) como fallback.
+        ///
+        /// Es el fallback de <see cref="ResolverPuntoVentaParaCobroAsync"/>
+        /// cuando el frontend NO envía codigoSucursal/codigoPuntoVenta en el body
+        /// del cobro. El camino normal es que el selector del header del frontend
+        /// (que persiste en localStorage) envíe el PV elegido, pero mantenemos
+        /// este fallback para que cobros sin body de PV sigan funcionando.
+        ///
+        /// Comportamiento:
+        ///   - Si hay 1 PV activo → lo usa.
+        ///   - Si hay 0 PV activos → cae a appsettings (SiatOptions) como
+        ///     último fallback y loguea warning.
+        ///   - Si hay MÁS DE 1 PV activo → lanza VentaException claro pidiendo
+        ///     que el cajero use el selector del header. NO elige uno
+        ///     silenciosamente porque reproduciría el bug 1002/1008 que ya
+        ///     arreglamos (el cajero nunca sabría qué PV se está usando).
         /// </summary>
         private (int CodigoSucursal, int CodigoPuntoVenta) ResolverPuntoVentaActivo()
         {
             using var db = dbFactory.CreateDbContext();
-            var pv = db.PuntosVentaSiat
+            var pvs = db.PuntosVentaSiat
                 .AsNoTracking()
                 .Where(p => p.Activo)
                 .OrderBy(p => p.CodigoSucursal)
                 .ThenBy(p => p.CodigoPuntoVenta)
-                .FirstOrDefault();
+                .ToList();
 
-            if (pv is not null)
-                return (pv.CodigoSucursal, pv.CodigoPuntoVenta);
+            if (pvs.Count == 1)
+                return (pvs[0].CodigoSucursal, pvs[0].CodigoPuntoVenta);
 
-            logger.LogWarning(
-                "No hay PuntosVentaSiat activos. Usando fallback de appsettings: ({Suc},{PV}).",
-                _siat.CodigoSucursal, _siat.CodigoPuntoVenta);
-            return (_siat.CodigoSucursal, _siat.CodigoPuntoVenta);
+            if (pvs.Count == 0)
+            {
+                logger.LogWarning(
+                    "No hay PuntosVentaSiat activos. Usando fallback de appsettings: ({Suc},{PV}). "
+                    + "Active al menos UN PV en la tabla PuntosVentaSiat o usa el selector del header.",
+                    _siat.CodigoSucursal, _siat.CodigoPuntoVenta);
+                return (_siat.CodigoSucursal, _siat.CodigoPuntoVenta);
+            }
+
+            // Más de uno activo: NO elegir silenciosamente. Pedirle al cajero
+            // que use el selector del header (que sí envía el PV en el body del cobro).
+            var candidatos = string.Join(", ",
+                pvs.Select(p => $"(Suc={p.CodigoSucursal}, PV={p.CodigoPuntoVenta}) '{p.Nombre}'"));
+
+            throw new VentaException(
+                "Tienes " + pvs.Count + " PuntosVenta activos: " + candidatos
+                + ". Para cobrar tenés que elegir uno con el selector que está en el header "
+                + "(arriba a la derecha). Si los datos de PuntosVentaSiat están mal configurados, "
+                + "corrige la tabla o desactiva los que no uses: "
+                + "UPDATE \"PuntosVentaSiat\" SET \"Activo\" = false WHERE \"CodigoSucursal\" = S "
+                + "AND \"CodigoPuntoVenta\" = P;");
         }
 
         /// <summary>
-        /// Obtiene el código de actividad económica (CAEB) vigente desde la tabla
-        /// CatActividades (refrescada periódicamente por SincronizadorCatActividades).
-        ///
-        /// Reglas de selección, en orden:
-        ///   1) Actividad marcada por el SIN como "P" (Principal).
-        ///   2) Si el SIN no marcó ninguna Principal, la que coincida con
-        ///      DatosEmpresaOptions.CodigoActividad (appsettings.json).
-        ///   3) Como último recurso, la primera fila de la tabla.
-        /// Si la tabla está vacía, lanza CatalogoNoSincronizadoException para
-        /// forzar la sincronización antes de facturar.
+        /// (Eliminado — la lógica vive ahora en <see cref="ICatActividadResolver"/>
+        /// y se invoca una sola vez al inicio de <see cref="ProcesarVenta"/>.
+        /// El CAEB se pasa a <see cref="ConstruirDetalles"/> como parámetro.)
         /// </summary>
-        private string ResolverActividadEconomica()
-        {
-            using var db = dbFactory.CreateDbContext();
-
-            // 1) Preferir la Principal marcada por el SIN (TipoActividad == "P")
-            var principal = db.CatActividades
-                .AsNoTracking()
-                .FirstOrDefault(a => a.TipoActividad == "P");
-            if (principal is not null)
-                return principal.CodigoCaeb;
-
-            // 2) Si el SIN no devolvió ninguna como Principal, usar la del appsettings
-            var codigoConfig = _empresa.CodigoActividad;
-            if (!string.IsNullOrWhiteSpace(codigoConfig))
-            {
-                var delConfig = db.CatActividades
-                    .AsNoTracking()
-                    .FirstOrDefault(a => a.CodigoCaeb == codigoConfig);
-                if (delConfig is not null)
-                    return delConfig.CodigoCaeb;
-            }
-
-            // 3) Tabla vacía → exigir sincronización
-            if (!db.CatActividades.AsNoTracking().Any())
-                throw new CatalogoNoSincronizadoException("CatActividades");
-
-            // 4) Último recurso: primera fila + warning (NO debería llegar aquí)
-            logger.LogWarning(
-                "CatActividades sin marca Principal y CodigoActividad={Codigo} no encontrada en la tabla. "
-                + "Usando la primera actividad disponible como fallback.",
-                codigoConfig);
-            return db.CatActividades
-                .AsNoTracking()
-                .OrderBy(a => a.Id)
-                .First()
-                .CodigoCaeb;
-        }
 
         private static string ResolverCodigoProducto(Detalle_ronda detalle)
         {

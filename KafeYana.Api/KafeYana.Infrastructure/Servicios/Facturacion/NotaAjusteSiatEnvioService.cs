@@ -274,7 +274,21 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             try
             {
                 var hash = string.IsNullOrWhiteSpace(nota.CodigoHash) ? null : nota.CodigoHash;
-                var respuesta = await _recepcionNota.EnviarRecepcionAsync(nota.XmlBase64, hash, nota.FechaEmision, ct);
+
+                // Pasamos nota.CodigoSucursal + CodigoPuntoVenta para que el sobre SOAP
+                // use EXACTAMENTE el mismo PV con el que se construyó el CUF embebido
+                // en nota.Cuf. Si no, el receptor hace una llamada independiente a
+                // ObtenerCuisVigenteAsync con appsettings y el SIAT rechaza con
+                // 1002 (CUF inválido) + 1008 (PV inválido). Ver mismo patrón en
+                // FacturaSiatEnvioService.EnviarVentaAsync (líneas 53-55).
+                _logger.LogInformation(
+                    "Enviando nota {Numero} (NotaId={NotaId}). Cuf={Cuf}, Suc={Suc}, PV={PV}",
+                    nota.NumeroNotaCreditoDebito, nota.Id, nota.Cuf,
+                    nota.CodigoSucursal, nota.CodigoPuntoVenta);
+
+                var respuesta = await _recepcionNota.EnviarRecepcionAsync(
+                    nota.XmlBase64, hash, nota.FechaEmision,
+                    nota.CodigoSucursal, nota.CodigoPuntoVenta, ct);
                 AplicarResultadoSiat(nota, respuesta);
 
                 await _db.SaveUnitWork();

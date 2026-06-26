@@ -16,13 +16,22 @@ namespace KafeYana.Api.Controllers
     {
         private readonly SincronizadorCatActividades _sincronizadorActividades;
         private readonly SincronizadorCatDocumentoSector _sincronizadorDocumentosSector;
+        private readonly SincronizadorCatMotivoAnulacion _sincronizadorMotivosAnulacion;
+        private readonly SincronizadorCatActividadDocumentoSector _sincronizadorActividadesDocumentoSector;
+        private readonly SincronizadorCatLeyenda _sincronizadorLeyendas;
 
         public CatalogosController(
             SincronizadorCatActividades sincronizadorActividades,
-            SincronizadorCatDocumentoSector sincronizadorDocumentosSector)
+            SincronizadorCatDocumentoSector sincronizadorDocumentosSector,
+            SincronizadorCatMotivoAnulacion sincronizadorMotivosAnulacion,
+            SincronizadorCatActividadDocumentoSector sincronizadorActividadesDocumentoSector,
+            SincronizadorCatLeyenda sincronizadorLeyendas)
         {
             _sincronizadorActividades = sincronizadorActividades;
             _sincronizadorDocumentosSector = sincronizadorDocumentosSector;
+            _sincronizadorMotivosAnulacion = sincronizadorMotivosAnulacion;
+            _sincronizadorActividadesDocumentoSector = sincronizadorActividadesDocumentoSector;
+            _sincronizadorLeyendas = sincronizadorLeyendas;
         }
 
         /// <summary>
@@ -74,6 +83,103 @@ namespace KafeYana.Api.Controllers
                 {
                     transaccion = true,
                     cantidad = cantidad
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(StatusCodes.Status502BadGateway, new
+                {
+                    transaccion = false,
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// POST /api/catalogos/sincronizar-motivos-anulacion
+        ///
+        /// Ejecuta la sincronización del catálogo paramétrico de motivos de anulación
+        /// (sincronizarParametricaMotivoAnulacion) contra el SIAT. Itera todos los
+        /// PuntosVentaSiat activos, usa la primera respuesta exitosa para reemplazar
+        /// la tabla maestra CatMotivosAnulacion y actualiza el caché en memoria
+        /// usado por las validaciones de anulación.
+        /// </summary>
+        [HttpPost("sincronizar-motivos-anulacion")]
+        public async Task<IActionResult> SincronizarMotivosAnulacion(CancellationToken ct)
+        {
+            try
+            {
+                var (cantidad, pvsExitosos) = await _sincronizadorMotivosAnulacion.SincronizarAsync(ct);
+                return Ok(new
+                {
+                    transaccion = true,
+                    cantidad = cantidad,
+                    pvsExitosos = pvsExitosos
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(StatusCodes.Status502BadGateway, new
+                {
+                    transaccion = false,
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// POST /api/catalogos/sincronizar-actividades-documento-sector
+        ///
+        /// Ejecuta la sincronización de la matriz Actividad ↔ Documento Sector
+        /// (sincronizarListaActividadesDocumentoSector) contra el SIAT de forma
+        /// síncrona. Itera todos los PuntosVentaSiat activos, usa la primera
+        /// respuesta exitosa para reemplazar la tabla maestra
+        /// CatActividadesDocumentosSector y marca UltimaSyncActividadesDocumentoSector
+        /// en los PVs que devolvieron OK.
+        /// </summary>
+        [HttpPost("sincronizar-actividades-documento-sector")]
+        public async Task<IActionResult> SincronizarActividadesDocumentoSector(CancellationToken ct)
+        {
+            try
+            {
+                var cantidad = await _sincronizadorActividadesDocumentoSector.SincronizarAsync(ct);
+                return Ok(new
+                {
+                    transaccion = true,
+                    cantidad = cantidad
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(StatusCodes.Status502BadGateway, new
+                {
+                    transaccion = false,
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// POST /api/catalogos/sincronizar-leyendas
+        ///
+        /// Ejecuta la sincronización del catálogo de leyendas obligatorias del SIAT
+        /// (sincronizarListaLeyendasFactura) contra el SIAT de forma síncrona.
+        /// Itera todos los PuntosVentaSiat activos, usa la primera respuesta
+        /// exitosa, la FILTRA por la actividad económica principal del operador
+        /// y reemplaza la tabla maestra CatLeyendas. Marca UltimaSyncLeyendas
+        /// en los PVs que devolvieron OK.
+        /// </summary>
+        [HttpPost("sincronizar-leyendas")]
+        public async Task<IActionResult> SincronizarLeyendas(CancellationToken ct)
+        {
+            try
+            {
+                var (cantidad, pvsExitosos) = await _sincronizadorLeyendas.SincronizarAsync(ct);
+                return Ok(new
+                {
+                    transaccion = true,
+                    cantidad = cantidad,
+                    pvsExitosos = pvsExitosos
                 });
             }
             catch (InvalidOperationException ex)

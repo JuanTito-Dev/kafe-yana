@@ -254,6 +254,87 @@ namespace KafeYana.Infrastructure.SiatClient
         }
 
         // ─────────────────────────────────────────────
+        // Sincronizar Lista Actividades Documento Sector (FacturacionSincronizacion)
+        // Devuelve la MATRIZ Actividad ↔ Documento Sector que el SIN publica:
+        // para cada (codigoActividad) enumera los (codigoDocumentoSector) que
+        // puede emitir, con su (tipoDocumentoSector) oficial (FCV, NCD,
+        // NCDDE, FAC_CVB, …).
+        //
+        // A diferencia de "sincronizarParametricaTipoDocumentoSector" (catálogo
+        // plano de sectores), este endpoint cruza la actividad con su sector
+        // para que la UI / el preparer puedan VALIDAR la combinación antes de
+        // enviar la factura al SIAT.
+        // ─────────────────────────────────────────────
+        public async Task<SincronizarActividadesDocumentoSectorResponse> SincronizarActividadesDocumentoSectorAsync(
+            string cuis,
+            int codigoSucursal,
+            int codigoPuntoVenta,
+            CancellationToken ct = default)
+        {
+            var body = new XElement(SiatNs + "sincronizarListaActividadesDocumentoSector",
+                Solicitud("SolicitudSincronizacion",
+                    Campo("codigoAmbiente", _opts.CodigoAmbiente),
+                    Campo("codigoPuntoVenta", codigoPuntoVenta),
+                    Campo("codigoSistema", _opts.CodigoSistema),
+                    Campo("codigoSucursal", codigoSucursal),
+                    Campo("cuis", cuis),
+                    Campo("nit", _opts.Nit)
+                )
+            );
+
+            var xml = await EnviarSoapAsync("FacturacionSincronizacion", body, ct);
+
+            // Estructura observada en piloto (jun-2026):
+            // <sincronizarListaActividadesDocumentoSectorResponse>
+            //   <RespuestaListaActividadesDocumentoSector>
+            //     <transaccion>true</transaccion>
+            //     <listaActividadesDocumentoSector>
+            //       <codigoActividad>4630600</codigoActividad>
+            //       <codigoDocumentoSector>24</codigoDocumentoSector>
+            //       <tipoDocumentoSector>NCD</tipoDocumentoSector>
+            //     </listaActividadesDocumentoSector>
+            //     ...
+            //   </RespuestaListaActividadesDocumentoSector>
+            // </sincronizarListaActividadesDocumentoSectorResponse>
+            var respEl = BuscarElemento(xml, "RespuestaListaActividadesDocumentoSector")
+                ?? BuscarElemento(xml, "sincronizarListaActividadesDocumentoSectorResponse");
+
+            var respuesta = new SincronizarActividadesDocumentoSectorResponse
+            {
+                Transaccion = ParseTransaccion(respEl),
+                CodigosRespuesta = ParseCodigos(respEl)
+                    .Select(c => new CodigoRespuestaSiatDto
+                    {
+                        Codigo = c.Codigo,
+                        Descripcion = c.Descripcion
+                    }).ToList()
+            };
+
+            if (respEl is not null)
+            {
+                foreach (var item in respEl.Elements()
+                    .Where(e => e.Name.LocalName == "listaActividadesDocumentoSector"))
+                {
+                    var codigoActividad = ValorElemento(item, "codigoActividad");
+                    if (string.IsNullOrWhiteSpace(codigoActividad)) continue;
+
+                    var codigoSectorStr = ValorElemento(item, "codigoDocumentoSector");
+                    if (string.IsNullOrWhiteSpace(codigoSectorStr)) continue;
+                    if (!int.TryParse(codigoSectorStr, out var codigoSector)) continue;
+
+                    respuesta.ActividadesDocumentoSector.Add(new ActividadDocumentoSectorSiatDto
+                    {
+                        CodigoActividad = codigoActividad.Trim(),
+                        CodigoDocumentoSector = codigoSector,
+                        TipoDocumentoSector = (ValorElemento(item, "tipoDocumentoSector") ?? string.Empty).Trim()
+                    });
+                }
+            }
+
+            return respuesta;
+        }
+
+        // ─────────────────────────────────────────────
         // Sincronizar Paramétrica Tipo Documento Sector (FacturacionSincronizacion)
         // Devuelve el catálogo de documentos sectoriales que el SIN acepta
         // (Factura Compra-Venta, Nota Crédito-Débito, etc.). Se usa para llenar
@@ -316,6 +397,156 @@ namespace KafeYana.Infrastructure.SiatClient
                     {
                         CodigoClasificador = codigo,
                         Descripcion = (ValorElemento(item, "descripcion") ?? string.Empty).Trim()
+                    });
+                }
+            }
+
+            return respuesta;
+        }
+
+        // ─────────────────────────────────────────────
+        // Sincronizar Paramétrica Motivo Anulación (FacturacionSincronizacion)
+        // Devuelve el catálogo paramétrico de motivos de anulación que el SIN
+        // publica. Se usa tanto para anular facturas (CompraVenta, sector 1)
+        // como para anular notas de crédito/débito (sector 24).
+        //
+        // Catálogo actual (verificado contra WSDL piloto, jun-2026):
+        //   1 = FACTURA MAL EMITIDA
+        //   2 = NOTA DE CREDITO-DEBITO MAL EMITIDA
+        //   3 = DATOS DE EMISION INCORRECTOS
+        //   4 = FACTURA O NOTA DE CREDITO-DEBITO DEVUELTA
+        // ─────────────────────────────────────────────
+        public async Task<SincronizarMotivoAnulacionResponse> SincronizarParametricaMotivoAnulacionAsync(
+            string cuis,
+            int codigoSucursal,
+            int codigoPuntoVenta,
+            CancellationToken ct = default)
+        {
+            var body = new XElement(SiatNs + "sincronizarParametricaMotivoAnulacion",
+                Solicitud("SolicitudSincronizacion",
+                    Campo("codigoAmbiente", _opts.CodigoAmbiente),
+                    Campo("codigoPuntoVenta", codigoPuntoVenta),
+                    Campo("codigoSistema", _opts.CodigoSistema),
+                    Campo("codigoSucursal", codigoSucursal),
+                    Campo("cuis", cuis),
+                    Campo("nit", _opts.Nit)
+                )
+            );
+
+            var xml = await EnviarSoapAsync("FacturacionSincronizacion", body, ct);
+
+            // Misma estructura que SincronizarDocumentosSector:
+            //   <RespuestaListaParametricas>
+            //     <transaccion>true</transaccion>
+            //     <listaCodigos>
+            //       <codigoClasificador>1</codigoClasificador>
+            //       <descripcion>FACTURA MAL EMITIDA</descripcion>
+            //     </listaCodigos>
+            //     ...
+            var respEl = BuscarElemento(xml, "RespuestaListaParametricas")
+                ?? BuscarElemento(xml, "sincronizarParametricaMotivoAnulacionResponse");
+
+            var respuesta = new SincronizarMotivoAnulacionResponse
+            {
+                Transaccion = ParseTransaccion(respEl),
+                CodigosRespuesta = ParseCodigos(respEl)
+                    .Select(c => new CodigoRespuestaSiatDto
+                    {
+                        Codigo = c.Codigo,
+                        Descripcion = c.Descripcion
+                    }).ToList()
+            };
+
+            if (respEl is not null)
+            {
+                foreach (var item in respEl.Elements()
+                    .Where(e => e.Name.LocalName == "listaCodigos"))
+                {
+                    var codigoStr = ValorElemento(item, "codigoClasificador");
+                    if (string.IsNullOrWhiteSpace(codigoStr)) continue;
+                    if (!int.TryParse(codigoStr, out var codigo)) continue;
+
+                    respuesta.Motivos.Add(new MotivoAnulacionSiatDto
+                    {
+                        Codigo = codigo,
+                        Descripcion = (ValorElemento(item, "descripcion") ?? string.Empty).Trim()
+                    });
+                }
+            }
+
+            return respuesta;
+        }
+
+        // ─────────────────────────────────────────────
+        // Sincronizar Lista de Leyendas para Factura (FacturacionSincronizacion)
+        // Devuelve la lista oficial de leyendas obligatorias que el SIN publica
+        // por actividad económica. KafeYana filtra por la actividad principal
+        // ANTES de persistir (ver SincronizadorCatLeyenda).
+        //
+        // La estructura de la respuesta es la misma que las otras paramétricas
+        // (lista de hermanos con <transaccion> y un wrapper), pero los elementos
+        // se llaman <listaLeyendas> y traen 2 campos: codigoActividad +
+        // descripcionLeyenda (en vez del par codigoClasificador + descripcion).
+        //
+        //   <RespuestaListaParametricasLeyendas>
+        //     <transaccion>true</transaccion>
+        //     <listaLeyendas>
+        //       <codigoActividad>4630600</codigoActividad>
+        //       <descripcionLeyenda>Ley N° 453: ...</descripcionLeyenda>
+        //     </listaLeyendas>
+        //     ...
+        //   </RespuestaListaParametricasLeyendas>
+        // ─────────────────────────────────────────────
+        public async Task<SincronizarLeyendasResponse> SincronizarListaLeyendasFacturaAsync(
+            string cuis,
+            int codigoSucursal,
+            int codigoPuntoVenta,
+            CancellationToken ct = default)
+        {
+            var body = new XElement(SiatNs + "sincronizarListaLeyendasFactura",
+                Solicitud("SolicitudSincronizacion",
+                    Campo("codigoAmbiente", _opts.CodigoAmbiente),
+                    Campo("codigoPuntoVenta", codigoPuntoVenta),
+                    Campo("codigoSistema", _opts.CodigoSistema),
+                    Campo("codigoSucursal", codigoSucursal),
+                    Campo("cuis", cuis),
+                    Campo("nit", _opts.Nit)
+                )
+            );
+
+            var xml = await EnviarSoapAsync("FacturacionSincronizacion", body, ct);
+
+            // Wrapper distinto al de motivos (sufijo "Leyendas"), pero fallback
+            // al nombre genérico por si el SIN cambia el shape.
+            var respEl = BuscarElemento(xml, "RespuestaListaParametricasLeyendas")
+                ?? BuscarElemento(xml, "sincronizarListaLeyendasFacturaResponse");
+
+            var respuesta = new SincronizarLeyendasResponse
+            {
+                Transaccion = ParseTransaccion(respEl),
+                CodigosRespuesta = ParseCodigos(respEl)
+                    .Select(c => new CodigoRespuestaSiatDto
+                    {
+                        Codigo = c.Codigo,
+                        Descripcion = c.Descripcion
+                    }).ToList()
+            };
+
+            if (respEl is not null)
+            {
+                foreach (var item in respEl.Elements()
+                    .Where(e => e.Name.LocalName == "listaLeyendas"))
+                {
+                    var codigoActividad = ValorElemento(item, "codigoActividad");
+                    var descripcion = ValorElemento(item, "descripcionLeyenda");
+
+                    if (string.IsNullOrWhiteSpace(codigoActividad)) continue;
+                    if (string.IsNullOrWhiteSpace(descripcion)) continue;
+
+                    respuesta.Leyendas.Add(new LeyendaSiatDto
+                    {
+                        CodigoActividad = codigoActividad.Trim(),
+                        DescripcionLeyenda = descripcion.Trim()
                     });
                 }
             }
@@ -490,6 +721,101 @@ namespace KafeYana.Infrastructure.SiatClient
                 Transaccion = ParseTransaccion(respEl),
                 CodigoEstado = int.TryParse(ValorElemento(respEl, "codigoEstado"), out var estado) ? estado : null,
                 CodigoRecepcion = ValorElemento(respEl, "codigoRecepcion"),
+                CodigoDescripcion = ValorElemento(respEl, "codigoDescripcion"),
+                CodigosRespuesta = ParseCodigos(respEl).Select(c => new CodigoRespuestaSiatDto
+                {
+                    Codigo = c.Codigo,
+                    Descripcion = c.Descripcion
+                }).ToList()
+            };
+        }
+
+        // ─────────────────────────────────────────────
+        // Anulación Nota de Crédito/Débito
+        // (ServicioFacturacionDocumentoAjuste, sector 24, tipoFactura 3)
+        // Espejo de AnulacionFacturaAsync. Orden estricto del WSDL:
+        //   codigoAmbiente, codigoDocumentoSector, codigoEmision, codigoModalidad,
+        //   codigoPuntoVenta, codigoSistema, codigoSucursal, cufd, cuis, nit,
+        //   tipoFacturaDocumento, codigoMotivo, cuf.
+        // ─────────────────────────────────────────────
+        public async Task<RespuestaAnulacionDocumentoAjusteDto> AnulacionDocumentoAjusteAsync(
+            SolicitudAnulacionDocumentoAjusteDto solicitud,
+            CancellationToken ct = default)
+        {
+            var body = new XElement(SiatNs + "anulacionDocumentoAjuste",
+                Solicitud("SolicitudServicioAnulacionDocumentoAjuste",
+                    Campo("codigoAmbiente", solicitud.CodigoAmbiente),
+                    Campo("codigoDocumentoSector", solicitud.CodigoDocumentoSector),
+                    Campo("codigoEmision", solicitud.CodigoEmision),
+                    Campo("codigoModalidad", solicitud.CodigoModalidad),
+                    Campo("codigoPuntoVenta", solicitud.CodigoPuntoVenta),
+                    Campo("codigoSistema", solicitud.CodigoSistema),
+                    Campo("codigoSucursal", solicitud.CodigoSucursal),
+                    Campo("cufd", solicitud.Cufd),
+                    Campo("cuis", solicitud.Cuis),
+                    Campo("nit", solicitud.Nit),
+                    Campo("tipoFacturaDocumento", solicitud.TipoFacturaDocumento),
+                    Campo("codigoMotivo", solicitud.CodigoMotivo),
+                    Campo("cuf", solicitud.Cuf)
+                )
+            );
+
+            var xml = await EnviarSoapAsync(_opts.ServicioAnulacionNotaAjuste, body, ct);
+
+            var respEl = BuscarElemento(xml, "RespuestaServicioFacturacion")
+                ?? BuscarElemento(xml, "anulacionDocumentoAjusteResponse");
+
+            return new RespuestaAnulacionDocumentoAjusteDto
+            {
+                Transaccion = ParseTransaccion(respEl),
+                CodigoEstado = int.TryParse(ValorElemento(respEl, "codigoEstado"), out var estado) ? estado : null,
+                CodigoDescripcion = ValorElemento(respEl, "codigoDescripcion"),
+                CodigosRespuesta = ParseCodigos(respEl).Select(c => new CodigoRespuestaSiatDto
+                {
+                    Codigo = c.Codigo,
+                    Descripcion = c.Descripcion
+                }).ToList()
+            };
+        }
+
+        // ─────────────────────────────────────────────
+        // Reversión Anulación Nota de Crédito/Débito
+        // Misma estructura que AnulacionDocumentoAjusteAsync pero sin codigoMotivo.
+        // El SIAT exige este orden estricto:
+        //   codigoAmbiente, codigoDocumentoSector, codigoEmision, codigoModalidad,
+        //   codigoPuntoVenta, codigoSistema, codigoSucursal, cufd, cuis, nit,
+        //   tipoFacturaDocumento, cuf.
+        // ─────────────────────────────────────────────
+        public async Task<RespuestaReversionAnulacionDocumentoAjusteDto> ReversionAnulacionDocumentoAjusteAsync(
+            SolicitudReversionAnulacionDocumentoAjusteDto solicitud,
+            CancellationToken ct = default)
+        {
+            var body = new XElement(SiatNs + "reversionAnulacionDocumentoAjuste",
+                Solicitud("SolicitudServicioReversionAnulacionDocumentoAjuste",
+                    Campo("codigoAmbiente", solicitud.CodigoAmbiente),
+                    Campo("codigoDocumentoSector", solicitud.CodigoDocumentoSector),
+                    Campo("codigoEmision", solicitud.CodigoEmision),
+                    Campo("codigoModalidad", solicitud.CodigoModalidad),
+                    Campo("codigoPuntoVenta", solicitud.CodigoPuntoVenta),
+                    Campo("codigoSistema", solicitud.CodigoSistema),
+                    Campo("codigoSucursal", solicitud.CodigoSucursal),
+                    Campo("cufd", solicitud.Cufd),
+                    Campo("cuis", solicitud.Cuis),
+                    Campo("nit", solicitud.Nit),
+                    Campo("tipoFacturaDocumento", solicitud.TipoFacturaDocumento),
+                    Campo("cuf", solicitud.Cuf)
+                )
+            );
+
+            var xml = await EnviarSoapAsync(_opts.ServicioReversionAnulacionNotaAjuste, body, ct);
+
+            var respEl = BuscarElemento(xml, "RespuestaServicioFacturacion")
+                ?? BuscarElemento(xml, "reversionAnulacionDocumentoAjusteResponse");
+
+            return new RespuestaReversionAnulacionDocumentoAjusteDto
+            {
+                Transaccion = ParseTransaccion(respEl),
+                CodigoEstado = int.TryParse(ValorElemento(respEl, "codigoEstado"), out var estado) ? estado : null,
                 CodigoDescripcion = ValorElemento(respEl, "codigoDescripcion"),
                 CodigosRespuesta = ParseCodigos(respEl).Select(c => new CodigoRespuestaSiatDto
                 {

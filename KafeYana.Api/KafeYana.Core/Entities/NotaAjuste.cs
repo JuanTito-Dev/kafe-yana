@@ -93,6 +93,13 @@ namespace KafeYana.Domain.Entities
 
         public bool RevertidaAnulacion { get; set; }
 
+        /// <summary>
+        /// Fecha/hora UTC en la que el SIAT confirmó la anulación de esta nota
+        /// (operación <c>anulacionDocumentoAjuste</c>). Null hasta que se anule.
+        /// Sirve para auditoría y para distinguir "anulada antes" vs "nunca anulada".
+        /// </summary>
+        public DateTime? FechaAnulacionSiat { get; set; }
+
         public string? CodigoRecepcion { get; set; }
 
         public string? ErrorMensaje { get; set; }

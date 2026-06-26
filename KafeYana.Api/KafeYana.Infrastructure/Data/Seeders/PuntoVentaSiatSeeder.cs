@@ -4,12 +4,19 @@ using Microsoft.EntityFrameworkCore;
 namespace KafeYana.Infrastructure.Data.Seeders
 {
     /// <summary>
-    /// Siembra los puntos de venta iniciales que el sistema declara ante el SIAT.
-    /// Por ahora son 2: Casa Matriz (0,0) y Sucursal Norte (0,1).
-    /// Si ya existen registros en la tabla, no hace nada (idempotente).
+    /// Siembra los puntos de venta del negocio registrados ante el SIN.
+    /// Por defecto deja SOLO el PV 0 activo (la caja principal).
     ///
-    /// Para agregar más puntos de venta: INSERT manual a la tabla o un endpoint
-    /// CRUD futuro (no incluido en esta primera versión).
+    /// Reglas de operación:
+    ///   - El sistema trabaja con exactamente UN PV activo a la vez.
+    ///     Para cambiar de caja: UPDATE manual en BD
+    ///       UPDATE "PuntosVentaSiat" SET "Activo" = ("CodigoPuntoVenta" = N);
+    ///   - appsettings.json (Siat:CodigoSucursal / Siat:CodigoPuntoVenta)
+    ///     es solo el ÚLTIMO fallback si no hay ningún PV activo en BD.
+    ///   - Para registrar un nuevo PV ante el SIN, primero hay que darlo de
+    ///     alta en el portal del SIAT, después INSERT en esta tabla.
+    ///
+    /// Idempotente: si ya hay registros, no hace nada.
     /// </summary>
     public static class PuntoVentaSiatSeeder
     {
@@ -22,7 +29,7 @@ namespace KafeYana.Infrastructure.Data.Seeders
                 {
                     CodigoSucursal = 0,
                     CodigoPuntoVenta = 0,
-                    Nombre = "Casa Matriz",
+                    Nombre = "Caja 1",
                     Activo = true,
                     UltimaSyncActividades = null
                 },
@@ -30,8 +37,10 @@ namespace KafeYana.Infrastructure.Data.Seeders
                 {
                     CodigoSucursal = 0,
                     CodigoPuntoVenta = 1,
-                    Nombre = "Sucursal Norte",
-                    Activo = true,
+                    Nombre = "Caja 2",
+                    // Empieza inactivo. Se activa por UPDATE en BD cuando
+                    // se quiera usar esa caja.
+                    Activo = false,
                     UltimaSyncActividades = null
                 }
             );

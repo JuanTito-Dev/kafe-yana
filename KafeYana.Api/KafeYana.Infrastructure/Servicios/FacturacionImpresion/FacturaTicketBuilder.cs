@@ -100,11 +100,6 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
                 EscribirIzq(ms, linea);
 
             foreach (var linea in PartirTexto(
-                "Ley N 453: El proveedor debera entregar el producto en las modalidades y terminos ofertados o convenidos.",
-                anchoCaracteres))
-                EscribirIzq(ms, linea);
-
-            foreach (var linea in PartirTexto(
                 "Este documento es la Representacion Grafica de un Documento Fiscal Digital emitido en una modalidad de facturacion en linea",
                 anchoCaracteres))
                 EscribirIzq(ms, linea);

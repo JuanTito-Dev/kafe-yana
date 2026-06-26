@@ -17,12 +17,16 @@ namespace KafeYana.Application.IServicios.IFacturacion
             string archivo,
             string? hashArchivo = null,
             DateTime? fechaEmision = null,
+            int? codigoSucursal = null,
+            int? codigoPuntoVenta = null,
             CancellationToken ct = default);
 
         Task<RespuestaRecepcionNotaAjusteDto> EnviarRecepcionAsync(
             string archivo,
             string? hashArchivo = null,
             DateTime? fechaEmision = null,
+            int? codigoSucursal = null,
+            int? codigoPuntoVenta = null,
             CancellationToken ct = default);
     }
 }

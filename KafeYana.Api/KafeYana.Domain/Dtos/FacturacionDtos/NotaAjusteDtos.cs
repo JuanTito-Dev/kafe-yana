@@ -138,5 +138,11 @@ namespace KafeYana.Application.Dtos.FacturacionDtos
         public decimal MontoTotalOriginal { get; set; }
         public decimal MontoTotalDevuelto { get; set; }
         public decimal MontoEfectivoCreditoDebito { get; set; }
+        /// <summary>
+        /// True si la anulación de esta nota ya fue revertida en el SIAT.
+        /// El SIAT solo permite revertir una vez; tras revertir, la nota
+        /// vuelve a estado Validada pero NO puede volver a anularse.
+        /// </summary>
+        public bool RevertidaAnulacion { get; set; }
     }
 }

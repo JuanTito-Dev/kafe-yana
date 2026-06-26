@@ -28,5 +28,23 @@ namespace KafeYana.Domain.Entities.Catalogos
         /// usando este (sucursal, puntoVenta). Sirve para auditoría.
         /// </summary>
         public DateTime? UltimaSyncActividades { get; set; }
+
+        /// <summary>
+        /// Última vez que se ejecutó la sincronización del catálogo de motivos
+        /// de anulación del SIAT para este (sucursal, puntoVenta).
+        /// </summary>
+        public DateTime? UltimaSyncMotivoAnulacion { get; set; }
+
+        /// <summary>
+        /// Última vez que se ejecutó la sincronización de la matriz
+        /// Actividad ↔ Documento Sector del SIAT para este (sucursal, puntoVenta).
+        /// </summary>
+        public DateTime? UltimaSyncActividadesDocumentoSector { get; set; }
+
+        /// <summary>
+        /// Última vez que se ejecutó la sincronización del catálogo de leyendas
+        /// obligatorias del SIAT para este (sucursal, puntoVenta).
+        /// </summary>
+        public DateTime? UltimaSyncLeyendas { get; set; }
     }
 }
