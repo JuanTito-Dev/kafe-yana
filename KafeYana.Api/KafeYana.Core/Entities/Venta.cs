@@ -100,6 +100,14 @@ namespace KafeYana.Domain.Entities
         public List<Detalle_Pago> Detalles { get; set; } = new List<Detalle_Pago>();
 
         /// <summary>
+        /// Líneas de pago individuales (método + monto). Permite registrar pagos
+        /// mixtos. Hoy KafeYana emite UN solo <c>codigoMetodoPago</c> en el XML
+        /// al SIAT (el de mayor monto), pero persiste todas las líneas para
+        /// auditoría y para futuros flujos.
+        /// </summary>
+        public List<VentaPago> Pagos { get; set; } = new List<VentaPago>();
+
+        /// <summary>
         /// Notas de Crédito/Débito SIAT que ajustan esta venta (relación inversa del FK
         /// <c>NotaAjuste.IdVenta</c>). No requiere migración: EF infiere la FK del lado de
         /// <c>NotaAjuste</c> ya existente. HotChocolate la expone como <c>notasAjuste</c>

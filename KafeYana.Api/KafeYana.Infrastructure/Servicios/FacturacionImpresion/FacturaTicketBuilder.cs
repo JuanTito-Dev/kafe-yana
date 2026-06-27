@@ -162,7 +162,7 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
         {
             (int)TipoPagos.Efectivo => "EFECTIVO",
             (int)TipoPagos.Tarjeta => "TARJETA",
-            (int)TipoPagos.Qr => "QR / TRANSFERENCIA",
+            (int)TipoPagos.Transferencia => "QR / TRANSFERENCIA",
             _ => "OTROS"
         };
 

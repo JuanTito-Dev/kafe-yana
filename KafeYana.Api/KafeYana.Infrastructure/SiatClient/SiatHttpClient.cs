@@ -888,6 +888,157 @@ namespace KafeYana.Infrastructure.SiatClient
         }
 
         // ─────────────────────────────────────────────
+        // Sincronizar Paramétrica de Tipos de Emisión
+        // Devuelve el catálogo oficial de los tipos de emisión reconocidos
+        // por el SIN. NO se filtra por actividad económica — es universal.
+        //
+        //   <sincronizarParametricaTipoEmisionResponse>
+        //     <RespuestaListaParametricas>      ← Mismo wrapper que las otras
+        //                                            paramétricas universales
+        //                                            (CatMotivoAnulacion,
+        //                                             CatEventoSignificativo,
+        //                                             CatPaisOrigen,
+        //                                             CatTipoDocumentoIdentidad)
+        //       <transaccion>true</transaccion>
+        //       <listaCodigos>
+        //         <codigoClasificador>1</codigoClasificador>
+        //         <descripcion>EN LINEA</descripcion>
+        //       </listaCodigos>
+        //       ...
+        //     </RespuestaListaParametricas>
+        //   </sincronizarParametricaTipoEmisionResponse>
+        //
+        // Lista oficial vigente (jun-2026, devuelta por el SIN):
+        //   1 = EN LINEA
+        //   2 = FUERA DE LINEA
+        //   3 = MASIVO
+        //   4 = CONTINGENCIA
+        // ─────────────────────────────────────────────
+        public async Task<SincronizarTipoEmisionResponse> SincronizarParametricaTipoEmisionAsync(
+            string cuis,
+            int codigoSucursal,
+            int codigoPuntoVenta,
+            CancellationToken ct = default)
+        {
+            var body = new XElement(SiatNs + "sincronizarParametricaTipoEmision",
+                Solicitud("SolicitudSincronizacion",
+                    Campo("codigoAmbiente", _opts.CodigoAmbiente),
+                    Campo("codigoPuntoVenta", codigoPuntoVenta),
+                    Campo("codigoSistema", _opts.CodigoSistema),
+                    Campo("codigoSucursal", codigoSucursal),
+                    Campo("cuis", cuis),
+                    Campo("nit", _opts.Nit)
+                )
+            );
+
+            var xml = await EnviarSoapAsync("FacturacionSincronizacion", body, ct);
+
+            // Wrapper exacto (confirmado vía Postman): "RespuestaListaParametricas"
+            // — el mismo que usan las otras paramétricas universales. Fallback
+            // al nombre genérico por si el SIN cambia el shape.
+            var respEl = BuscarElemento(xml, "RespuestaListaParametricas")
+                ?? BuscarElemento(xml, "sincronizarParametricaTipoEmisionResponse");
+
+            var respuesta = new SincronizarTipoEmisionResponse
+            {
+                Transaccion = ParseTransaccion(respEl),
+                CodigosRespuesta = ParseCodigos(respEl)
+                    .Select(c => new CodigoRespuestaSiatDto
+                    {
+                        Codigo = c.Codigo,
+                        Descripcion = c.Descripcion
+                    }).ToList()
+            };
+
+            if (respEl is not null)
+            {
+                foreach (var item in respEl.Elements()
+                    .Where(e => e.Name.LocalName == "listaCodigos"))
+                {
+                    var codigoStr = ValorElemento(item, "codigoClasificador");
+                    if (string.IsNullOrWhiteSpace(codigoStr)) continue;
+                    if (!int.TryParse(codigoStr, out var codigo)) continue;
+
+                    respuesta.TiposEmision.Add(new TipoEmisionSiatDto
+                    {
+                        Codigo = codigo,
+                        Descripcion = (ValorElemento(item, "descripcion") ?? string.Empty).Trim()
+                    });
+                }
+            }
+
+            return respuesta;
+        }
+
+        /// <summary>
+        /// Sincroniza el catálogo paramétrico de tipos de método de pago contra
+        /// el SIAT (<c>sincronizarParametricaTipoMetodoPago</c>).
+        ///
+        /// Catálogo UNIVERSAL: el SIN devuelve ~308 códigos (métodos simples
+        /// + combinaciones de 2 a 4 métodos). Wrapper y shape idéntico a
+        /// <c>sincronizarParametricaTipoEmision</c>:
+        /// <c>RespuestaListaParametricas</c> + <c>listaCodigos</c>.
+        ///
+        /// A diferencia de los otros sync, este NO corre diario (ver §15 de
+        /// <c>SIAT-SINCRONIZACIONES.md</c>). Solo se invoca al boot del server
+        /// y bajo demanda manual vía <c>POST /api/catalogos/sincronizar-metodos-pago</c>.
+        /// </summary>
+        public async Task<SincronizarTipoMetodoPagoResponse> SincronizarParametricaTipoMetodoPagoAsync(
+            string cuis,
+            int codigoSucursal,
+            int codigoPuntoVenta,
+            CancellationToken ct = default)
+        {
+            var body = new XElement(SiatNs + "sincronizarParametricaTipoMetodoPago",
+                Solicitud("SolicitudSincronizacion",
+                    Campo("codigoAmbiente", _opts.CodigoAmbiente),
+                    Campo("codigoPuntoVenta", codigoPuntoVenta),
+                    Campo("codigoSistema", _opts.CodigoSistema),
+                    Campo("codigoSucursal", codigoSucursal),
+                    Campo("cuis", cuis),
+                    Campo("nit", _opts.Nit)
+                )
+            );
+
+            var xml = await EnviarSoapAsync("FacturacionSincronizacion", body, ct);
+
+            // Wrapper exacto (mismo que las otras paramétricas universales).
+            // Fallback al nombre genérico por si el SIN cambia el shape.
+            var respEl = BuscarElemento(xml, "RespuestaListaParametricas")
+                ?? BuscarElemento(xml, "sincronizarParametricaTipoMetodoPagoResponse");
+
+            var respuesta = new SincronizarTipoMetodoPagoResponse
+            {
+                Transaccion = ParseTransaccion(respEl),
+                CodigosRespuesta = ParseCodigos(respEl)
+                    .Select(c => new CodigoRespuestaSiatDto
+                    {
+                        Codigo = c.Codigo,
+                        Descripcion = c.Descripcion
+                    }).ToList()
+            };
+
+            if (respEl is not null)
+            {
+                foreach (var item in respEl.Elements()
+                    .Where(e => e.Name.LocalName == "listaCodigos"))
+                {
+                    var codigoStr = ValorElemento(item, "codigoClasificador");
+                    if (string.IsNullOrWhiteSpace(codigoStr)) continue;
+                    if (!int.TryParse(codigoStr, out var codigo)) continue;
+
+                    respuesta.MetodosPago.Add(new TipoMetodoPagoSiatDto
+                    {
+                        Codigo = codigo,
+                        Descripcion = (ValorElemento(item, "descripcion") ?? string.Empty).Trim()
+                    });
+                }
+            }
+
+            return respuesta;
+        }
+
+        // ─────────────────────────────────────────────
         // Recepción Factura
         // ─────────────────────────────────────────────
         public async Task<RespuestaRecepcionFacturaDto> RecepcionFacturaAsync(

@@ -82,6 +82,8 @@ namespace KafeYana.Infrastructure
             services.AddScoped<SincronizadorCatEventoSignificativo>();
             services.AddScoped<SincronizadorCatPaisOrigen>();
             services.AddScoped<SincronizadorCatTipoDocumentoIdentidad>();
+            services.AddScoped<SincronizadorCatTipoEmision>();
+            services.AddScoped<SincronizadorCatMetodosPago>();
 
             // Resolver compartido del CAEB vigente. Usado por VentaServices y por
             // los preparers SIAT (FacturaVentaSiatPreparer / NotaAjusteSiatPreparer)
@@ -99,6 +101,8 @@ namespace KafeYana.Infrastructure
             services.AddHostedService<SincronizacionEventoSignificativoHostedService>();
             services.AddHostedService<SincronizacionPaisOrigenHostedService>();
             services.AddHostedService<SincronizacionTipoDocumentoIdentidadHostedService>();
+            services.AddHostedService<SincronizacionTipoEmisionHostedService>();
+            services.AddHostedService<SincronizacionMetodosPagoHostedService>();
 
             return services;
         }

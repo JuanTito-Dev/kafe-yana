@@ -80,5 +80,27 @@ namespace KafeYana.Domain.Entities.Catalogos
         /// facturada.
         /// </summary>
         public DateTime? UltimaSyncTipoDocumentoIdentidad { get; set; }
+
+        /// <summary>
+        /// Última vez que se ejecutó la sincronización del catálogo paramétrico de
+        /// tipos de emisión del SIAT para este (sucursal, puntoVenta). Alimenta
+        /// la tabla <c>CatTiposEmision</c> (1=EN LINEA, 2=FUERA DE LINEA,
+        /// 3=MASIVO, 4=CONTINGENCIA según catálogo SIN vigente) y refresca el
+        /// caché estático <c>TipoEmisionSiatCatalogo</c>. Sirve como auditoría
+        /// para confirmar que el valor hardcoded <c>SiatOptions.CodigoEmision</c>
+        /// sigue siendo oficial.
+        /// </summary>
+        public DateTime? UltimaSyncTipoEmision { get; set; }
+
+        /// <summary>
+        /// Última vez que se ejecutó la sincronización del catálogo paramétrico de
+        /// tipos de método de pago del SIAT para este (sucursal, puntoVenta).
+        /// Alimenta la tabla <c>CatMetodosPago</c> (~308 entradas: métodos simples
+        /// 1..9 + combinaciones 10..308) y refresca el caché estático
+        /// <c>MetodoPagoSiatCatalogo</c> usado por la validación de
+        /// <c>DtoPagos</c>. NO corre diario (solo al boot + manual) — el catálogo
+        /// cambia muy poco.
+        /// </summary>
+        public DateTime? UltimaSyncMetodoPago { get; set; }
     }
 }

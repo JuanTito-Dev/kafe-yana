@@ -311,6 +311,10 @@ namespace KafeYana.Infrastructure.Servicios
             ResultadoAplicacionDescuentoPromocion? descuento,
             List<Detalle_Pago> detallesVenta)
         {
+            // Construir las líneas de pago (VentaPagos) y resolver el código
+            // principal que se serializa en el XML (el de mayor monto).
+            var (lineasPago, codigoPrincipal) = ResolverLineasYPagoPrincipal(datos.Pagos);
+
             return new Venta
             {
                 NitEmisor = _siat.Nit,
@@ -324,7 +328,7 @@ namespace KafeYana.Infrastructure.Servicios
                 NumeroDocumento = numeroDocumento,
                 Complemento = ResolverComplemento(datos),
                 CodigoCliente = ResolverCodigoCliente(cliente),
-                CodigoMetodoPago = ResolverMetodoPago(datos.Pagos),
+                CodigoMetodoPago = codigoPrincipal,
                 NumeroTarjeta = null,
                 MontoGiftCard = null,
                 MontoTotal = totalCobrar,
@@ -342,10 +346,52 @@ namespace KafeYana.Infrastructure.Servicios
                     ? null
                     : cliente.Nombre.Trim(),
                 Detalles = detallesVenta,
+                Pagos = lineasPago,
                 Cuf = string.Empty,
                 Cufd = string.Empty,
                 Leyenda = string.Empty
             };
+        }
+
+        /// <summary>
+        /// Toma la lista de pagos del DTO y arma:
+        ///   1. Las entidades <c>VentaPago</c> (1 fila por método con monto > 0).
+        ///   2. El código de método de pago PRINCIPAL que va en el XML al SIAT.
+        ///      Hoy el XSD SIAT acepta un solo <c>codigoMetodoPago</c> por factura,
+        ///      así que se toma la línea de MAYOR monto (la más representativa).
+        ///
+        /// Nota: la validación contra <c>MetodoPagoSiatCatalogo</c> la hace
+        /// <c>DtoPagos.Validate</c> en el request — si llega acá significa que
+        /// todos los códigos son válidos y activos.
+        /// </summary>
+        private static (List<VentaPago> Lineas, int CodigoPrincipal) ResolverLineasYPagoPrincipal(
+            DtoPagos pagos)
+        {
+            var lineasConMonto = (pagos.Lineas ?? new List<DtoPagoLinea>())
+                .Where(l => l.Monto > 0)
+                .ToList();
+
+            if (lineasConMonto.Count == 0)
+            {
+                // No debería pasar porque DtoPagos.Validate ya garantiza Total > 0.
+                return (new List<VentaPago>(), (int)TipoPagos.Efectivo);
+            }
+
+            var entidades = lineasConMonto
+                .Select(l => new VentaPago
+                {
+                    CodigoMetodoPago = l.CodigoMetodoPago,
+                    Monto = l.Monto
+                })
+                .ToList();
+
+            // Pago principal = el de mayor monto. Si hay empate, el primero de la lista.
+            var principal = lineasConMonto
+                .OrderByDescending(l => l.Monto)
+                .First()
+                .CodigoMetodoPago;
+
+            return (entidades, principal);
         }
 
         private (List<Detalle_Pago> Detalles, bool TieneCombo) ConstruirDetalles(
@@ -585,21 +631,6 @@ namespace KafeYana.Infrastructure.Servicios
                 return cliente.Codigo;
 
             return ClienteCodigoService.Generar(cliente.Nombre, cliente.Id);
-        }
-
-        private static int ResolverMetodoPago(DtoPagos pagos)
-        {
-            var metodosUsados = 0;
-            if (pagos.Efectivo > 0) metodosUsados++;
-            if (pagos.Tarjeta > 0) metodosUsados++;
-            if (pagos.Qr > 0) metodosUsados++;
-
-            if (metodosUsados != 1)
-                return (int)TipoPagos.Otros;
-
-            if (pagos.Efectivo > 0) return (int)TipoPagos.Efectivo;
-            if (pagos.Tarjeta > 0) return (int)TipoPagos.Tarjeta;
-            return (int)TipoPagos.Qr;
         }
     }
 }

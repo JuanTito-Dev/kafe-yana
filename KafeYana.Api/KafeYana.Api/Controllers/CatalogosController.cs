@@ -25,6 +25,8 @@ namespace KafeYana.Api.Controllers
         private readonly SincronizadorCatEventoSignificativo _sincronizadorEventoSignificativo;
         private readonly SincronizadorCatPaisOrigen _sincronizadorPaisOrigen;
         private readonly SincronizadorCatTipoDocumentoIdentidad _sincronizadorTipoDocumentoIdentidad;
+        private readonly SincronizadorCatTipoEmision _sincronizadorTipoEmision;
+        private readonly SincronizadorCatMetodosPago _sincronizadorMetodosPago;
         private readonly IUnitWork _unitWork;
 
         public CatalogosController(
@@ -37,6 +39,8 @@ namespace KafeYana.Api.Controllers
             SincronizadorCatEventoSignificativo sincronizadorEventoSignificativo,
             SincronizadorCatPaisOrigen sincronizadorPaisOrigen,
             SincronizadorCatTipoDocumentoIdentidad sincronizadorTipoDocumentoIdentidad,
+            SincronizadorCatTipoEmision sincronizadorTipoEmision,
+            SincronizadorCatMetodosPago sincronizadorMetodosPago,
             IUnitWork unitWork)
         {
             _sincronizadorActividades = sincronizadorActividades;
@@ -48,6 +52,8 @@ namespace KafeYana.Api.Controllers
             _sincronizadorEventoSignificativo = sincronizadorEventoSignificativo;
             _sincronizadorPaisOrigen = sincronizadorPaisOrigen;
             _sincronizadorTipoDocumentoIdentidad = sincronizadorTipoDocumentoIdentidad;
+            _sincronizadorTipoEmision = sincronizadorTipoEmision;
+            _sincronizadorMetodosPago = sincronizadorMetodosPago;
             _unitWork = unitWork;
         }
 
@@ -462,6 +468,165 @@ namespace KafeYana.Api.Controllers
             {
                 items,
                 sincronizado = !TipoDocumentoIdentidadSiatCatalogo.EsFallback
+            });
+        }
+
+        /// <summary>
+        /// POST /api/catalogos/sincronizar-tipos-emision
+        ///
+        /// Ejecuta la sincronización del catálogo paramétrico de tipos de emisión
+        /// del SIAT (sincronizarParametricaTipoEmision) contra el SIAT de forma
+        /// síncrona. Itera todos los PuntosVentaSiat activos, usa la primera
+        /// respuesta exitosa para reemplazar la tabla maestra CatTiposEmision
+        /// (catálogo universal, no se filtra por actividad económica), refresca
+        /// el caché estático usado para validar el valor hardcoded
+        /// <c>SiatOptions.CodigoEmision</c> y marca <c>UltimaSyncTipoEmision</c>
+        /// en los PVs que devolvieron OK.
+        /// </summary>
+        [HttpPost("sincronizar-tipos-emision")]
+        public async Task<IActionResult> SincronizarTiposEmision(CancellationToken ct)
+        {
+            try
+            {
+                var (cantidad, pvsExitosos) = await _sincronizadorTipoEmision.SincronizarAsync(ct);
+                return Ok(new
+                {
+                    transaccion = true,
+                    cantidad = cantidad,
+                    pvsExitosos = pvsExitosos
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(StatusCodes.Status502BadGateway, new
+                {
+                    transaccion = false,
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// GET /api/catalogos/tipos-emision
+        ///
+        /// Devuelve el catálogo paramétrico de tipos de emisión del SIAT
+        /// (caché en memoria <c>TipoEmisionSiatCatalogo.ObtenerTodos()</c>).
+        ///
+        /// Esta es la fuente de verdad que valida que el valor hardcoded
+        /// <c>SiatOptions.CodigoEmision</c> siga siendo oficial (hoy = 1 = EN LINEA).
+        ///
+        /// El caché se refresca automáticamente vía el hosted service diario a las
+        /// 08:10 BOT o manualmente vía
+        /// <c>POST /api/catalogos/sincronizar-tipos-emision</c>.
+        ///
+        /// <c>sincronizado = false</c> indica que el server arrancó pero el sync del
+        /// SIAT todavía no corrió — los códigos que devuelve el <c>items</c> son los
+        /// del <c>FallbackHardcoded</c> (coinciden con los oficiales del SIN vigente
+        /// a jun-2026, pero no se garantiza que sigan así).
+        /// </summary>
+        [HttpGet("tipos-emision")]
+        public IActionResult GetTiposEmision()
+        {
+            var cache = TipoEmisionSiatCatalogo.ObtenerTodos();
+            var items = cache
+                .Select(kvp => new { codigo = kvp.Key, descripcion = kvp.Value })
+                .OrderBy(x => x.codigo)
+                .ToList();
+
+            return Ok(new
+            {
+                items,
+                sincronizado = !TipoEmisionSiatCatalogo.EsFallback
+            });
+        }
+
+        /// <summary>
+        /// POST /api/catalogos/sincronizar-metodos-pago
+        ///
+        /// Ejecuta la sincronización del catálogo paramétrico de métodos de pago
+        /// del SIAT (sincronizarParametricaTipoMetodoPago) contra el SIAT de
+        /// forma síncrona. Itera todos los PuntosVentaSiat activos, usa la
+        /// primera respuesta exitosa y hace MERGE con la tabla maestra
+        /// <c>CatMetodosPago</c> (catálogo universal, no se filtra por
+        /// actividad económica).
+        ///
+        /// **Diferencia con los otros sync**: este catálogo tiene un flag
+        /// <c>Activo</c> controlado por el operador. El merge PRESERVA el
+        /// estado de <c>Activo</c> (los códigos nuevos arrancan en false salvo
+        /// 1=EFECTIVO y 7=TRANSFERENCIA que arrancan activos).
+        ///
+        /// NO se ejecuta diario (solo al boot + manual). El catálogo tiene
+        /// ~308 entradas y cambia muy poco.
+        /// </summary>
+        [HttpPost("sincronizar-metodos-pago")]
+        public async Task<IActionResult> SincronizarMetodosPago(CancellationToken ct)
+        {
+            try
+            {
+                var (total, nuevos, actualizados, pvsExitosos) =
+                    await _sincronizadorMetodosPago.SincronizarAsync(ct);
+                return Ok(new
+                {
+                    transaccion = true,
+                    total,
+                    nuevos,
+                    actualizados,
+                    pvsExitosos
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(StatusCodes.Status502BadGateway, new
+                {
+                    transaccion = false,
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// GET /api/catalogos/metodos-pago
+        ///
+        /// Devuelve el catálogo paramétrico de métodos de pago del SIAT
+        /// actualmente persistido en BD (sincronizado por
+        /// <c>SincronizadorCatMetodosPago</c>, ~308 entradas). Solo devuelve
+        /// los métodos con <c>Activo=true</c> (los que el operador habilitó).
+        ///
+        /// Esta es la fuente de verdad que consume:
+        ///   - <c>DtoPagos.Validate</c>: valida que cada línea del body tenga
+        ///     un código válido Y activo.
+        ///   - <c>VentaServices.ResolverLineasYPagoPrincipal</c>: arma las
+        ///     entidades <c>VentaPago</c> por cada venta.
+        ///   - El frontend (<c>PagoPanel</c>) para mostrar solo los métodos
+        ///     que el sistema acepta.
+        ///
+        /// <c>sincronizado = false</c> indica que el server arrancó pero el
+        /// sync contra el SIAT todavía no corrió o falló en todos los PVs — en
+        /// ese caso <c>items</c> viene del <c>FallbackHardcoded</c> (1=EFECTIVO,
+        /// 2=TARJETA, 5=OTROS, 7=TRANSFERENCIA). La UI debe mostrar un aviso.
+        ///
+        /// El catálogo se refresca automáticamente al boot del server o
+        /// manualmente vía
+        /// <c>POST /api/catalogos/sincronizar-metodos-pago</c>.
+        /// </summary>
+        [HttpGet("metodos-pago")]
+        public IActionResult GetMetodosPago()
+        {
+            var cache = MetodoPagoSiatCatalogo.ObtenerActivos();
+            var items = cache
+                .Select(kvp => new
+                {
+                    codigo = kvp.Key,
+                    descripcion = kvp.Value,
+                    activo = true
+                })
+                .OrderBy(x => x.codigo)
+                .ToList();
+
+            return Ok(new
+            {
+                items,
+                sincronizado = !MetodoPagoSiatCatalogo.EsFallback
             });
         }
     }

@@ -130,7 +130,7 @@ namespace KafeYana.Infrastructure.Servicios
 
                 await _db.ventas.Crear(resultado.Venta);
                 liberarPedido();
-                caja.RegistrarVenta(datos.Pagos.Efectivo, datos.Pagos.Tarjeta, datos.Pagos.Qr);
+                caja.RegistrarVenta(datos.Pagos.Lineas.Select(l => (l.CodigoMetodoPago, l.Monto)));
 
                 await _db.SaveUnitWork();
                 await transaction.CommitAsync(ct);

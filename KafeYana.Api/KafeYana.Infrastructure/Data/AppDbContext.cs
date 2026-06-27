@@ -50,6 +50,8 @@ namespace KafeYana.Infrastructure.Data
 
         public DbSet<Venta> Ventas {  get; set; }
 
+        public DbSet<VentaPago> VentaPagos { get; set; }
+
         public DbSet<Detalle_Pago> Detalle_Pagos { get; set; }
 
         public DbSet<NotaAjuste> NotasAjuste { get; set; }
@@ -138,6 +140,10 @@ namespace KafeYana.Infrastructure.Data
 
         public DbSet<CatTipoDocumentoIdentidad> CatTiposDocumentoIdentidad { get; set; }
 
+        public DbSet<CatTipoEmision> CatTiposEmision { get; set; }
+
+        public DbSet<CatTipoMetodoPago> CatMetodosPago { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -225,6 +231,12 @@ namespace KafeYana.Infrastructure.Data
             builder.ApplyConfigurationsFromAssembly(typeof(CatLeyendaConfig).Assembly);
 
             builder.ApplyConfigurationsFromAssembly(typeof(CatTipoDocumentoIdentidadConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CatTipoEmisionConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CatTipoMetodoPagoConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(VentaPagoConfig).Assembly);
         }
     }
 }
