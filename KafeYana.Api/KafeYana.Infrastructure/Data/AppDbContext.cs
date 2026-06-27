@@ -132,6 +132,12 @@ namespace KafeYana.Infrastructure.Data
 
         public DbSet<CatLeyenda> CatLeyendas { get; set; }
 
+        public DbSet<CatEventoSignificativo> CatEventosSignificativos { get; set; }
+
+        public DbSet<CatPaisOrigen> CatPaisesOrigen { get; set; }
+
+        public DbSet<CatTipoDocumentoIdentidad> CatTiposDocumentoIdentidad { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -217,6 +223,8 @@ namespace KafeYana.Infrastructure.Data
             builder.ApplyConfigurationsFromAssembly(typeof(CatActividadDocumentoSectorConfig).Assembly);
 
             builder.ApplyConfigurationsFromAssembly(typeof(CatLeyendaConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CatTipoDocumentoIdentidadConfig).Assembly);
         }
     }
 }

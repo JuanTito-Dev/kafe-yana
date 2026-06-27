@@ -1,4 +1,6 @@
 using KafeYana.Infrastructure.Servicios;
+using KafeYana.Application.IRepositorio;
+using KafeYana.Domain.TiposDeDatos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KafeYana.Api.Controllers
@@ -19,19 +21,34 @@ namespace KafeYana.Api.Controllers
         private readonly SincronizadorCatMotivoAnulacion _sincronizadorMotivosAnulacion;
         private readonly SincronizadorCatActividadDocumentoSector _sincronizadorActividadesDocumentoSector;
         private readonly SincronizadorCatLeyenda _sincronizadorLeyendas;
+        private readonly SincronizadorCodigosSiat _sincronizadorCodigosSiat;
+        private readonly SincronizadorCatEventoSignificativo _sincronizadorEventoSignificativo;
+        private readonly SincronizadorCatPaisOrigen _sincronizadorPaisOrigen;
+        private readonly SincronizadorCatTipoDocumentoIdentidad _sincronizadorTipoDocumentoIdentidad;
+        private readonly IUnitWork _unitWork;
 
         public CatalogosController(
             SincronizadorCatActividades sincronizadorActividades,
             SincronizadorCatDocumentoSector sincronizadorDocumentosSector,
             SincronizadorCatMotivoAnulacion sincronizadorMotivosAnulacion,
             SincronizadorCatActividadDocumentoSector sincronizadorActividadesDocumentoSector,
-            SincronizadorCatLeyenda sincronizadorLeyendas)
+            SincronizadorCatLeyenda sincronizadorLeyendas,
+            SincronizadorCodigosSiat sincronizadorCodigosSiat,
+            SincronizadorCatEventoSignificativo sincronizadorEventoSignificativo,
+            SincronizadorCatPaisOrigen sincronizadorPaisOrigen,
+            SincronizadorCatTipoDocumentoIdentidad sincronizadorTipoDocumentoIdentidad,
+            IUnitWork unitWork)
         {
             _sincronizadorActividades = sincronizadorActividades;
             _sincronizadorDocumentosSector = sincronizadorDocumentosSector;
             _sincronizadorMotivosAnulacion = sincronizadorMotivosAnulacion;
             _sincronizadorActividadesDocumentoSector = sincronizadorActividadesDocumentoSector;
             _sincronizadorLeyendas = sincronizadorLeyendas;
+            _sincronizadorCodigosSiat = sincronizadorCodigosSiat;
+            _sincronizadorEventoSignificativo = sincronizadorEventoSignificativo;
+            _sincronizadorPaisOrigen = sincronizadorPaisOrigen;
+            _sincronizadorTipoDocumentoIdentidad = sincronizadorTipoDocumentoIdentidad;
+            _unitWork = unitWork;
         }
 
         /// <summary>
@@ -128,6 +145,82 @@ namespace KafeYana.Api.Controllers
         }
 
         /// <summary>
+        /// GET /api/catalogos/motivos-anulacion
+        ///
+        /// Devuelve el catálogo de motivos de anulación actualmente en uso por el backend
+        /// (caché en memoria <c>MotivoAnulacionSiatCatalogo.ObtenerTodos()</c>).
+        ///
+        /// Esta es la fuente de verdad que consumen:
+        ///   - Las validaciones de <c>DtoAnularFactura</c> / <c>DtoAnularNotaAjuste</c>.
+        ///   - Los servicios <c>FacturaSiatAnulacionService</c> / <c>NotaAjusteSiatAnulacionService</c>.
+        ///   - El frontend (modales de anulación de factura y nota C/D).
+        ///
+        /// El caché se refresca automáticamente vía el hosted service diario a las 08:10 BOT
+        /// o manualmente vía <c>POST /api/catalogos/sincronizar-motivos-anulacion</c>.
+        ///
+        /// <c>sincronizado = false</c> indica que el server arrancó pero el sync del SIAT
+        /// todavía no corrió — los códigos que devuelve el <c>items</c> son los del
+        /// <c>FallbackHardcoded</c> (pueden NO coincidir con los oficiales del SIN).
+        /// La UI debe mostrar un aviso y bloquear el submit en ese caso.
+        /// </summary>
+        [HttpGet("motivos-anulacion")]
+        public IActionResult GetMotivosAnulacion()
+        {
+            var cache = MotivoAnulacionSiatCatalogo.ObtenerTodos();
+            var items = cache
+                .Select(kvp => new { codigo = kvp.Key, descripcion = kvp.Value })
+                .OrderBy(x => x.codigo)
+                .ToList();
+
+            return Ok(new
+            {
+                items,
+                sincronizado = !MotivoAnulacionSiatCatalogo.EsFallback
+            });
+        }
+
+        /// <summary>
+        /// GET /api/catalogos/paises-origen
+        ///
+        /// Devuelve el catálogo paramétrico de países de origen del SIAT
+        /// (tabla <c>CatPaisOrigen</c>, sincronizada por
+        /// <c>SincronizadorCatPaisOrigen</c>). Cada item incluye el código SIN
+        /// (1..211 según catálogo vigente) y la descripción oficial
+        /// (ej. "BOLIVIA (ESTADO PLURINACIONAL DE)").
+        ///
+        /// Esta es la fuente de verdad que consume el frontend:
+        ///   - <c>usePaisesOrigen</c> hook
+        ///   - <c>DatosFiscalesForm</c> dropdown de país (visible sólo cuando
+        ///     el tipo de documento es CEX=2 o PAS=3)
+        ///
+        /// <c>sincronizado = false</c> indica que el server arrancó pero el sync
+        /// del SIAT todavía no corrió — los códigos que devuelve <c>items</c>
+        /// pueden estar incompletos. La UI debe mostrar un aviso y bloquear el
+        /// submit en ese caso.
+        ///
+        /// El catálogo se refresca automáticamente vía el hosted service diario
+        /// a las 08:10 BOT o manualmente vía
+        /// <c>POST /api/catalogos/sincronizar-paises-origen</c>.
+        /// </summary>
+        [HttpGet("paises-origen")]
+        public async Task<IActionResult> GetPaisesOrigen(CancellationToken ct)
+        {
+            var paises = await _unitWork.catPaisesOrigen.GetAllOrderedAsync();
+            var items = paises
+                .Select(p => new { codigo = p.Codigo, descripcion = p.Descripcion })
+                .ToList();
+
+            // sincronizado=true en cuanto hay al menos un país cargado
+            // (la respuesta del SIAT trae ~211 entradas; si llega 0 todavía
+            // no corrió el primer sync).
+            return Ok(new
+            {
+                items,
+                sincronizado = items.Count > 0
+            });
+        }
+
+        /// <summary>
         /// POST /api/catalogos/sincronizar-actividades-documento-sector
         ///
         /// Ejecuta la sincronización de la matriz Actividad ↔ Documento Sector
@@ -190,6 +283,186 @@ namespace KafeYana.Api.Controllers
                     error = ex.Message
                 });
             }
+        }
+
+        /// <summary>
+        /// POST /api/catalogos/sincronizar-productos-servicios
+        ///
+        /// Ejecuta la sincronización del catálogo de productos/servicios del SIAT
+        /// (sincronizarListaProductosServicios) contra el SIAT de forma síncrona.
+        /// Itera todos los PuntosVentaSiat activos, usa la primera respuesta
+        /// exitosa, la FILTRA por la actividad económica principal del operador
+        /// y reemplaza la tabla CodigosSiat (alimenta el modal CodigoSinModal del
+        /// frontend). Marca UltimaSyncCodigosSiat en los PVs que devolvieron OK.
+        /// </summary>
+        [HttpPost("sincronizar-productos-servicios")]
+        public async Task<IActionResult> SincronizarProductosServicios(CancellationToken ct)
+        {
+            try
+            {
+                var (cantidad, pvsExitosos) = await _sincronizadorCodigosSiat.SincronizarAsync(ct);
+                return Ok(new
+                {
+                    transaccion = true,
+                    cantidad = cantidad,
+                    pvsExitosos = pvsExitosos
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(StatusCodes.Status502BadGateway, new
+                {
+                    transaccion = false,
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// POST /api/catalogos/sincronizar-eventos-significativos
+        ///
+        /// Ejecuta la sincronización del catálogo paramétrico de eventos significativos
+        /// del SIAT (sincronizarParametricaEventosSignificativos) contra el SIAT de
+        /// forma síncrona. Itera todos los PuntosVentaSiat activos, usa la primera
+        /// respuesta exitosa para reemplazar la tabla maestra CatEventosSignificativos
+        /// (catálogo universal, no se filtra por actividad económica) y marca
+        /// UltimaSyncEventosSignificativos en los PVs que devolvieron OK.
+        ///
+        /// Fuera de scope: el uso real de este catálogo para facturación en
+        /// contingencia (registro del evento, buffer offline, paquete) se
+        /// implementa en un ticket separado.
+        /// </summary>
+        [HttpPost("sincronizar-eventos-significativos")]
+        public async Task<IActionResult> SincronizarEventosSignificativos(CancellationToken ct)
+        {
+            try
+            {
+                var (cantidad, pvsExitosos) = await _sincronizadorEventoSignificativo.SincronizarAsync(ct);
+                return Ok(new
+                {
+                    transaccion = true,
+                    cantidad = cantidad,
+                    pvsExitosos = pvsExitosos
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(StatusCodes.Status502BadGateway, new
+                {
+                    transaccion = false,
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// POST /api/catalogos/sincronizar-paises-origen
+        ///
+        /// Ejecuta la sincronización del catálogo paramétrico de países de origen del SIAT
+        /// (sincronizarParametricaPaisOrigen) contra el SIAT de forma síncrona. Itera
+        /// todos los PuntosVentaSiat activos, usa la primera respuesta exitosa para
+        /// reemplazar la tabla maestra CatPaisesOrigen (catálogo universal, no se filtra
+        /// por actividad económica) y marca UltimaSyncPaisOrigen en los PVs que
+        /// devolvieron OK.
+        ///
+        /// Fuera de scope: el uso real de este catálogo (factura de exportación,
+        /// clientes extranjeros con pasaporte/CIE) se implementa en tickets separados.
+        /// </summary>
+        [HttpPost("sincronizar-paises-origen")]
+        public async Task<IActionResult> SincronizarPaisesOrigen(CancellationToken ct)
+        {
+            try
+            {
+                var (cantidad, pvsExitosos) = await _sincronizadorPaisOrigen.SincronizarAsync(ct);
+                return Ok(new
+                {
+                    transaccion = true,
+                    cantidad = cantidad,
+                    pvsExitosos = pvsExitosos
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(StatusCodes.Status502BadGateway, new
+                {
+                    transaccion = false,
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// POST /api/catalogos/sincronizar-tipos-documento-identidad
+        ///
+        /// Ejecuta la sincronización del catálogo paramétrico de tipos de documento
+        /// de identidad del SIAT (sincronizarParametricaTipoDocumentoIdentidad) contra
+        /// el SIAT de forma síncrona. Itera todos los PuntosVentaSiat activos, usa la
+        /// primera respuesta exitosa para reemplazar la tabla maestra
+        /// CatTiposDocumentoIdentidad (catálogo universal, no se filtra por actividad
+        /// económica), refresca el caché estático usado por las validaciones de
+        /// <c>codigoTipoDocumentoIdentidad</c> en cada venta y marca
+        /// UltimaSyncTipoDocumentoIdentidad en los PVs que devolvieron OK.
+        /// </summary>
+        [HttpPost("sincronizar-tipos-documento-identidad")]
+        public async Task<IActionResult> SincronizarTiposDocumentoIdentidad(CancellationToken ct)
+        {
+            try
+            {
+                var (cantidad, pvsExitosos) = await _sincronizadorTipoDocumentoIdentidad.SincronizarAsync(ct);
+                return Ok(new
+                {
+                    transaccion = true,
+                    cantidad = cantidad,
+                    pvsExitosos = pvsExitosos
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(StatusCodes.Status502BadGateway, new
+                {
+                    transaccion = false,
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// GET /api/catalogos/tipos-documento-identidad
+        ///
+        /// Devuelve el catálogo paramétrico de tipos de documento de identidad del SIAT
+        /// (caché en memoria <c>TipoDocumentoIdentidadSiatCatalogo.ObtenerTodos()</c>).
+        ///
+        /// Esta es la fuente de verdad que consume:
+        ///   - <c>DtoVentaPedido.Validate</c>: valida que <c>CodigoTipoDocumento</c>
+        ///     esté en el catálogo vigente.
+        ///   - <c>FacturaXmlGenerator</c> / <c>NotaAjusteXmlGenerator</c>: serializa
+        ///     el código en el XML de la factura y la nota.
+        ///   - <c>FacturaTicketBuilder</c>: arma la etiqueta del ticket impreso.
+        ///
+        /// El caché se refresca automáticamente vía el hosted service diario a las
+        /// 08:10 BOT o manualmente vía
+        /// <c>POST /api/catalogos/sincronizar-tipos-documento-identidad</c>.
+        ///
+        /// <c>sincronizado = false</c> indica que el server arrancó pero el sync del
+        /// SIAT todavía no corrió — los códigos que devuelve el <c>items</c> son los
+        /// del <c>FallbackHardcoded</c> (coinciden con los oficiales del SIN vigente
+        /// a jun-2026, pero no se garantiza que sigan así). La UI debe mostrar un
+        /// aviso si necesita estrictamente el catálogo del SIN.
+        /// </summary>
+        [HttpGet("tipos-documento-identidad")]
+        public IActionResult GetTiposDocumentoIdentidad()
+        {
+            var cache = TipoDocumentoIdentidadSiatCatalogo.ObtenerTodos();
+            var items = cache
+                .Select(kvp => new { codigo = kvp.Key, descripcion = kvp.Value })
+                .OrderBy(x => x.codigo)
+                .ToList();
+
+            return Ok(new
+            {
+                items,
+                sincronizado = !TipoDocumentoIdentidadSiatCatalogo.EsFallback
+            });
         }
     }
 }

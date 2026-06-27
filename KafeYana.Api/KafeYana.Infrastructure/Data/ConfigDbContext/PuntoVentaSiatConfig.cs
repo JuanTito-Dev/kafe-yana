@@ -33,6 +33,14 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.Property(x => x.UltimaSyncLeyendas);
 
+            builder.Property(x => x.UltimaSyncCodigosSiat);
+
+            builder.Property(x => x.UltimaSyncEventosSignificativos);
+
+            builder.Property(x => x.UltimaSyncPaisOrigen);
+
+            builder.Property(x => x.UltimaSyncTipoDocumentoIdentidad);
+
             // No puede haber dos PuntosVentaSiat con la misma combinación
             // (sucursal, puntoVenta) — es la PK funcional ante el SIN.
             builder.HasIndex(x => new { x.CodigoSucursal, x.CodigoPuntoVenta })

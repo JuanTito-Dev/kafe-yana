@@ -28,6 +28,13 @@ namespace KafeYana.Application.IRepositorio
 
         IClienteRespositorio clientes { get; }
 
+        /// <summary>
+        /// Catálogo paramétrico de países de origen del SIAT (<c>CatPaisOrigen</c>).
+        /// Usado por <c>ClientePedidoHelper</c> para resolver el código SIN al
+        /// FK local al facturar clientes extranjeros (CEX/PAS).
+        /// </summary>
+        ICatPaisOrigenRepositorio catPaisesOrigen { get; }
+
         IOpcionRepositorio opciones { get; }
 
         IComboRepositorio Combo { get; }

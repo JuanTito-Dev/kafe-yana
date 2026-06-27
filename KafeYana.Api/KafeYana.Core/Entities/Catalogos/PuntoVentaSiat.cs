@@ -46,5 +46,39 @@ namespace KafeYana.Domain.Entities.Catalogos
         /// obligatorias del SIAT para este (sucursal, puntoVenta).
         /// </summary>
         public DateTime? UltimaSyncLeyendas { get; set; }
+
+        /// <summary>
+        /// Última vez que se ejecutó la sincronización del catálogo de
+        /// productos/servicios del SIAT para este (sucursal, puntoVenta).
+        /// Alimenta la tabla <c>CodigosSiat</c> que consume el modal
+        /// <c>CodigoSinModal</c> del frontend.
+        /// </summary>
+        public DateTime? UltimaSyncCodigosSiat { get; set; }
+
+        /// <summary>
+        /// Última vez que se ejecutó la sincronización del catálogo paramétrico
+        /// de eventos significativos del SIAT para este (sucursal, puntoVenta).
+        /// Alimenta la tabla <c>CatEventosSignificativos</c> (7 códigos: 1..7)
+        /// que se usará cuando se implemente el flujo de contingencia.
+        /// </summary>
+        public DateTime? UltimaSyncEventosSignificativos { get; set; }
+
+        /// <summary>
+        /// Última vez que se ejecutó la sincronización del catálogo paramétrico de
+        /// países de origen del SIAT para este (sucursal, puntoVenta). Alimenta la
+        /// tabla <c>CatPaisesOrigen</c> (~211 códigos: 1..211) que se usará cuando
+        /// se implemente el flujo de factura de exportación o clientes extranjeros.
+        /// </summary>
+        public DateTime? UltimaSyncPaisOrigen { get; set; }
+
+        /// <summary>
+        /// Última vez que se ejecutó la sincronización del catálogo paramétrico
+        /// de tipos de documento de identidad del SIAT para este
+        /// (sucursal, puntoVenta). Alimenta la tabla <c>CatTiposDocumentoIdentidad</c>
+        /// (1=CI, 2=CEX, 3=PAS, 4=OD, 5=NIT según catálogo SIN vigente) que se
+        /// usa para validar <c>codigoTipoDocumentoIdentidad</c> en cada venta
+        /// facturada.
+        /// </summary>
+        public DateTime? UltimaSyncTipoDocumentoIdentidad { get; set; }
     }
 }

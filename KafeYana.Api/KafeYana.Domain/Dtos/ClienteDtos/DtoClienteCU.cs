@@ -25,5 +25,18 @@ namespace KafeYana.Application.Dtos.ClienteDtos
         public string? Direccion { get; set; }
 
         public bool Estado { get; set; } = true;
+
+        /// <summary>
+        /// FK opcional a <c>CatPaisOrigen</c>. Sólo se popula para clientes
+        /// extranjeros (CEX / PAS) creados o editados desde el admin de
+        /// clientes. El POS (flujo de venta) usa
+        /// <c>DtoVentaPedido.CodigoPaisOrigen</c> (código SIN) que el backend
+        /// resuelve a este FK en <c>ClientePedidoHelper</c>.
+        ///
+        /// Mapster auto-mapea este campo al <c>IdPaisOrigen</c> del entity.
+        /// En este ticket NO se agrega al formulario de admin — queda como
+        /// puerta abierta para una iteración futura.
+        /// </summary>
+        public int? IdPaisOrigen { get; set; }
     }
 }

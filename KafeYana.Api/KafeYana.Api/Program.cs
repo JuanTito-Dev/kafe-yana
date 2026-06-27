@@ -248,6 +248,7 @@ builder.Services.AddScoped<IInsumoRepositorio, InsumoRepositorio>();
 builder.Services.AddScoped<IRecetaRepositorio, RecetaRepositorio>();
 builder.Services.AddScoped<IVariacionReposiotorio, VariacionRepositorio>();
 builder.Services.AddScoped<IClienteRespositorio, ClienteRepositorio>();
+builder.Services.AddScoped<ICatPaisOrigenRepositorio, CatPaisOrigenRepositorio>();
 builder.Services.AddScoped<IAjusteStockRepositorio, AjusteStockRepositorio>();
 builder.Services.AddScoped<IMesaRepositorio, MesaRepositorio>();
 builder.Services.AddScoped<IPedidoRepositorio, PedidoRepositorio>();

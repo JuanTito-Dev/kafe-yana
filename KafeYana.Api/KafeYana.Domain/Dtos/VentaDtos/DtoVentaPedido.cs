@@ -23,8 +23,14 @@ namespace KafeYana.Application.Dtos.VentaDtos
         /// </summary>
         public bool Factura { get; set; } = true;
 
-        /// <summary>Paramétrica SIAT codigoTipoDocumentoIdentidad (1 a 5). Obligatorio solo si Factura=true.</summary>
-        [Range(1, 5, ErrorMessage = "El código de tipo de documento debe estar entre 1 y 5.")]
+        /// <summary>
+        /// Paramétrica SIAT codigoTipoDocumentoIdentidad (1..N según catálogo SIN vigente).
+        /// Obligatorio solo si Factura=true. La validación contra el catálogo vigente
+        /// (sincronizado por <c>SincronizadorCatTipoDocumentoIdentidad</c>) la hace
+        /// <see cref="Validate"/> vía <see cref="TipoDocumentoIdentidadSiatCatalogo.EsValido"/>:
+        /// antes del primer sync acepta 1..5 (fallback), después cualquier código
+        /// que el SIN publique.
+        /// </summary>
         public int? CodigoTipoDocumento { get; set; }
 
         /// <summary>Nombre del comprador. Obligatorio solo si no se envía Id_Cliente al facturar.</summary>
@@ -54,6 +60,19 @@ namespace KafeYana.Application.Dtos.VentaDtos
         /// </summary>
         public int? CodigoPuntoVenta { get; set; }
 
+        /// <summary>
+        /// Código de país de origen del documento del cliente (catálogo SIN
+        /// <c>CatPaisOrigen.Codigo</c>, 1..211). Requerido sólo cuando
+        /// <see cref="CodigoTipoDocumento"/> ∈ {2 (CEX), 3 (PAS)} y NO se
+        /// envía <see cref="Id_Cliente"/>. El backend lo valida contra la
+        /// tabla <c>CatPaisOrigen</c> y lo persiste como FK
+        /// <c>Cliente.IdPaisOrigen</c>.
+        ///
+        /// Si se envía <see cref="Id_Cliente"/> (cliente del dropdown), este
+        /// campo se IGNORA: el país se lee de la BD (cliente ya persistido).
+        /// </summary>
+        public int? CodigoPaisOrigen { get; set; }
+
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (Factura)
@@ -64,11 +83,22 @@ namespace KafeYana.Application.Dtos.VentaDtos
                         "El código de tipo de documento es requerido cuando Factura es true.",
                         [nameof(CodigoTipoDocumento)]);
                 }
-                else if (!Enum.IsDefined(typeof(TipoDocumentoIdentidadSiat), CodigoTipoDocumento.Value))
+                else if (!TipoDocumentoIdentidadSiatCatalogo.EsValido(CodigoTipoDocumento.Value))
                 {
                     yield return new ValidationResult(
-                        "El código de tipo de documento no es válido. Valores permitidos: 1 (CI), 2 (CEX), 3 (PAS), 4 (OD), 5 (NIT).",
+                        "El código de tipo de documento no es válido. Valores permitidos según catálogo SIAT vigente (1=CI, 2=CEX, 3=PAS, 4=OD, 5=NIT).",
                         [nameof(CodigoTipoDocumento)]);
+                }
+
+                // Cliente extranjero (CEX / PAS) sin Id_Cliente → exigir país de origen.
+                // Con Id_Cliente el país se lee del cliente persistido (no del body).
+                var tipoDoc = CodigoTipoDocumento ?? 0;
+                var esExtranjero = tipoDoc is 2 or 3;
+                if (esExtranjero && Id_Cliente is null && CodigoPaisOrigen is null)
+                {
+                    yield return new ValidationResult(
+                        "Debe indicar el país de origen del documento para clientes extranjeros (CEX/PAS).",
+                        [nameof(CodigoPaisOrigen)]);
                 }
 
                 if (Id_Cliente is int idCliente)
@@ -111,10 +141,10 @@ namespace KafeYana.Application.Dtos.VentaDtos
                     [nameof(CodigoPuntoVenta)]);
             }
             else if (CodigoTipoDocumento is int tipo
-                     && !Enum.IsDefined(typeof(TipoDocumentoIdentidadSiat), tipo))
+                     && !TipoDocumentoIdentidadSiatCatalogo.EsValido(tipo))
             {
                 yield return new ValidationResult(
-                    "El código de tipo de documento no es válido. Valores permitidos: 1 (CI), 2 (CEX), 3 (PAS), 4 (OD), 5 (NIT).",
+                    "El código de tipo de documento no es válido. Valores permitidos según catálogo SIAT vigente (1=CI, 2=CEX, 3=PAS, 4=OD, 5=NIT).",
                     [nameof(CodigoTipoDocumento)]);
             }
         }

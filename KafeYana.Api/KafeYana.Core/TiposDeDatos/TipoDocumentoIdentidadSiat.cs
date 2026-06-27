@@ -1,24 +1,88 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+
 namespace KafeYana.Domain.TiposDeDatos
 {
-    /// <summary>Paramétrica SIAT codigoTipoDocumentoIdentidad (valores 1 a 5).</summary>
-    public enum TipoDocumentoIdentidadSiat
+    /// <summary>
+    /// Catálogo de tipos de documento de identidad leído desde la BD
+    /// (tabla <c>CatTiposDocumentoIdentidad</c>, sincronizada por
+    /// <c>SincronizadorCatTipoDocumentoIdentidad</c>).
+    ///
+    /// Se mantiene un caché en memoria (inmutable por reemplazo atómico) para
+    /// no golpear la BD en cada venta facturada. El caché arranca con descripciones
+    /// hardcoded como fallback mientras el primer sync del SIAT no haya corrido;
+    /// apenas el sync termina, llama a <see cref="Refrescar"/> y el sistema pasa
+    /// a usar las descripciones oficiales del SIN.
+    ///
+    /// Es thread-safe: el reemplazo del diccionario es atómico y los lectores
+    /// siempre ven una versión consistente (vieja o nueva, nunca mixta).
+    ///
+    /// Espejo de <see cref="MotivoAnulacionSiatCatalogo"/> (mismo patrón:
+    /// catálogo paramétrico del SIAT leído en cada request de venta / anulación).
+    /// </summary>
+    public static class TipoDocumentoIdentidadSiatCatalogo
     {
-        CiCedulaIdentidad = 1,
-        CexCedulaExtranjero = 2,
-        PasPasaporte = 3,
-        OdOtroDocumento = 4,
-        Nit = 5
-    }
+        // Snapshot inmutable de los tipos conocidos. Se reemplaza atómicamente
+        // vía Interlocked.Exchange para que los lectores vean una versión estable.
+        private static volatile IReadOnlyDictionary<int, string> _cache = FallbackHardcoded;
 
-    public static class TipoDocumentoIdentidadSiatDescripciones
-    {
-        public static readonly IReadOnlyDictionary<int, string> PorCodigo = new Dictionary<int, string>
+        private static readonly IReadOnlyDictionary<int, string> FallbackHardcoded =
+            new Dictionary<int, string>
+            {
+                [1] = "CI - CEDULA DE IDENTIDAD",
+                [2] = "CEX - CEDULA DE IDENTIDAD DE EXTRANJERO",
+                [3] = "PAS - PASAPORTE",
+                [4] = "OD - OTRO DOCUMENTO DE IDENTIDAD",
+                [5] = "NIT - NUMERO DE IDENTIFICACION TRIBUTARIA",
+            };
+
+        /// <summary>
+        /// True mientras el caché contenga los valores de <see cref="FallbackHardcoded"/>
+        /// (server arrancó pero ningún sync del SIAT corrió todavía). Pasa a false
+        /// en cuanto <see cref="Refrescar"/> recibe tipos válidos del SIN.
+        ///
+        /// Útil para que la UI pueda mostrar un aviso de "catálogo no sincronizado"
+        /// en lugar de presentar el fallback como si fuera oficial.
+        /// </summary>
+        public static bool EsFallback { get; private set; } = true;
+
+        /// <summary>True si el código está en el catálogo vigente (BD o fallback).</summary>
+        public static bool EsValido(int codigo) => _cache.ContainsKey(codigo);
+
+        /// <summary>
+        /// Descripción del tipo de documento. Si no existe en el catálogo, devuelve
+        /// "Tipo {codigo}" en lugar de lanzar para no romper respuestas al cliente.
+        /// </summary>
+        public static string ObtenerDescripcion(int codigo) =>
+            _cache.TryGetValue(codigo, out var d) ? d : $"Tipo {codigo}";
+
+        /// <summary>
+        /// Snapshot de solo-lectura del catálogo actual. Útil para la UI
+        /// (lista de opciones del dropdown de tipo de documento).
+        /// </summary>
+        public static IReadOnlyDictionary<int, string> ObtenerTodos() => _cache;
+
+        /// <summary>
+        /// Llamado por <c>SincronizadorCatTipoDocumentoIdentidad</c> al terminar una
+        /// sync exitosa. Reemplaza el caché atómicamente con los tipos del SIN.
+        /// </summary>
+        public static void Refrescar(IEnumerable<(int Codigo, string Descripcion)> tipos)
         {
-            [1] = "CI - CEDULA DE IDENTIDAD",
-            [2] = "CEX - CEDULA DE IDENTIDAD DE EXTRANJERO",
-            [3] = "PAS - PASAPORTE",
-            [4] = "OD - OTRO DOCUMENTO DE IDENTIDAD",
-            [5] = "NIT - NÚMERO DE IDENTIFICACIÓN TRIBUTARIA"
-        };
+            if (tipos is null) return;
+
+            var nuevo = tipos
+                .Where(t => t.Codigo > 0 && !string.IsNullOrWhiteSpace(t.Descripcion))
+                .GroupBy(t => t.Codigo)
+                .ToDictionary(g => g.Key, g => g.First().Descripcion.Trim());
+
+            if (nuevo.Count == 0) return;
+
+            // Reemplazo atómico: cualquier lector en vuelo verá el diccionario viejo
+            // o el nuevo, nunca uno parcial.
+            Interlocked.Exchange(ref _cache, nuevo);
+            EsFallback = false;
+        }
     }
 }

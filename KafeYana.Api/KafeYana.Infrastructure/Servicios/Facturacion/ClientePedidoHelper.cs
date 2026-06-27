@@ -31,7 +31,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                     "Si no envía Id_Cliente, el Nombre y la C.L. son obligatorios.");
             }
 
-            return await ResolverOCrearClientePorDocumentoAsync(db, nombre.Trim(), dni.Value);
+            return await ResolverOCrearClientePorDocumentoAsync(db, nombre.Trim(), dni.Value, codigoPaisOrigen: null);
         }
 
         public static async Task<(Cliente Cliente, string NumeroDocumento)> ResolverClienteParaCobroAsync(
@@ -50,7 +50,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
             if (!string.IsNullOrWhiteSpace(datos.Nombre) && datos.Dni is int dni && dni > 0)
             {
-                var cliente = await ResolverOCrearClientePorDocumentoAsync(db, datos.Nombre.Trim(), dni);
+                var cliente = await ResolverOCrearClientePorDocumentoAsync(db, datos.Nombre.Trim(), dni, datos.CodigoPaisOrigen);
                 return (cliente, dni.ToString());
             }
 
@@ -76,7 +76,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
             if (!string.IsNullOrWhiteSpace(datos.Nombre) && datos.Dni is int dni && dni > 0)
             {
-                var cliente = await ResolverOCrearClientePorDocumentoAsync(db, datos.Nombre.Trim(), dni);
+                var cliente = await ResolverOCrearClientePorDocumentoAsync(db, datos.Nombre.Trim(), dni, datos.CodigoPaisOrigen);
                 return (cliente, dni.ToString());
             }
 
@@ -122,13 +122,23 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
         private static async Task<Cliente> ResolverOCrearClientePorDocumentoAsync(
             IUnitWork db,
             string nombre,
-            int dni)
+            int dni,
+            int? codigoPaisOrigen)
         {
+            // Resolver código SIN → Id local una sola vez (reusado abajo para
+            // cliente existente y cliente nuevo).
+            int? idPaisOrigen = await ResolverIdPaisOrigenAsync(db, codigoPaisOrigen);
+
             var existente = await db.clientes.GetByDniAsync(dni);
             if (existente is not null)
             {
                 if (!string.Equals(existente.Nombre, nombre, StringComparison.Ordinal))
                     existente.Nombre = nombre;
+
+                // País: completar si estaba null O si el cajero está corrigiendo
+                // el país de un cliente viejo. NO tocar si el body no trae país.
+                if (idPaisOrigen is int idPais && existente.IdPaisOrigen != idPais)
+                    existente.IdPaisOrigen = idPais;
 
                 return existente;
             }
@@ -140,6 +150,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 Celular = null,
                 Correo = null,
                 Correonormalizado = string.Empty,
+                IdPaisOrigen = idPaisOrigen,
                 Estado = true
             };
 
@@ -149,6 +160,28 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 ClienteCodigoService.Generar(nuevoCliente.Nombre, nuevoCliente.Id));
 
             return nuevoCliente;
+        }
+
+        /// <summary>
+        /// Resuelve el código SIN (1..211) del país de origen al FK local
+        /// <c>CatPaisOrigen.Id</c>. Null si el body no trae código o si el
+        /// código no existe en el catálogo (caso raro: catálogo no sincronizado).
+        /// </summary>
+        private static async Task<int?> ResolverIdPaisOrigenAsync(IUnitWork db, int? codigoSiat)
+        {
+            if (codigoSiat is not int codigo || codigo <= 0)
+                return null;
+
+            var pais = await db.catPaisesOrigen.GetByCodigoAsync(codigo);
+            if (pais is null)
+            {
+                throw new VentaException(
+                    $"El código de país de origen {codigo} no existe en el catálogo SIAT. " +
+                    "Sincronice el catálogo (POST /api/catalogos/sincronizar-paises-origen) " +
+                    "o pida al cliente un código válido.");
+            }
+
+            return pais.Id;
         }
     }
 }

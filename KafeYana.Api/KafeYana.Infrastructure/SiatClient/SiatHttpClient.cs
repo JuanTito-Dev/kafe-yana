@@ -555,6 +555,339 @@ namespace KafeYana.Infrastructure.SiatClient
         }
 
         // ─────────────────────────────────────────────
+        // Sincronizar Lista de Productos/Servicios (FacturacionSincronizacion)
+        // Devuelve el catálogo oficial de productos/servicios del SIN por
+        // actividad económica. KafeYana filtra por la actividad principal
+        // ANTES de persistir (ver SincronizadorCodigosSiat).
+        //
+        // La estructura de la respuesta trae <transaccion> y un wrapper con
+        // elementos <listaCodigos> hermanos. Cada uno lleva codigoActividad +
+        // codigoProducto + descripcionProducto + N <nandina> (códigos
+        // aduaneros hermanos que IGNORAMOS porque la tabla CodigosSiat no
+        // tiene esa columna).
+        //
+        //   <RespuestaListaProductos>
+        //     <transaccion>true</transaccion>
+        //     <listaCodigos>
+        //       <codigoActividad>4630600</codigoActividad>
+        //       <codigoProducto>1003069</codigoProducto>
+        //       <descripcionProducto>café tostado, ...</descripcionProducto>
+        //       <nandina>0901.11.90.00</nandina>
+        //       <nandina>0901.12.00.00</nandina>
+        //       ...
+        //     </listaCodigos>
+        //     ...
+        //   </RespuestaListaProductos>
+        // ─────────────────────────────────────────────
+        public async Task<SincronizarProductosServiciosResponse> SincronizarListaProductosServiciosAsync(
+            string cuis,
+            int codigoSucursal,
+            int codigoPuntoVenta,
+            CancellationToken ct = default)
+        {
+            var body = new XElement(SiatNs + "sincronizarListaProductosServicios",
+                Solicitud("SolicitudSincronizacion",
+                    Campo("codigoAmbiente", _opts.CodigoAmbiente),
+                    Campo("codigoPuntoVenta", codigoPuntoVenta),
+                    Campo("codigoSistema", _opts.CodigoSistema),
+                    Campo("codigoSucursal", codigoSucursal),
+                    Campo("cuis", cuis),
+                    Campo("nit", _opts.Nit)
+                )
+            );
+
+            var xml = await EnviarSoapAsync("FacturacionSincronizacion", body, ct);
+
+            // El wrapper exacto del WSDL es "RespuestaListaProductos"; fallback
+            // al nombre genérico por si el SIN cambia el shape.
+            var respEl = BuscarElemento(xml, "RespuestaListaProductos")
+                ?? BuscarElemento(xml, "sincronizarListaProductosServiciosResponse");
+
+            var respuesta = new SincronizarProductosServiciosResponse
+            {
+                Transaccion = ParseTransaccion(respEl),
+                CodigosRespuesta = ParseCodigos(respEl)
+                    .Select(c => new CodigoRespuestaSiatDto
+                    {
+                        Codigo = c.Codigo,
+                        Descripcion = c.Descripcion
+                    }).ToList()
+            };
+
+            if (respEl is not null)
+            {
+                foreach (var item in respEl.Elements()
+                    .Where(e => e.Name.LocalName == "listaCodigos"))
+                {
+                    var codigoActividad = ValorElemento(item, "codigoActividad");
+                    var codigoProducto = ValorElemento(item, "codigoProducto");
+                    var descripcion = ValorElemento(item, "descripcionProducto");
+
+                    if (string.IsNullOrWhiteSpace(codigoActividad)) continue;
+                    if (string.IsNullOrWhiteSpace(codigoProducto)) continue;
+                    if (string.IsNullOrWhiteSpace(descripcion)) continue;
+
+                    // Ignoramos los <nandina> hijos a propósito: la tabla
+                    // CodigosSiat no tiene esa columna. Si se quiere agregar
+                    // en el futuro, es ALTER TABLE + List<string> en el DTO.
+                    respuesta.ProductosServicios.Add(new ProductoServicioSiatDto
+                    {
+                        CodigoActividad = codigoActividad.Trim(),
+                        CodigoProducto = codigoProducto.Trim(),
+                        DescripcionProducto = descripcion.Trim()
+                    });
+                }
+            }
+
+            return respuesta;
+        }
+
+        // ─────────────────────────────────────────────
+        // Sincronizar Paramétrica de Eventos Significativos
+        // (FacturacionSincronizacion)
+        //
+        // Devuelve el catálogo oficial de los 7 eventos significativos
+        // reconocidos por el SIN. NO se filtra por actividad económica —
+        // son universales (a diferencia de productos/servicios o leyendas).
+        //
+        //   <sincronizarParametricaEventosSignificativosResponse>
+        //     <RespuestaListaParametricas>      ← MISMO wrapper que CatDocumentoSector y CatMotivoAnulacion
+        //       <transaccion>true</transaccion>
+        //       <listaCodigos>                  ← MISMOS hijos que las otras paramétricas
+        //         <codigoClasificador>7</codigoClasificador>
+        //         <descripcion>CORTE DE SUMINISTRO DE ENERGIA ELÉCTRICA</descripcion>
+        //       </listaCodigos>
+        //       ...
+        //     </RespuestaListaParametricas>
+        //   </sincronizarParametricaEventosSignificativosResponse>
+        //
+        // Lista oficial vigente (jun-2026, devuelta por el SIAT):
+        //   1 = CORTE DEL SERVICIO DE INTERNET
+        //   2 = INACCESIBILIDAD AL SERVICIO WEB DE LA ADMINISTRACIÓN TRIBUTARIA
+        //   3 = INGRESO A ZONAS SIN INTERNET POR DESPLIEGUE DE PUNTO DE VENTA
+        //   4 = VENTA EN LUGARES SIN INTERNET
+        //   5 = VIRUS INFORMÁTICO O FALLA DE SOFTWARE
+        //   6 = CAMBIO DE INFRAESTRUCTURA DE SISTEMA O FALLA DE HARDWARE
+        //   7 = CORTE DE SUMINISTRO DE ENERGIA ELÉCTRICA
+        // ─────────────────────────────────────────────
+        public async Task<SincronizarEventosSignificativosResponse> SincronizarParametricaEventosSignificativosAsync(
+            string cuis,
+            int codigoSucursal,
+            int codigoPuntoVenta,
+            CancellationToken ct = default)
+        {
+            var body = new XElement(SiatNs + "sincronizarParametricaEventosSignificativos",
+                Solicitud("SolicitudSincronizacion",
+                    Campo("codigoAmbiente", _opts.CodigoAmbiente),
+                    Campo("codigoPuntoVenta", codigoPuntoVenta),
+                    Campo("codigoSistema", _opts.CodigoSistema),
+                    Campo("codigoSucursal", codigoSucursal),
+                    Campo("cuis", cuis),
+                    Campo("nit", _opts.Nit)
+                )
+            );
+
+            var xml = await EnviarSoapAsync("FacturacionSincronizacion", body, ct);
+
+            // Wrapper exacto (confirmado vía Postman): "RespuestaListaParametricas"
+            // — el mismo que usan CatDocumentoSector y CatMotivoAnulacion.
+            // Fallback al nombre genérico por si el SIN cambia el shape.
+            var respEl = BuscarElemento(xml, "RespuestaListaParametricas")
+                ?? BuscarElemento(xml, "sincronizarParametricaEventosSignificativosResponse");
+
+            var respuesta = new SincronizarEventosSignificativosResponse
+            {
+                Transaccion = ParseTransaccion(respEl),
+                CodigosRespuesta = ParseCodigos(respEl)
+                    .Select(c => new CodigoRespuestaSiatDto
+                    {
+                        Codigo = c.Codigo,
+                        Descripcion = c.Descripcion
+                    }).ToList()
+            };
+
+            if (respEl is not null)
+            {
+                // Hijos: <listaCodigos> con <codigoClasificador> + <descripcion>
+                // — mismo shape que CatDocumentoSector y CatMotivoAnulacion.
+                foreach (var item in respEl.Elements()
+                    .Where(e => e.Name.LocalName == "listaCodigos"))
+                {
+                    var codigoStr = ValorElemento(item, "codigoClasificador", "codigo");
+                    var descripcion = ValorElemento(item, "descripcion", "descripcionEvento");
+                    if (!int.TryParse(codigoStr, out var codigo)) continue;
+                    if (string.IsNullOrWhiteSpace(descripcion)) continue;
+
+                    respuesta.EventosSignificativos.Add(new EventoSignificativoSiatDto
+                    {
+                        Codigo = codigo,
+                        Descripcion = descripcion.Trim()
+                    });
+                }
+            }
+
+            return respuesta;
+        }
+
+        // ─────────────────────────────────────────────
+        // Sincronizar Paramétrica de Países de Origen
+        // (FacturacionSincronizacion)
+        //
+        // Devuelve el catálogo oficial de ~211 países reconocidos por el SIN.
+        // NO se filtra por actividad económica — es universal.
+        //
+        //   <sincronizarParametricaPaisOrigenResponse>
+        //     <RespuestaListaParametricas>      ← Mismo wrapper que CatDocumentoSector,
+        //                                            CatMotivoAnulacion, CatEventoSignificativo
+        //       <transaccion>true</transaccion>
+        //       <listaCodigos>
+        //         <codigoClasificador>22</codigoClasificador>
+        //         <descripcion>BOLIVIA (ESTADO PLURINACIONAL DE)</descripcion>
+        //       </listaCodigos>
+        //       ...
+        //     </RespuestaListaParametricas>
+        //   </sincronizarParametricaPaisOrigenResponse>
+        // ─────────────────────────────────────────────
+        public async Task<SincronizarPaisOrigenResponse> SincronizarParametricaPaisOrigenAsync(
+            string cuis,
+            int codigoSucursal,
+            int codigoPuntoVenta,
+            CancellationToken ct = default)
+        {
+            var body = new XElement(SiatNs + "sincronizarParametricaPaisOrigen",
+                Solicitud("SolicitudSincronizacion",
+                    Campo("codigoAmbiente", _opts.CodigoAmbiente),
+                    Campo("codigoPuntoVenta", codigoPuntoVenta),
+                    Campo("codigoSistema", _opts.CodigoSistema),
+                    Campo("codigoSucursal", codigoSucursal),
+                    Campo("cuis", cuis),
+                    Campo("nit", _opts.Nit)
+                )
+            );
+
+            var xml = await EnviarSoapAsync("FacturacionSincronizacion", body, ct);
+
+            // Wrapper exacto (confirmado vía Postman): "RespuestaListaParametricas"
+            // — el mismo que usan CatDocumentoSector, CatMotivoAnulacion y
+            // CatEventoSignificativo. Fallback al nombre genérico por si el SIN
+            // cambia el shape.
+            var respEl = BuscarElemento(xml, "RespuestaListaParametricas")
+                ?? BuscarElemento(xml, "sincronizarParametricaPaisOrigenResponse");
+
+            var respuesta = new SincronizarPaisOrigenResponse
+            {
+                Transaccion = ParseTransaccion(respEl),
+                CodigosRespuesta = ParseCodigos(respEl)
+                    .Select(c => new CodigoRespuestaSiatDto
+                    {
+                        Codigo = c.Codigo,
+                        Descripcion = c.Descripcion
+                    }).ToList()
+            };
+
+            if (respEl is not null)
+            {
+                foreach (var item in respEl.Elements()
+                    .Where(e => e.Name.LocalName == "listaCodigos"))
+                {
+                    var codigoStr = ValorElemento(item, "codigoClasificador", "codigo");
+                    var descripcion = ValorElemento(item, "descripcion", "descripcionPais");
+                    if (!int.TryParse(codigoStr, out var codigo)) continue;
+                    if (string.IsNullOrWhiteSpace(descripcion)) continue;
+
+                    respuesta.PaisesOrigen.Add(new PaisOrigenSiatDto
+                    {
+                        Codigo = codigo,
+                        Descripcion = descripcion.Trim()
+                    });
+                }
+            }
+
+            return respuesta;
+        }
+
+        // ─────────────────────────────────────────────
+        // Sincronizar Paramétrica de Tipos de Documento de Identidad
+        // Devuelve el catálogo paramétrico de tipos de documento de identidad
+        // que el SIN publica. KafeYana usa este catálogo para validar
+        // `codigoTipoDocumentoIdentidad` en cada venta facturada.
+        //
+        // Catálogo actual (verificado contra SIAT piloto, jun-2026):
+        //   1 = CI  - CEDULA DE IDENTIDAD
+        //   2 = CEX - CEDULA DE IDENTIDAD DE EXTRANJERO
+        //   3 = PAS - PASAPORTE
+        //   4 = OD  - OTRO DOCUMENTO DE IDENTIDAD
+        //   5 = NIT - NÚMERO DE IDENTIFICACIÓN TRIBUTARIA
+        //
+        // Es catálogo universal (no se filtra por actividad económica).
+        // Misma estructura XML que CatDocumentosSector / CatMotivoAnulacion /
+        // CatEventoSignificativo / CatPaisOrigen:
+        //   <RespuestaListaParametricas>
+        //     <transaccion>true</transaccion>
+        //     <listaCodigos>
+        //       <codigoClasificador>1</codigoClasificador>
+        //       <descripcion>CI - CEDULA DE IDENTIDAD</descripcion>
+        //     </listaCodigos>
+        //     ...
+        // ─────────────────────────────────────────────
+        public async Task<SincronizarTipoDocumentoIdentidadResponse> SincronizarParametricaTipoDocumentoIdentidadAsync(
+            string cuis,
+            int codigoSucursal,
+            int codigoPuntoVenta,
+            CancellationToken ct = default)
+        {
+            var body = new XElement(SiatNs + "sincronizarParametricaTipoDocumentoIdentidad",
+                Solicitud("SolicitudSincronizacion",
+                    Campo("codigoAmbiente", _opts.CodigoAmbiente),
+                    Campo("codigoPuntoVenta", codigoPuntoVenta),
+                    Campo("codigoSistema", _opts.CodigoSistema),
+                    Campo("codigoSucursal", codigoSucursal),
+                    Campo("cuis", cuis),
+                    Campo("nit", _opts.Nit)
+                )
+            );
+
+            var xml = await EnviarSoapAsync("FacturacionSincronizacion", body, ct);
+
+            // Wrapper exacto (confirmado vía Postman): "RespuestaListaParametricas"
+            // — el mismo que usan CatDocumentosSector, CatMotivoAnulacion,
+            // CatEventoSignificativo y CatPaisOrigen. Fallback al nombre
+            // genérico por si el SIN cambia el shape.
+            var respEl = BuscarElemento(xml, "RespuestaListaParametricas")
+                ?? BuscarElemento(xml, "sincronizarParametricaTipoDocumentoIdentidadResponse");
+
+            var respuesta = new SincronizarTipoDocumentoIdentidadResponse
+            {
+                Transaccion = ParseTransaccion(respEl),
+                CodigosRespuesta = ParseCodigos(respEl)
+                    .Select(c => new CodigoRespuestaSiatDto
+                    {
+                        Codigo = c.Codigo,
+                        Descripcion = c.Descripcion
+                    }).ToList()
+            };
+
+            if (respEl is not null)
+            {
+                foreach (var item in respEl.Elements()
+                    .Where(e => e.Name.LocalName == "listaCodigos"))
+                {
+                    var codigoStr = ValorElemento(item, "codigoClasificador");
+                    if (string.IsNullOrWhiteSpace(codigoStr)) continue;
+                    if (!int.TryParse(codigoStr, out var codigo)) continue;
+
+                    respuesta.TiposDocumentoIdentidad.Add(new TipoDocumentoIdentidadSiatDto
+                    {
+                        Codigo = codigo,
+                        Descripcion = (ValorElemento(item, "descripcion") ?? string.Empty).Trim()
+                    });
+                }
+            }
+
+            return respuesta;
+        }
+
+        // ─────────────────────────────────────────────
         // Recepción Factura
         // ─────────────────────────────────────────────
         public async Task<RespuestaRecepcionFacturaDto> RecepcionFacturaAsync(

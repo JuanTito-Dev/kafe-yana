@@ -37,6 +37,16 @@ namespace KafeYana.Domain.TiposDeDatos
                 [4] = "Otros",
             };
 
+        /// <summary>
+        /// True mientras el caché contenga los valores de <see cref="FallbackHardcoded"/>
+        /// (server arrancó pero ningún sync del SIAT corrió todavía). Pasa a false
+        /// en cuanto <see cref="Refrescar"/> recibe motivos válidos del SIN.
+        ///
+        /// Útil para que la UI pueda mostrar un aviso de "catálogo no sincronizado"
+        /// en lugar de presentar el fallback como si fuera oficial.
+        /// </summary>
+        public static bool EsFallback { get; private set; } = true;
+
         /// <summary>True si el código está en el catálogo vigente (BD o fallback).</summary>
         public static bool EsValido(int codigo) => _cache.ContainsKey(codigo);
 
@@ -71,6 +81,7 @@ namespace KafeYana.Domain.TiposDeDatos
             // Reemplazo atómico: cualquier lector en vuelo verá el diccionario viejo
             // o el nuevo, nunca uno parcial.
             Interlocked.Exchange(ref _cache, nuevo);
+            EsFallback = false;
         }
     }
 }

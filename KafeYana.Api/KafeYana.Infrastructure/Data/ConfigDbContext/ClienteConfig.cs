@@ -1,6 +1,7 @@
 ﻿using KafeYana.Domain.Entities;
+using KafeYana.Domain.Entities.Catalogos;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders; 
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace KafeYana.Infrastructure.Data.ConfigDbContext
 {
@@ -31,7 +32,7 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.Property(x => x.NumeroCompras)
                 .IsRequired()
                 .HasDefaultValue(0);
-            
+
             builder.ToTable(t => t.HasCheckConstraint("CK_Cliente_Puntos_NonNegative", "\"Puntos\" >= 0"));
 
             builder.HasIndex(x => x.Nombre).IsUnique().HasDatabaseName("unique_nombre_cliente");
@@ -42,6 +43,16 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.HasIndex(x => x.Correo).IsUnique().HasFilter("\"Correo\" <> ''").HasDatabaseName("Unique_correo_cliente");
             builder.HasIndex(x => x.Dni).IsUnique().HasFilter("\"Dni\" IS NOT NULL").HasDatabaseName("Unique_Dni_cliente");
             builder.HasIndex(x => x.Correonormalizado).IsUnique().HasFilter("\"Correonormalizado\" <> ''");
+
+            // FK opcional a CatPaisOrigen — sólo se popula para clientes extranjeros
+            // (CEX / PAS). Restrict evita que un sync que reemplace CatPaisesOrigen
+            // rompa si hay clientes referenciando países viejos.
+            builder.Property(x => x.IdPaisOrigen);
+
+            builder.HasOne(x => x.PaisOrigen)
+                .WithMany()
+                .HasForeignKey(x => x.IdPaisOrigen)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

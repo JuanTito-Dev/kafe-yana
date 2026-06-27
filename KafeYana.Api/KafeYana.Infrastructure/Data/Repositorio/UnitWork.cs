@@ -31,7 +31,9 @@ namespace KafeYana.Infrastructure.Data.Repositorio
         public IDetalle_RondaRepositorio detallesRondas { get; private set; }
 
         public IClienteRespositorio clientes { get; private set; }
-        
+
+        public ICatPaisOrigenRepositorio catPaisesOrigen { get; private set; }
+
         public IOpcionRepositorio opciones { get; private set; }
         
         public IComboRepositorio Combo { get; private set; }
@@ -96,6 +98,7 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                 IRondaRepositorio rondas,
                 IDetalle_RondaRepositorio detallesRondas,
                 IClienteRespositorio clientes,
+            ICatPaisOrigenRepositorio catPaisesOrigen,
                 IOpcionRepositorio opciones,
                 IComboRepositorio combo,
                 IVentaRepositorio ventas,
@@ -137,6 +140,7 @@ namespace KafeYana.Infrastructure.Data.Repositorio
             this.rondas = rondas;
             this.detallesRondas = detallesRondas;
             this.clientes = clientes;
+            this.catPaisesOrigen = catPaisesOrigen;
             this.opciones = opciones;
             Combo = combo;
             this.ventas = ventas;
