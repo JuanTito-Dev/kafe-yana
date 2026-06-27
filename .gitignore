@@ -1,7 +1,10 @@
-.vs/ 
-bin/ 
-obj/ 
-*.suo 
-*.db 
-*.cache 
-*.backup.json 
+.vs/
+bin/
+obj/
+*.suo
+*.db
+*.cache
+*.backup.json
+
+# EF Core migrations — generated, not source-controlled
+**/Migrations/
