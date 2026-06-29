@@ -91,6 +91,14 @@ namespace KafeYana.Application.IRepositorio
 
         IPedidoInventarioCompromisoRepositorio pedidoInventarioCompromisos { get; }
 
+        /// <summary>
+        /// Log de eventos significativos registrados ante el SIN Bolivia.
+        /// Usado por el flujo de contingencia: <c>VentaServices</c> consulta el
+        /// estado antes de facturar, el wrapper detector registra eventos
+        /// automáticamente. Ver [[kafeyana-contingencia-siat]].
+        /// </summary>
+        IEventoSignificativoSiatRepositorio eventosSignificativosSiat { get; }
+
         Task<int> SaveUnitWork();
     }
 }

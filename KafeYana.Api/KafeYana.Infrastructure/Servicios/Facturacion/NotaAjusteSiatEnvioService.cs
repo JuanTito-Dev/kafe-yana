@@ -5,6 +5,7 @@ using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Domain.Entities;
 using KafeYana.Domain.TiposDeDatos;
 using KafeYana.Infrastructure.Servicios.Facturacion.Utilidades;
+using KafeYana.Infrastructure.Servicios.SiatConnectivity;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
@@ -26,17 +27,20 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
         private readonly IUnitWork _db;
         private readonly INotaAjusteSiatPreparer _preparer;
         private readonly IRecepcionNotaAjusteService _recepcionNota;
+        private readonly ISiatConnectivityMonitor _monitor;
         private readonly ILogger<NotaAjusteSiatEnvioService> _logger;
 
         public NotaAjusteSiatEnvioService(
             IUnitWork db,
             INotaAjusteSiatPreparer preparer,
             IRecepcionNotaAjusteService recepcionNota,
+            ISiatConnectivityMonitor monitor,
             ILogger<NotaAjusteSiatEnvioService> logger)
         {
             _db = db;
             _preparer = preparer;
             _recepcionNota = recepcionNota;
+            _monitor = monitor;
             _logger = logger;
         }
 
@@ -189,6 +193,11 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 MontoDescuentoCreditoDebito = descuento,
                 MontoEfectivoCreditoDebito = Math.Round((sumaTrans2 - descuento) * 0.13m, 2, MidpointRounding.AwayFromZero),
 
+                // DescuentoAdicional: obligatorio para sector 47 (NCDDE), ignorado
+                // para sector 24. Si el DTO no lo manda, default 0 — el generator
+                // lo serializa solo cuando sector==47.
+                DescuentoAdicional = dto.DescuentoAdicional ?? 0m,
+
                 // Catálogo
                 CodigoMotivoAjuste = dto.CodigoMotivoAjuste,
 
@@ -213,6 +222,47 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             // después. Si el preparer lanza, la nota nunca se inserta y no queda
             // basura en BD.
             await _preparer.PrepararNotaAsync(nota, ct);
+
+            // ─── Contingencia: detección temprana ───────────────────────────
+            // Si el monitor ya detecta que el SIAT está caído, NO intentamos
+            // enviar la nota en línea — la dejamos diferida con TipoEmision=2
+            // vinculada al evento activo. Esto es CRÍTICO: el preparer usa
+            // TipoEmision para armar el CUF, y un CUF con TipoEmision=1
+            // NO se acepta cuando se presenta en contingencia (el SIAT lo
+            // rechaza porque la codificación del CUF y el sobre SOAP no
+            // coinciden). Mejor diferir la nota desde el origen a tener
+            // que "convertirla" después (lo cual implicaría regenerar el
+            // CUF, el XML y romper los índices IX_NotaAjuste_Cuf).
+            //
+            // Decidir ANTES de persistir para que la fila entre en BD ya
+            // con TipoEmision=2, EstadoSiat=Pendiente y EventoSignificativoSiatId
+            // poblado. Ver [[kafeyana-contingencia-siat]].
+            if (!_monitor.EstaEnLinea(venta.CodigoSucursal, venta.CodigoPuntoVenta))
+            {
+                nota.TipoEmision = 2;
+                nota.EventoSignificativoSiatId = _monitor.ObtenerEventoActivo(
+                    venta.CodigoSucursal, venta.CodigoPuntoVenta);
+                nota.EstadoSiat = FacturaEstado.Pendiente;
+
+                await _db.notasAjuste.Crear(nota);
+                await _db.SaveUnitWork();
+
+                _logger.LogInformation(
+                    "Nota {Numero} (NotaId={NotaId}) diferida a contingencia upfront. "
+                  + "EventoId={EventoId}, Suc={Suc}, PV={PV}",
+                    nota.NumeroNotaCreditoDebito, nota.Id, nota.EventoSignificativoSiatId,
+                    venta.CodigoSucursal, venta.CodigoPuntoVenta);
+
+                return new ResultadoEnvioNotaAjusteSiatDto
+                {
+                    Enviado = true,
+                    Transaccion = false,        // el SIAT todavía no la validó
+                    NotaAjusteId = nota.Id,
+                    NumeroNotaCreditoDebito = (int)nota.NumeroNotaCreditoDebito,
+                    Cuf = nota.Cuf,
+                    ErrorMensaje = null
+                };
+            }
 
             // Persistir con todos los datos finales: Cuf real, XmlBase64,
             // CodigoHash, EstadoSiat=Pendiente. Si el envío al SIAT falla después,
@@ -282,13 +332,54 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 // 1002 (CUF inválido) + 1008 (PV inválido). Ver mismo patrón en
                 // FacturaSiatEnvioService.EnviarVentaAsync (líneas 53-55).
                 _logger.LogInformation(
-                    "Enviando nota {Numero} (NotaId={NotaId}). Cuf={Cuf}, Suc={Suc}, PV={PV}",
+                    "Enviando nota {Numero} (NotaId={NotaId}). Cuf={Cuf}, Suc={Suc}, PV={PV}, TipoEmision={TipoEmision}",
                     nota.NumeroNotaCreditoDebito, nota.Id, nota.Cuf,
-                    nota.CodigoSucursal, nota.CodigoPuntoVenta);
+                    nota.CodigoSucursal, nota.CodigoPuntoVenta, nota.TipoEmision);
 
-                var respuesta = await _recepcionNota.EnviarRecepcionAsync(
-                    nota.XmlBase64, hash, nota.FechaEmision,
-                    nota.CodigoSucursal, nota.CodigoPuntoVenta, ct);
+                RespuestaRecepcionNotaAjusteDto respuesta;
+
+                // Ramas:
+                // - TipoEmision=2 + EventoSignificativoSiatId poblado → reenvío contingencia.
+                //   El sobre SOAP debe llevar codigoRecepcionEventoSignificativo; el CUIS
+                //   puede estar vencido, lo cacheamos.
+                // - Cualquier otro caso → flujo online normal.
+                if (nota.TipoEmision == 2 && nota.EventoSignificativoSiatId is not null)
+                {
+                    var codigoRecepcionEvento = nota.EventoSignificativoSiat?.CodigoRecepcionEventoSignificativo;
+
+                    if (string.IsNullOrWhiteSpace(codigoRecepcionEvento))
+                    {
+                        // Fail-closed: si llegamos aquí sin el código de recepción del evento,
+                        // no dejamos pasar al SIAT sin ese código porque rechazaría igual.
+                        _logger.LogError(
+                            "Nota contingencia (NotaId={NotaId}) sin codigoRecepcionEventoSignificativo en EventoSignificativoSiat. "
+                          + "Reenvío abortado — corregir el evento en BD antes de reintentar.",
+                            nota.Id);
+
+                        nota.EstadoSiat = FacturaEstado.Pendiente;
+                        nota.ErrorMensaje = "Falta codigoRecepcionEventoSignificativo en el evento asociado.";
+                        await _db.SaveUnitWork();
+
+                        return MapearResultado(nota, default!, enviado: false);
+                    }
+
+                    _logger.LogInformation(
+                        "Reenviando nota contingencia {Numero} (NotaId={NotaId}, EventoId={EventoId}, CodigoRecepcionEvento={CodRecEv})",
+                        nota.NumeroNotaCreditoDebito, nota.Id,
+                        nota.EventoSignificativoSiatId, codigoRecepcionEvento);
+
+                    respuesta = await _recepcionNota.EnviarRecepcionContingenciaAsync(
+                        nota.XmlBase64, hash,
+                        nota.CodigoSucursal, nota.CodigoPuntoVenta,
+                        codigoRecepcionEvento, ct);
+                }
+                else
+                {
+                    respuesta = await _recepcionNota.EnviarRecepcionAsync(
+                        nota.XmlBase64, hash, nota.FechaEmision,
+                        nota.CodigoSucursal, nota.CodigoPuntoVenta, ct);
+                }
+
                 AplicarResultadoSiat(nota, respuesta);
 
                 await _db.SaveUnitWork();
@@ -315,6 +406,37 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 }
 
                 return MapearResultado(nota, respuesta);
+            }
+            catch (SiatOfflineException ex)
+            {
+                // Circuito abierto: NO es un error, es una operación diferida.
+                // La nota queda persistida con formato contingencia (TipoEmision=2)
+                // y vinculada al evento significativo activo, para que
+                // ReenvioFacturasContingenciaService la procese cuando el SIAT vuelva.
+                nota.TipoEmision = 2;
+                nota.EventoSignificativoSiatId = _monitor.ObtenerEventoActivo(
+                    ex.CodigoSucursal, ex.CodigoPuntoVenta);
+                nota.EstadoSiat = FacturaEstado.Pendiente;
+                nota.ErrorMensaje = null;       // no es un error, es diferida
+                nota.CodigoRecepcion = null;
+
+                await _db.SaveUnitWork();
+
+                _logger.LogInformation(
+                    "Nota {Numero} (NotaId={NotaId}) diferida a contingencia. "
+                  + "EventoSignificativoSiatId={EventoId}, Suc={Suc}, PV={PV}",
+                    nota.NumeroNotaCreditoDebito, nota.Id, nota.EventoSignificativoSiatId,
+                    ex.CodigoSucursal, ex.CodigoPuntoVenta);
+
+                return new ResultadoEnvioNotaAjusteSiatDto
+                {
+                    Enviado = true,                 // frontend NO muestra error al cajero
+                    Transaccion = false,            // el SIAT todavía no la validó
+                    NotaAjusteId = nota.Id,
+                    NumeroNotaCreditoDebito = (int)nota.NumeroNotaCreditoDebito,
+                    Cuf = nota.Cuf,
+                    ErrorMensaje = null
+                };
             }
             catch (Exception ex)
             {
@@ -433,20 +555,21 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
         private static ResultadoEnvioNotaAjusteSiatDto MapearResultado(
             NotaAjuste nota,
-            RespuestaRecepcionNotaAjusteDto respuesta)
+            RespuestaRecepcionNotaAjusteDto respuesta,
+            bool enviado = true)
         {
             return new ResultadoEnvioNotaAjusteSiatDto
             {
-                Enviado = true,
-                Transaccion = respuesta.Transaccion,
+                Enviado = enviado,
+                Transaccion = respuesta?.Transaccion ?? false,
                 NotaAjusteId = nota.Id,
                 NumeroNotaCreditoDebito = (int)nota.NumeroNotaCreditoDebito,
                 Cuf = nota.Cuf,
-                CodigoEstado = respuesta.CodigoEstado,
+                CodigoEstado = respuesta?.CodigoEstado,
                 CodigoRecepcion = nota.CodigoRecepcion,
-                CodigoDescripcion = respuesta.CodigoDescripcion,
+                CodigoDescripcion = respuesta?.CodigoDescripcion,
                 ErrorMensaje = nota.ErrorMensaje,
-                CodigosRespuesta = respuesta.CodigosRespuesta
+                CodigosRespuesta = respuesta?.CodigosRespuesta ?? new()
             };
         }
     }

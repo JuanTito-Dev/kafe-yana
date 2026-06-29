@@ -144,6 +144,10 @@ namespace KafeYana.Infrastructure.Data
 
         public DbSet<CatTipoMetodoPago> CatMetodosPago { get; set; }
 
+        public DbSet<CatUnidadMedida> CatUnidadesMedida { get; set; }
+
+        public DbSet<EventoSignificativoSiat> EventosSignificativosSiat { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -236,7 +240,11 @@ namespace KafeYana.Infrastructure.Data
 
             builder.ApplyConfigurationsFromAssembly(typeof(CatTipoMetodoPagoConfig).Assembly);
 
+            builder.ApplyConfigurationsFromAssembly(typeof(CatUnidadMedidaConfig).Assembly);
+
             builder.ApplyConfigurationsFromAssembly(typeof(VentaPagoConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(EventoSignificativoSiatConfig).Assembly);
         }
     }
 }

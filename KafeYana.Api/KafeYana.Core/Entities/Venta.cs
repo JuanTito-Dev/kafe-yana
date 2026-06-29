@@ -1,5 +1,6 @@
 ﻿using HotChocolate;
 using KafeYana.Domain.Entities.BaseEntidades;
+using KafeYana.Domain.Entities.Facturacion;
 using KafeYana.Domain.TiposDeDatos;
 
 namespace KafeYana.Domain.Entities
@@ -83,6 +84,17 @@ namespace KafeYana.Domain.Entities
         // --- Proceso de recepción SIAT (se llenan al enviar la factura) ---
 
         public int? TipoEmision { get; set; }
+
+        /// <summary>
+        /// FK opcional al evento significativo SIAT bajo el cual se emitió esta factura.
+        /// Null en línea; poblado (= 4) en contingencia. Permite JOIN al reenviar facturas
+        /// pendientes y al auditar qué evento cobija cada factura emitida fuera de línea.
+        /// Ver [[kafeyana-contingencia-siat]].
+        /// </summary>
+        public int? EventoSignificativoSiatId { get; set; }
+
+        [GraphQLIgnore]
+        public EventoSignificativoSiat? EventoSignificativoSiat { get; set; }
 
         public FacturaEstado? EstadoSiat { get; set; }
 

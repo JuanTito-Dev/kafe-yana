@@ -3,6 +3,7 @@ using KafeYana.Application.IServicios;
 using KafeYana.Infrastructure.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Text;
 
@@ -30,6 +31,17 @@ namespace KafeYana.Infrastructure.Servicios
             ["card"]     = "TARJETA",
             ["transfer"] = "TRANSFERENCIA / QR",
         };
+
+        /// <summary>
+        /// Un SemaphoreSlim(1,1) por destino. Serializa TODAS las peticiones a la misma
+        /// impresora: si llegan 5 comandas simultáneas a cocina, se procesan una tras
+        /// otra en vez de competir por el buffer TCP del puerto 9100 (que se desborda
+        /// y pierde bytes). Destinos distintos NO se bloquean entre sí.
+        /// </summary>
+        private readonly ConcurrentDictionary<string, SemaphoreSlim> _destinoLocks = new(StringComparer.OrdinalIgnoreCase);
+
+        private SemaphoreSlim GetLock(string destino) =>
+            _destinoLocks.GetOrAdd(destino.ToLower(), _ => new SemaphoreSlim(1, 1));
 
         public async Task<List<ResultadoImpresoraDto>> EnviarPedidoAsync(PedidoImprimirDto dto)
         {
@@ -285,31 +297,40 @@ namespace KafeYana.Infrastructure.Servicios
             if (!_opts.Destinos.TryGetValue(destino.ToLower(), out var cfg))
                 return (false, "Destino no configurado");
 
-            string? ultimoError = null;
-            for (int intento = 1; intento <= 3; intento++)
+            // Serializar por destino: una sola operación de envío a la vez por impresora.
+            await GetLock(destino).WaitAsync();
+            try
             {
-                try
+                string? ultimoError = null;
+                for (int intento = 1; intento <= 3; intento++)
                 {
-                    using var tcp = new TcpClient();
-                    tcp.SendTimeout  = 3000;
-                    tcp.ReceiveTimeout = 3000;
-                    await tcp.ConnectAsync(cfg.Ip, cfg.Port);
-                    var stream = tcp.GetStream();
-                    await stream.WriteAsync(data);
-                    await stream.FlushAsync();
-                    logger.LogInformation("Enviado OK a {Ip}:{Port} (intento {N})", cfg.Ip, cfg.Port, intento);
-                    return (true, null);
+                    try
+                    {
+                        using var tcp = new TcpClient();
+                        tcp.SendTimeout  = 3000;
+                        tcp.ReceiveTimeout = 3000;
+                        await tcp.ConnectAsync(cfg.Ip, cfg.Port);
+                        var stream = tcp.GetStream();
+                        await stream.WriteAsync(data);
+                        await stream.FlushAsync();
+                        logger.LogInformation("Enviado OK a {Ip}:{Port} (intento {N})", cfg.Ip, cfg.Port, intento);
+                        return (true, null);
+                    }
+                    catch (Exception ex)
+                    {
+                        ultimoError = ex.Message;
+                        logger.LogWarning("Intento {N}/3 fallido -> {Ip}:{Port} — {Error}", intento, cfg.Ip, cfg.Port, ex.Message);
+                        if (intento < 3) await Task.Delay(500);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    ultimoError = ex.Message;
-                    logger.LogWarning("Intento {N}/3 fallido -> {Ip}:{Port} — {Error}", intento, cfg.Ip, cfg.Port, ex.Message);
-                    if (intento < 3) await Task.Delay(500);
-                }
-            }
 
-            logger.LogError("Todos los reintentos fallaron -> {Ip}:{Port} — {Error}", cfg.Ip, cfg.Port, ultimoError);
-            return (false, ultimoError);
+                logger.LogError("Todos los reintentos fallaron -> {Ip}:{Port} — {Error}", cfg.Ip, cfg.Port, ultimoError);
+                return (false, ultimoError);
+            }
+            finally
+            {
+                GetLock(destino).Release();
+            }
         }
 
         private static string DecodeTicket(byte[] data)

@@ -24,10 +24,17 @@ namespace KafeYana.Domain.TiposDeDatos
     /// </summary>
     public static class TipoDocumentoIdentidadSiatCatalogo
     {
-        // Snapshot inmutable de los tipos conocidos. Se reemplaza atómicamente
-        // vía Interlocked.Exchange para que los lectores vean una versión estable.
-        private static volatile IReadOnlyDictionary<int, string> _cache = FallbackHardcoded;
-
+        // IMPORTANTE: declarar FallbackHardcoded ANTES de _cache.
+        // C# ejecuta los field initializers estáticos en orden textual.
+        // Si _cache se declara primero y referencia FallbackHardcoded,
+        // cuando corre su initializer FallbackHardcoded todavía es null
+        // (default de reference type) y _cache queda apuntando a null
+        // hasta el primer Refrescar() exitoso. Si el sync falla al boot
+        // (típico: SIAT caído), _cache permanece null para siempre y el
+        // primer cobro NRE en EsValido (vía DtoVentaPedido.Validate).
+        // Ver [[kafeyana-catalogo-typeinit-duplicate-keys]] — el bug original
+        // era ToDictionary con duplicados; este es el primo hermano: forward
+        // reference entre static fields.
         private static readonly IReadOnlyDictionary<int, string> FallbackHardcoded =
             new Dictionary<int, string>
             {
@@ -37,6 +44,10 @@ namespace KafeYana.Domain.TiposDeDatos
                 [4] = "OD - OTRO DOCUMENTO DE IDENTIDAD",
                 [5] = "NIT - NUMERO DE IDENTIFICACION TRIBUTARIA",
             };
+
+        // Snapshot inmutable de los tipos conocidos. Se reemplaza atómicamente
+        // vía Interlocked.Exchange para que los lectores vean una versión estable.
+        private static volatile IReadOnlyDictionary<int, string> _cache = FallbackHardcoded;
 
         /// <summary>
         /// True mientras el caché contenga los valores de <see cref="FallbackHardcoded"/>

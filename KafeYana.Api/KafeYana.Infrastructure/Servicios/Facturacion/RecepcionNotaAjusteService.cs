@@ -127,5 +127,98 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
             return respuesta;
         }
+
+        /// <summary>
+        /// Overload para reenvío de notas emitidas en contingencia (TipoEmision=2).
+        /// Acepta el <c>codigoRecepcionEventoSignificativo</c> del evento activo,
+        /// que debe viajar en el sobre SOAP para que el SIAT valide la asociación.
+        /// Espejo de <see cref="RecepcionFacturaService.EnviarRecepcionContingenciaAsync"/>
+        /// excepto que el sobre NO lleva Cufd (verificado contra el sobre del piloto).
+        /// Ver [[kafeyana-contingencia-siat]].
+        /// </summary>
+        public async Task<RespuestaRecepcionNotaAjusteDto> EnviarRecepcionContingenciaAsync(
+            string archivo,
+            string? hashArchivo,
+            int codigoSucursal,
+            int codigoPuntoVenta,
+            string codigoRecepcionEventoSignificativo,
+            CancellationToken ct = default)
+        {
+            if (string.IsNullOrWhiteSpace(codigoRecepcionEventoSignificativo))
+                throw new InvalidOperationException(
+                    "Para TipoEmision=2 (Contingencia) se requiere codigoRecepcionEventoSignificativo.");
+
+            var hashFinal = string.IsNullOrWhiteSpace(hashArchivo)
+                ? CalcularHashArchivo(archivo)
+                : hashArchivo.Trim();
+
+            var solicitud = new SolicitudRecepcionNotaAjusteDto
+            {
+                CodigoAmbiente = _opts.CodigoAmbiente,
+                CodigoDocumentoSector = _opts.CodigoDocumentoSectorNotaAjuste,
+                CodigoEmision = 2, // Contingencia — fijo. Para CodigoModalidad=2 (Computarizada), codigoEmision=2 es "Computarizada fuera de línea" según Resolución Normativa 102100000028.
+                CodigoModalidad = _opts.CodigoModalidad,
+                CodigoPuntoVenta = codigoPuntoVenta,
+                CodigoSistema = _opts.CodigoSistema,
+                CodigoSucursal = codigoSucursal,
+                // En contingencia el CUIS puede estar vencido; la asociación es por evento.
+                // Usamos el cacheado en BD. Si no hay, enviamos vacío y el SIAT decide.
+                Cuis = await ObtenerCuisCacheadoAsync(codigoSucursal, codigoPuntoVenta, ct),
+                Nit = _opts.Nit,
+                TipoFacturaDocumento = _opts.TipoFacturaDocumentoNotaAjuste,
+                Archivo = archivo,
+                HashArchivo = hashFinal,
+                FechaEnvio = DateTime.UtcNow,
+                CodigoRecepcionEventoSignificativo = codigoRecepcionEventoSignificativo
+            };
+
+            var respuesta = await _siat.RecepcionDocumentoAjusteAsync(solicitud, ct);
+
+            if (!respuesta.Transaccion)
+            {
+                var errores = string.Join(" | ", respuesta.CodigosRespuesta
+                    .Select(m => $"[{m.Codigo}] {m.Descripcion}"));
+
+                _logger.LogWarning(
+                    "SIAT rechazó RecepcionDocumentoAjuste (contingencia). Estado={Estado}. Mensajes: {Errores}",
+                    respuesta.CodigoEstado,
+                    string.IsNullOrWhiteSpace(errores) ? respuesta.CodigoDescripcion : errores);
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "RecepcionDocumentoAjuste contingencia aceptada. CodigoRecepcion={Cod}",
+                    respuesta.CodigoRecepcion);
+            }
+
+            return respuesta;
+        }
+
+        /// <summary>
+        /// Devuelve el CUIS vigente cacheado sin forzar refresh. En contingencia
+        /// el CUIS puede estar vencido (la asociación es por codigoRecepcionEventoSignificativo,
+        /// no por vigencia de CUIS), así que preferimos un CUIS cacheado antes que
+        /// fallar el reenvío por intentar renovarlo contra un SIAT que podría estar
+        /// intermitente.
+        /// </summary>
+        private async Task<string> ObtenerCuisCacheadoAsync(
+            int codigoSucursal,
+            int codigoPuntoVenta,
+            CancellationToken ct)
+        {
+            try
+            {
+                var cuis = await _cuisService.ObtenerCuisVigenteAsync(
+                    codigoSucursal, codigoPuntoVenta, ct);
+                return cuis.Codigo;
+            }
+            catch
+            {
+                // Si no podemos resolver CUIS (p.ej. la BD está vacía), el SIAT
+                // rechazará la nota contingencia. Eso es fail-closed y
+                // aceptable: el operador verá el error y podrá investigar.
+                return string.Empty;
+            }
+        }
     }
 }

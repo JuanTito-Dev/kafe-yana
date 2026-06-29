@@ -116,6 +116,61 @@ namespace KafeYana.Infrastructure.Configuration
 
         /// <summary>1 cuando la moneda es boliviano.</summary>
         public decimal TipoCambio { get; set; } = 1;
+
+        /// <summary>
+        /// Cantidad máxima de facturas por paquete SOAP en `recepcionPaqueteFactura`.
+        /// 500 según Guía SFV v2 del SIN. Si un evento tiene más facturas contingencia
+        /// pendientes, se subdividen en paquetes de este tamaño.
+        /// </summary>
+        public int CantidadMaximaPaquete { get; set; } = 500;
+
+        /// <summary>
+        /// Servicio SOAP para la operación masiva `recepcionPaqueteFactura`. Mismo
+        /// ServicioFacturacionCompraVenta que `recepcionFactura` (los 14 campos base
+        /// son idénticos) pero otra operación. Quedan en campos separados por
+        /// consistencia con `ServicioRecepcionFactura`.
+        /// </summary>
+        public string ServicioRecepcionPaqueteFactura { get; set; } = "ServicioFacturacionCompraVenta";
+
+        /// <summary>
+        /// Máximo de horas que un evento contingencia puede permanecer con
+        /// <c>EstadoContingencia='Activo'</c> antes de que el SIN lo rechace
+        /// por rango de fechas inválido (error 981). Default 48 según
+        /// Resolución Normativa 102100000028 para eventos significativos.
+        /// El monitor auto-expira eventos que excedan este límite al boot
+        /// (marcándolos como <c>AutoExpirado</c> en lugar de intentar el
+        /// reenvío SOAP que el SIN rechazaría).
+        /// </summary>
+        public int HorasMaximaContingenciaAbierta { get; set; } = 48;
+
+        // ─────────────────────────────────────────────────────────────────
+        // Debug logging del flujo contingencia (no toca producción).
+        // Se complementa con ILogger existente — el archivo es para diagnóstico
+        // local cuando el envío falla (SOAP request, SOAP response, armado del
+        // TAR.GZ, magic bytes, hash, decisiones).
+        // ─────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Activa/desactiva la escritura al archivo de log de contingencia.
+        /// Default true en Development, false en Production (el operador puede
+        /// forzarlo a true pasando el flag en appsettings.Development.json
+        /// o mediante variable de entorno Siat__DebugLogEnabled=true).
+        /// </summary>
+        public bool DebugLogEnabled { get; set; } = true;
+
+        /// <summary>
+        /// Carpeta donde se escribe <c>contingencia-{yyyy-MM-dd}.log</c>.
+        /// Default <c>./logs/</c> relativo al directorio de trabajo del backend.
+        /// En Windows production suele convenir <c>D:\kafeyana-logs\</c>.
+        /// </summary>
+        public string DebugLogPath { get; set; } = "./logs/";
+
+        /// <summary>
+        /// Tope máximo de bytes para una línea individual del log. Útil para
+        /// acotar SOAP responses muy grandes (algunos superan 100 KB). Default
+        /// 32768 (32 KB). Se truncan líneas que excedan este tamaño.
+        /// </summary>
+        public int DebugLogMaxBytesPorLinea { get; set; } = 32768;
     }
 
 }

@@ -1,5 +1,6 @@
 using HotChocolate;
 using KafeYana.Domain.Entities.BaseEntidades;
+using KafeYana.Domain.Entities.Facturacion;
 using KafeYana.Domain.TiposDeDatos;
 
 namespace KafeYana.Domain.Entities
@@ -74,6 +75,14 @@ namespace KafeYana.Domain.Entities
 
         public decimal MontoTotalOriginal { get; set; }
 
+        /// <summary>
+        /// Descuento adicional sobre la factura original. Obligatorio para sector 47
+        /// (NCDDE — Nota Débito por Devolución / Descuentos Posteriores); null/sin
+        /// serializar para sector 24 (NCD genérico).
+        /// Referencia XSD: <c>notaComputarizadaCreditoDebitoDescuento.xsd</c>.
+        /// </summary>
+        public decimal? DescuentoAdicional { get; set; }
+
         public decimal MontoTotalDevuelto { get; set; }
 
         public decimal MontoDescuentoCreditoDebito { get; set; }
@@ -107,6 +116,17 @@ namespace KafeYana.Domain.Entities
         public string? CodigoHash { get; set; }
 
         public string? XmlBase64 { get; set; }
+
+        // --- FK al evento de contingencia (cuando TipoEmision=2) ---
+
+        /// <summary>
+        /// FK al <c>EventoSignificativoSiat</c> bajo el cual se emitió esta nota
+        /// cuando fue diferida por contingencia. Null para notas online (TipoEmision=1).
+        /// Usado por el reenvío batch al recuperar SIAT. Ver [[kafeyana-contingencia-siat]].
+        /// </summary>
+        public int? EventoSignificativoSiatId { get; set; }
+
+        public EventoSignificativoSiat? EventoSignificativoSiat { get; set; }
 
         // --- FK a la Venta ajustada ---
 

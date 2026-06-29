@@ -89,6 +89,13 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
             ValidarEstructura(nota);
 
+            // Asignar NroItem correlativo 1..N dentro de la nota. Solo se serializa
+            // en el XML cuando sector==47 (XSD notaComputarizadaCreditoDebitoDescuento.xsd
+            // lo exige como primer hijo de <detalle>); para sector 24 el generator
+            // lo ignora. Ver NotaAjusteXmlGenerator.Sector47.
+            for (var i = 0; i < nota.Detalles.Count; i++)
+                nota.Detalles[i].NroItem = i + 1;
+
             // Usamos el Sucursal/PuntoVenta que ya viene en la nota (heredado de la Venta).
             // Antes este método llamaba a ResolverPuntoVentaActivo() independientemente,
             // lo que podía divergir del PV real de la Venta si había varios PuntosVentaSiat

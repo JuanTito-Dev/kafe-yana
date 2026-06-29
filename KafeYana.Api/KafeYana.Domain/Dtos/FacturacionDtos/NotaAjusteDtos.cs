@@ -24,6 +24,15 @@ namespace KafeYana.Application.Dtos.FacturacionDtos
         public string Archivo { get; set; } = string.Empty;
         public DateTime FechaEnvio { get; set; }
         public string HashArchivo { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Obligatorio SOLO cuando <see cref="CodigoEmision"/> = 2 (Contingencia computarizada).
+        /// Contiene el <c>codigoRecepcionEventoSignificativo</c> que el SIN devolvió
+        /// al registrar el evento bajo el cual se emitió esta nota. El SIAT lo
+        /// cruza contra su log de eventos; si no coincide, rechaza.
+        /// Ver [[kafeyana-contingencia-siat]].
+        /// </summary>
+        public string? CodigoRecepcionEventoSignificativo { get; set; }
     }
 
     public class RespuestaRecepcionNotaAjusteDto
@@ -68,6 +77,14 @@ namespace KafeYana.Application.Dtos.FacturacionDtos
 
         /// <summary>Descuento global aplicado a la nota (opcional).</summary>
         public decimal? MontoDescuentoCreditoDebito { get; set; }
+
+        /// <summary>
+        /// Descuento adicional sobre la factura original. OBLIGATORIO para sector 47
+        /// (XSD <c>notaComputarizadaCreditoDebitoDescuento.xsd</c>): si se omite, el
+        /// backend asume 0. Ignorado para sector 24 (la raíz
+        /// <c>notaFiscalComputarizadaCreditoDebito</c> no lo incluye).
+        /// </summary>
+        public decimal? DescuentoAdicional { get; set; }
 
         /// <summary>Usuario que emite la nota (opcional — si null, se usa el del token).</summary>
         public string? Usuario { get; set; }

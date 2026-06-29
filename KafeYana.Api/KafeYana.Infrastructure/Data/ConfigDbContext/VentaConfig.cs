@@ -23,8 +23,15 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             // Obligatorios
             builder.Property(x => x.RazonSocialEmisor).IsRequired().HasMaxLength(200);
             builder.Property(x => x.Municipio).IsRequired().HasMaxLength(100);
-            builder.Property(x => x.Cuf).IsRequired().HasMaxLength(100);
-            builder.Property(x => x.Cufd).IsRequired().HasMaxLength(100);
+
+            // Cuf y Cufd pueden medir hasta ~133 / ~88 chars en modo contingencia:
+            // ConstruirVentaOfflineAsync usa contingencia.CufdEvento completo (el CUFD
+            // Base64 de ~88 chars) como CodigoControl del CUF, y CufGenerator.Generar
+            // concatena Base16(cadena54) (~45 chars) + CodigoControl. Subimos de 100 a
+            // 500 para que el INSERT no reviente con PostgreSQL 22001. En línea el CUF
+            // mide ~45-55 chars, bien dentro del nuevo límite.
+            builder.Property(x => x.Cuf).IsRequired().HasMaxLength(500);
+            builder.Property(x => x.Cufd).IsRequired().HasMaxLength(500);
             builder.Property(x => x.Direccion).IsRequired().HasMaxLength(500);
             builder.Property(x => x.FechaEmision).HasColumnType("timestamp with time zone").IsRequired();
             builder.Property(x => x.NumeroDocumento).IsRequired().HasMaxLength(50);
@@ -57,6 +64,19 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.Property(x => x.EstadoSiat).HasConversion<int?>();
             builder.Property(x => x.Facturado).IsRequired().HasDefaultValue(false);
             builder.Property(x => x.RevertidaAnulacion).IsRequired().HasDefaultValue(false);
+
+            // FK a EventoSignificativoSiat (nullable — solo se popula en contingencia).
+            // OnDelete=Restrict: no permitir borrar un evento con ventas referenciadas.
+            builder.HasOne(x => x.EventoSignificativoSiat)
+                .WithMany()
+                .HasForeignKey(x => x.EventoSignificativoSiatId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Índices para la query de reenvío: WHERE EstadoSiat=1 AND EventoSignificativoSiatId=X.
+            builder.HasIndex(x => x.EventoSignificativoSiatId)
+                .HasDatabaseName("IX_Venta_EventoSignificativoSiatId");
+            builder.HasIndex(x => new { x.EstadoSiat, x.EventoSignificativoSiatId })
+                .HasDatabaseName("IX_Venta_EstadoSiat_EventoSignificativoSiatId");
         }
     }
 }

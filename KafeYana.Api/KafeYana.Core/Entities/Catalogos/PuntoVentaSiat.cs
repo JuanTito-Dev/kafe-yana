@@ -102,5 +102,16 @@ namespace KafeYana.Domain.Entities.Catalogos
         /// cambia muy poco.
         /// </summary>
         public DateTime? UltimaSyncMetodoPago { get; set; }
+
+        /// <summary>
+        /// Última vez que se ejecutó la sincronización del catálogo paramétrico de
+        /// unidades de medida del SIAT para este (sucursal, puntoVenta). Alimenta
+        /// la tabla <c>CatUnidadesMedida</c> (~50–100 entradas) y refresca el caché
+        /// estático <c>UnidadMedidaSiatCatalogo</c> usado por las validaciones de
+        /// <c>unidadMedida</c> en <c>VentaServices</c> y
+        /// <c>FacturaVentaSiatPreparer</c>. Corre diario a las 08:10 BOT (espejo
+        /// de <c>CatTipoEmision</c>).
+        /// </summary>
+        public DateTime? UltimaSyncUnidadMedida { get; set; }
     }
 }

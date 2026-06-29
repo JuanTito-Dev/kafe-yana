@@ -1,36 +1,58 @@
 using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Domain.Entities.Facturacion;
+using KafeYana.Infrastructure.Configuration;
 using KafeYana.Infrastructure.Data;
 using KafeYana.Infrastructure.SiatClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace KafeYana.Infrastructure.Servicios.Facturacion
 {
     public class CufdService : ICufdService
     {
-        /// <summary>
-        /// Tolerancia entre la FechaEmisionSolicitud del CUFD y la fechaEmision
-        /// del cobro actual. Si difieren más que esto, se descarta el CUFD viejo
-        /// y se solicita uno nuevo al SIAT (porque el CUF que se generará debe
-        /// coincidir con la fecha embebida en el CUFD).
-        /// </summary>
-        private static readonly TimeSpan ToleranciaReuso = TimeSpan.FromSeconds(2);
+        // Constantes por modo de emisión SIAT.
+        //  - codigoEmision = 1 (Computarizado en Línea): el SIAT compara fechaEmision
+        //    contra su hora actual y rechaza con 1009 cuando la diferencia supera
+        //    unos minutos (observado: rechazo claro a partir de ~30 min, conservamos
+        //    5 min de margen). Cualquier CUFD reusado que ya tenga más de esto
+        //    causará el error.
+        //  - codigoEmision = 2/3/4 (Fuera de línea / Masivo / Contingencia):
+        //    el SIAT no compara contra hora actual, se puede reusar el CUFD durante
+        //    toda su vigencia oficial (~24 h) sin pedir uno nuevo en cada cobro.
+        // El filtro "FechaVigencia > DateTime.UtcNow" en ObtenerCufdVigenteAsync
+        // actúa como segunda barrera: si el SIAT marcó el CUFD como vencido, se
+        // solicita uno nuevo aunque la antigüedad interna sea inferior a este límite.
+        private static readonly TimeSpan AntiguedadMaximaCufdEnLinea = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan AntiguedadMaximaCufdOffline = TimeSpan.FromDays(1);
 
         private readonly SiatHttpClient _siat;
         private readonly ICuisService _cuisService;
         private readonly IDbContextFactory<AppDbContext> _dbFactory;
+        private readonly IOptions<SiatOptions> _siatOptions;
         private readonly ILogger<CufdService> _logger;
+
+        /// <summary>
+        /// Antigüedad máxima permitida del CUFD para reusarlo entre cobros,
+        /// calculada según el <c>CodigoEmision</c> configurado en appsettings.
+        /// En línea = 5 min (evita error SIAT 1009). Offline/masivo/contingencia = 24 h.
+        /// </summary>
+        private TimeSpan AntiguedadMaximaCufd =>
+            _siatOptions.Value.CodigoEmision == 1
+                ? AntiguedadMaximaCufdEnLinea
+                : AntiguedadMaximaCufdOffline;
 
         public CufdService(
             SiatHttpClient siat,
             ICuisService cuisService,
             IDbContextFactory<AppDbContext> dbFactory,
+            IOptions<SiatOptions> siatOptions,
             ILogger<CufdService> logger)
         {
             _siat = siat;
             _cuisService = cuisService;
             _dbFactory = dbFactory;
+            _siatOptions = siatOptions;
             _logger = logger;
         }
 
@@ -38,10 +60,12 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             int codigoSucursal,
             int codigoPuntoVenta,
             DateTime fechaEmision,
-            CancellationToken ct = default)
+            CancellationToken ct = default,
+            bool bypassCortocircuito = false)
         {
             var cuis = await _cuisService.ObtenerCuisVigenteAsync(codigoSucursal, codigoPuntoVenta, ct);
-            var resp = await _siat.SolicitarCufdAsync(cuis.Codigo, codigoSucursal, codigoPuntoVenta, ct);
+            var resp = await _siat.SolicitarCufdAsync(
+                cuis.Codigo, codigoSucursal, codigoPuntoVenta, ct, bypassCortocircuito);
 
             if (string.IsNullOrWhiteSpace(resp.CodigoCufd))
             {
@@ -92,10 +116,17 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             int codigoSucursal,
             int codigoPuntoVenta,
             DateTime fechaEmision,
-            CancellationToken ct = default)
+            CancellationToken ct = default,
+            bool bypassCortocircuito = false)
         {
             await using var db = await _dbFactory.CreateDbContextAsync(ct);
 
+            // Buscar un CUFD que esté (a) vigente (FechaVigencia > NOW) y
+            // (b) suficientemente reciente (FechaEmisionSolicitud dentro de los
+            // últimos AntiguedadMaximaCufd, que depende del CodigoEmision).
+            // En línea = 5 min (si pasa más, el SIAT rechaza con 1009).
+            // Offline = 24 h (reuso durante toda la vigencia oficial).
+            var limite = AntiguedadMaximaCufd;
             var vigente = await db.Cufd
                 .Where(c =>
                     c.CodigoSucursal == codigoSucursal
@@ -104,29 +135,29 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 .OrderByDescending(c => c.FechaRegistro)
                 .FirstOrDefaultAsync(ct);
 
-            var fechaEmisionUtc = NormalizarUtc(fechaEmision);
-
             if (vigente is not null)
             {
-                // Comparar la fechaEmision del cobro actual contra la fecha con la que
-                // se pidió el CUFD. Si difieren más allá de la tolerancia, descartar.
-                var diferencia = (vigente.FechaEmisionSolicitud - fechaEmisionUtc).Duration();
-                if (diferencia <= ToleranciaReuso)
+                var antiguedad = DateTime.UtcNow - vigente.FechaEmisionSolicitud;
+                if (antiguedad <= limite)
                 {
                     _logger.LogDebug(
-                        "CUFD vigente reusado (Id:{Id}). FechaEmisionSolicitud coincide con fechaEmision actual (Δ={Delta} ms)",
-                        vigente.Id, (long)diferencia.TotalMilliseconds);
+                        "CUFD vigente reusado (Id:{Id}, codigoEmision={CodEmi}). "
+                        + "Antigüedad={Ant} s, Límite={Max} min, Codigo={Codigo}",
+                        vigente.Id,
+                        _siatOptions.Value.CodigoEmision,
+                        (long)antiguedad.TotalSeconds,
+                        (long)limite.TotalMinutes,
+                        vigente.Codigo);
                     return vigente;
                 }
 
                 _logger.LogInformation(
-                    "CUFD vigente descartado (Id:{Id}) porque su FechaEmisionSolicitud ({F1}) "
-                    + "difiere {Delta} ms de la fechaEmision actual ({F2}). "
-                    + "Se solicitará uno nuevo al SIAT para evitar error 1002/1003.",
+                    "CUFD vigente descartado (Id:{Id}, codigoEmision={CodEmi}) por antigüedad "
+                    + "({Ant} s > {Max} s). Se solicitará uno nuevo al SIAT.",
                     vigente.Id,
-                    vigente.FechaEmisionSolicitud.ToString("yyyy-MM-dd HH:mm:ss.fff"),
-                    (long)diferencia.TotalMilliseconds,
-                    fechaEmisionUtc.ToString("yyyy-MM-dd HH:mm:ss.fff"));
+                    _siatOptions.Value.CodigoEmision,
+                    (long)antiguedad.TotalSeconds,
+                    (long)limite.TotalSeconds);
                 // Lo marcamos como vencido para que no se reconsidere en esta consulta.
                 // No lo eliminamos para conservar trazabilidad histórica.
                 vigente.FechaVigencia = DateTime.UtcNow;
@@ -139,7 +170,66 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                     codigoSucursal, codigoPuntoVenta);
             }
 
-            return await SolicitarCufdAsync(codigoSucursal, codigoPuntoVenta, fechaEmision, ct);
+            return await SolicitarCufdAsync(
+                codigoSucursal, codigoPuntoVenta, fechaEmision, ct, bypassCortocircuito);
+        }
+
+        public async Task<Cufd?> ObtenerCufdEnCacheAsync(
+            int codigoSucursal,
+            int codigoPuntoVenta,
+            CancellationToken ct = default)
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+
+            // 1) Preferentemente uno vigente según SIAT (FechaVigencia > NOW).
+            //    NO aplicamos AntiguedadMaximaCufd porque en contingencia el CUFD
+            //    puede ser viejo y aun así ser lo único que tenemos para emitir.
+            var vigente = await db.Cufd
+                .Where(c =>
+                    c.CodigoSucursal == codigoSucursal
+                    && c.CodigoPuntoVenta == codigoPuntoVenta
+                    && c.FechaVigencia > DateTime.UtcNow)
+                .OrderByDescending(c => c.FechaRegistro)
+                .FirstOrDefaultAsync(ct);
+
+            if (vigente is not null)
+            {
+                _logger.LogInformation(
+                    "CufdEnCache: reusando CUFD vigente Id={Id}, código={Codigo} "
+                    + "(antigüedad {Ant}s — IGNORADA, modo contingencia)",
+                    vigente.Id, vigente.Codigo,
+                    (long)(DateTime.UtcNow - vigente.FechaEmisionSolicitud).TotalSeconds);
+                return vigente;
+            }
+
+            // 2) Fallback: el más reciente sin importar vigencia. Caso típico:
+            //    server arrancó con SIAT caído → tabla vacía al boot, o el
+            //    CUFD guardado ya fue marcado vencido por ObtenerCufdVigenteAsync.
+            var ultimo = await db.Cufd
+                .Where(c =>
+                    c.CodigoSucursal == codigoSucursal
+                    && c.CodigoPuntoVenta == codigoPuntoVenta)
+                .OrderByDescending(c => c.FechaRegistro)
+                .FirstOrDefaultAsync(ct);
+
+            if (ultimo is not null)
+            {
+                _logger.LogWarning(
+                    "CufdEnCache: NO hay CUFD vigente para PV ({Suc},{PV}). "
+                    + "Usando el último registrado (Id={Id}, código={Codigo}) "
+                    + "vencido el {Venc}. Modo contingencia DEGRADADO.",
+                    codigoSucursal, codigoPuntoVenta,
+                    ultimo.Id, ultimo.Codigo, ultimo.FechaVigencia);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "CufdEnCache: tabla Cufd vacía para PV ({Suc},{PV}). "
+                    + "Modo contingencia NO PUEDE operar.",
+                    codigoSucursal, codigoPuntoVenta);
+            }
+
+            return ultimo;
         }
 
         private static DateTime NormalizarUtc(DateTime fecha) =>

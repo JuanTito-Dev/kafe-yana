@@ -1,4 +1,5 @@
-﻿using KafeYana.Application.Dtos.VentaDtos;
+﻿using KafeYana.Application.Dtos.FacturacionDtos;
+using KafeYana.Application.Dtos.VentaDtos;
 using KafeYana.Application.Exceptions;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Application.IServicios;
@@ -29,6 +30,7 @@ namespace KafeYana.Infrastructure.Servicios
         ICufdService _cufdService,
         ICufGenerator _cufGenerator,
         IFechaHoraSiatService _fechaHoraSiat,
+        IEventoSignificativoSiatService _eventoSignificativoSiat,
         IOptions<SiatOptions> siatOpts,
         IOptions<DatosEmpresaOptions> empresaOpts,
         IDbContextFactory<AppDbContext> dbFactory,
@@ -148,6 +150,28 @@ namespace KafeYana.Infrastructure.Servicios
             (int CodigoSucursal, int CodigoPuntoVenta) pvActual,
             string actividadEconomica)
         {
+            // ─── 0) Chequeo upfront de contingencia ─────────────────────────
+            // Si hay una contingencia activa para este PV, emitimos en modo
+            // offline (TipoEmision=2) SIN tocar el SIAT para CUIS/CUFD/FechaHora.
+            // El sobre SOAP se enviará al recuperar la conexión, citando el
+            // CodigoRecepcionEventoSignificativo del evento activo.
+            // Ver [[kafeyana-contingencia-siat]].
+            var contingencia = await _eventoSignificativoSiat
+                .ObtenerEstadoContingenciaAsync(pvActual.CodigoSucursal, pvActual.CodigoPuntoVenta);
+
+            if (contingencia.ContingenciaActiva)
+            {
+                logger.LogInformation(
+                    "Contingencia activa detectada. Emitiendo VentaId=N/A en modo offline "
+                  + "(tipoEmision=4, EventoId={Id}, Suc={Suc}, PV={PV})",
+                    contingencia.EventoSignificativoId,
+                    pvActual.CodigoSucursal, pvActual.CodigoPuntoVenta);
+
+                return await ConstruirVentaOfflineAsync(
+                    datos, cajero, cliente, numeroDocumento, numeroFactura, totalCobrar,
+                    descuento, detallesVenta, pvActual, actividadEconomica, contingencia);
+            }
+
             // ─── Generar CUF/CUFD REAL antes de armar la venta ─────────────────
             // Si la generación falla, lanzamos excepción para que la transacción
             // de EjecutarCobroAsync haga rollback y la venta NO quede persistida
@@ -176,6 +200,11 @@ namespace KafeYana.Infrastructure.Servicios
                     fechaEmision);
 
                 cufdCodigo = cufd.Codigo;
+                // El CUF DEBE construirse con EXACTAMENTE la misma fechaEmision que
+                // el SIAT embebió en el CUFD (mismo patrón que NotaAjusteSiatPreparer:145
+                // y FacturaVentaSiatPreparer:95; si difiere, el SIAT rechaza con
+                // 1002/1003). Ver [[kafeyana-cuf-cufd-fechaemision]].
+                fechaEmision = cufd.FechaEmisionSolicitud;
                 cuf = _cufGenerator.Generar(new CufGeneracionRequest(
                     Nit: _siat.Nit,
                     FechaEmision: fechaEmision,
@@ -195,15 +224,40 @@ namespace KafeYana.Infrastructure.Servicios
             }
             catch (Exception ex)
             {
-                logger.LogError(
-                    ex,
-                    "CUF/CUFD no generado al facturar número {NumeroFactura}; abortando cobro para no persistir PENDIENTE",
-                    numeroFactura);
-                // Propagamos el mensaje real para no quedar a ciegas. Logueamos
-                // también la inner exception por si quedó envuelta en otra capa.
                 var detalle = ex.Message;
                 if (ex.InnerException is not null)
                     detalle = $"{detalle} → Inner: {ex.InnerException.Message}";
+
+                // Pieza 4 — fallback reactivo en el flujo de cobro. Antes de
+                // propagar el error, intenta activar contingencia local y
+                // redirigir a ConstruirVentaOfflineAsync. Cubre DOS casos que
+                // las piezas 1-3 no resuelven por sí solas:
+                //   (a) Primer cobro con SIAT caído: el monitor todavía no
+                //       cruzó el umbral (FallosConsecutivos=1 < 2), así que
+                //       DispararContingenciaAutomaticaAsync nunca se llamó.
+                //   (b) Segundo cobro, monitor disparó pieza 2 pero en otra
+                //       thread — esta request no puede esperar a que termine.
+                var contingenciaReactiva = await IntentarActivarContingenciaReactivaAsync(
+                    pvActual.CodigoSucursal, pvActual.CodigoPuntoVenta, default);
+
+                if (contingenciaReactiva is not null)
+                {
+                    logger.LogWarning(
+                        "CUF/CUFD falló ({Detalle}) pero contingencia reactiva activa Id={Id}. "
+                      + "Redirigiendo venta a modo offline (TipoEmision=2).",
+                        detalle, contingenciaReactiva.EventoSignificativoId);
+
+                    return await ConstruirVentaOfflineAsync(
+                        datos, cajero, cliente, numeroDocumento, numeroFactura, totalCobrar,
+                        descuento, detallesVenta, pvActual, actividadEconomica,
+                        contingenciaReactiva);
+                }
+
+                logger.LogError(
+                    ex,
+                    "CUF/CUFD no generado al facturar número {NumeroFactura}; "
+                  + "abortando cobro para no persistir PENDIENTE",
+                    numeroFactura);
                 throw new VentaException(
                     "No se pudo generar el CUF/CUFD para la factura. "
                     + "El CUFD puede haber vencido o el SIAT no responde. "
@@ -253,6 +307,142 @@ namespace KafeYana.Infrastructure.Servicios
             {
                 logger.LogError(ex, "XML/archivo/hash de factura no generado");
                 throw new InventarioException("No se pudo generar el archivo de factura para enviar al SIAT.");
+            }
+
+            return venta;
+        }
+
+        /// <summary>
+        /// Construye una Venta para emisión offline durante contingencia SIAT.
+        /// NO consulta CUIS/CUFD/FechaHora en línea (el SIAT está caído).
+        /// Reutiliza el <c>CufdEvento</c> guardado en el evento significativo activo
+        /// y la <c>FechaHoraInicioEvento</c> como fechaEmision para que el CUF
+        /// sea consistente con el CUFD que el SIAT asoció al evento.
+        ///
+        /// La venta queda con <c>EstadoSiat=Pendiente</c> y <c>CodigoRecepcion=null</c>;
+        /// el envío al SIAT se difiere para cuando se recupere la conexión
+        /// (ver <c>ReenvioFacturasContingenciaService</c>).
+        ///
+        /// Ver [[kafeyana-contingencia-siat]] y [[kafeyana-cuf-cufd-fechaemision]].
+        /// </summary>
+        private async Task<Venta> ConstruirVentaOfflineAsync(
+            DtoVentaPedido datos,
+            string cajero,
+            Cliente cliente,
+            string numeroDocumento,
+            long numeroFactura,
+            decimal totalCobrar,
+            ResultadoAplicacionDescuentoPromocion? descuento,
+            List<Detalle_Pago> detallesVenta,
+            (int CodigoSucursal, int CodigoPuntoVenta) pvActual,
+            string actividadEconomica,
+            EstadoContingenciaDto contingencia)
+        {
+            if (contingencia.EventoSignificativoId is not int eventoId)
+                throw new VentaException("Estado de contingencia inconsistente: sin EventoSignificativoId.");
+
+            // Para el CUF en contingencia usamos TipoEmision=2 (Contingencia computarizada).
+            // El resto de campos del CUF se mantienen iguales.
+            // Para CodigoModalidad=2 (Computarizada), codigoEmision=2 = "Computarizada fuera de línea"
+            // según Resolución Normativa 102100000028.
+            var tipoEmisionContingencia = 2;
+
+            // El CUF se construye como en línea: hex(53d + módulo11) en base16 + CodigoControl
+            // (hex 15-16 chars) del CUFD embebido al registrar el evento. Ver
+            // [[kafeyana-cuf-cufd-fechaemision]]. El CufdEvento (base64) viaja
+            // como parámetro SOAP del sobre de la factura contingencia, NO como
+            // CodigoControl del CUF (Gap 7 — antes del fix esto estaba mal y
+            // producía CUFs con base64 al final, rechazados por el SIAT).
+            //
+            // Fallback defensivo: si CodigoControlEvento es null (evento pre-Gap-7
+            // o edge case), se cae al CufdEvento para no romper el flujo durante
+            // el rollout. Las ventas emitidas con el fallback tendrán CUF
+            // malformado igual que antes — el sweep de Gap 7 las marcará con
+            // ErrorMensaje pidiendo anulación manual.
+            var cufdCodigo = contingencia.CufdEvento ?? string.Empty;
+            var codigoControl = contingencia.CodigoControlEvento
+                ?? contingencia.CufdEvento
+                ?? string.Empty;
+            var fechaEmisionUtc = contingencia.FechaHoraInicioEvento ?? DateTime.UtcNow;
+
+            // Asegurar que la fecha en memoria tenga Kind=Utc para BD. La columna
+            // "FechaEmision" de Venta es timestamptz — Npgsql rechaza Kind=Unspecified
+            // o Kind=Local (https://www.npgsql.org/doc/types/datetime.html).
+            // Si vino con Kind=Unspecified desde algún path anterior (ej: helper
+            // externo), la tratamos como UTC sin conversión.
+            var fechaEmisionParaBd = fechaEmisionUtc.Kind switch
+            {
+                DateTimeKind.Utc => fechaEmisionUtc,
+                DateTimeKind.Local => fechaEmisionUtc.ToUniversalTime(),
+                _ => DateTime.SpecifyKind(fechaEmisionUtc, DateTimeKind.Utc)
+            };
+
+            // El CUF DEBE llevar la fecha BOT (UTC-4) — el SIAT embebió la fecha
+            // BOT en el CUFD del evento, no UTC. Mismo patrón que el flujo online
+            // respeta vía SiatFechaEmision.Formatear / ToUtcForDb (ver
+            // [[kafeyana-cuf-cufd-fechaemision]]).
+            var fechaEmisionCuf = fechaEmisionParaBd.AddHours(-4);
+            fechaEmisionCuf = DateTime.SpecifyKind(fechaEmisionCuf, DateTimeKind.Unspecified);
+
+            string cuf;
+            try
+            {
+                cuf = _cufGenerator.Generar(new CufGeneracionRequest(
+                    Nit: _siat.Nit,
+                    FechaEmision: fechaEmisionCuf,
+                    CodigoSucursal: pvActual.CodigoSucursal,
+                    CodigoModalidad: _siat.CodigoModalidad,
+                    TipoEmision: tipoEmisionContingencia,
+                    TipoFacturaDocumento: _siat.TipoFacturaDocumento,
+                    CodigoDocumentoSector: _siat.CodigoDocumentoSector,
+                    NumeroFactura: numeroFactura,
+                    CodigoPuntoVenta: pvActual.CodigoPuntoVenta,
+                    CodigoControl: codigoControl));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex,
+                    "CUF no generado en modo contingencia para NumeroFactura={N}",
+                    numeroFactura);
+                throw new VentaException(
+                    $"No se pudo generar el CUF en modo contingencia. Detalle: {ex.Message}");
+            }
+
+            var venta = CrearVentaBase(
+                datos, cajero, cliente, numeroDocumento, fechaEmisionParaBd,
+                totalCobrar, descuento, detallesVenta);
+
+            venta.CodigoSucursal = pvActual.CodigoSucursal;
+            venta.CodigoPuntoVenta = pvActual.CodigoPuntoVenta;
+
+            venta.Facturado = true;
+            venta.NumeroFactura = numeroFactura;
+            venta.Cuf = cuf;
+            venta.Cufd = cufdCodigo;
+            venta.TipoEmision = tipoEmisionContingencia;
+            venta.EventoSignificativoSiatId = eventoId;
+            venta.CodigoTipoDocumentoIdentidad = datos.CodigoTipoDocumento!.Value;
+
+            // Leyenda: la contingencia no es motivo para saltarse la obligación.
+            venta.Leyenda = await catLeyendaResolver.ObtenerAleatoriaAsync(actividadEconomica, default);
+
+            // Pendiente hasta que el monitor detecte recuperación y reenvíe la factura.
+            venta.EstadoSiat = FacturaEstado.Pendiente;
+            venta.CodigoRecepcion = null;
+            venta.ErrorMensaje = null;
+
+            try
+            {
+                var xml = _facturaXmlGenerator.Generar(venta);
+                var archivo = SiatGzip.ComprimirXmlABase64(xml);
+                venta.XmlBase64 = archivo;
+                venta.CodigoHash = _recepcionFactura.CalcularHashArchivo(archivo);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "XML/archivo/hash de factura offline no generado");
+                throw new InventarioException(
+                    "No se pudo generar el archivo de factura en modo contingencia.");
             }
 
             return venta;
@@ -631,6 +821,95 @@ namespace KafeYana.Infrastructure.Servicios
                 return cliente.Codigo;
 
             return ClienteCodigoService.Generar(cliente.Nombre, cliente.Id);
+        }
+
+        /// <summary>
+        /// Pieza 4 — helper del catch reactivo en <see cref="ConstruirVentaFacturadaAsync"/>.
+        /// Re-consulta BD por si el monitor (Piezas 1-3) ya persistió contingencia
+        /// y, si no, intenta forzarla vía <see cref="IEventoSignificativoSiatService.RegistrarLocalmenteSinSoapAsync"/>
+        /// directamente desde el flujo de venta.
+        ///
+        /// Cubre el caso "primer cobro con SIAT caído" donde el monitor todavía no
+        /// cruzó el umbral (FallosConsecutivos=1 &lt; Umbral=2) y por lo tanto
+        /// DispararContingenciaAutomaticaAsync nunca se ejecutó.
+        ///
+        /// Si después de forzar el registro tampoco hay contingencia activa, devuelve
+        /// null y el catch del cobro propaga el error original al operador.
+        /// </summary>
+        private async Task<EstadoContingenciaDto?> IntentarActivarContingenciaReactivaAsync(
+            int codigoSucursal,
+            int codigoPuntoVenta,
+            CancellationToken ct)
+        {
+            // 1) Re-consultar BD por si el monitor (Pieza 2) ya persistió
+            //    contingencia en respuesta a este mismo fallo o uno previo.
+            var contingenciaExistente = await _eventoSignificativoSiat
+                .ObtenerEstadoContingenciaAsync(codigoSucursal, codigoPuntoVenta, ct);
+
+            if (contingenciaExistente.ContingenciaActiva)
+            {
+                logger.LogInformation(
+                    "Pieza 4 — contingencia ya activa en BD (monitor pudo haberla creado). "
+                  + "Reutilizando EventoId={Id}.",
+                    contingenciaExistente.EventoSignificativoId);
+                return contingenciaExistente;
+            }
+
+            // 2) No hay contingencia activa. Forzar registro local (Pieza 1)
+            //    directamente desde el flujo de venta. Caso típico: primer cobro
+            //    con SIAT caído, monitor todavía en FallosConsecutivos=1 < 2.
+            try
+            {
+                // motivo=1 = CORTE DEL SERVICIO DE INTERNET (hardcoded porque
+                // este es el motivo por defecto del monitor; ver DetectorOptions).
+                // Si en el futuro se quiere parametrizar, leer de appsettings.
+                var resultado = await _eventoSignificativoSiat.RegistrarLocalmenteSinSoapAsync(
+                    motivo: 1,
+                    origen: "AutomaticoSinSoap",
+                    codigoSucursal: codigoSucursal,
+                    codigoPuntoVenta: codigoPuntoVenta,
+                    descripcion:
+                        "FALLBACK REACTIVO: SIAT caído detectado durante cobro de venta.",
+                    ct: ct);
+
+                logger.LogInformation(
+                    "Pieza 4 — contingencia reactiva registrada desde flujo de venta. "
+                  + "EventoId={Id}, Suc={Suc}, PV={PV}",
+                    resultado.EventoId, codigoSucursal, codigoPuntoVenta);
+
+                // Re-consultar BD para obtener el EstadoContingenciaDto completo.
+                return await _eventoSignificativoSiat
+                    .ObtenerEstadoContingenciaAsync(codigoSucursal, codigoPuntoVenta, ct);
+            }
+            catch (VentaException vex) when (
+                vex.Message.Contains("Ya existe una contingencia activa"))
+            {
+                // Race: el monitor (Pieza 2) u otro thread ganó la carrera.
+                // Re-consultar BD para usar la contingencia que sí quedó.
+                var contingenciaRace = await _eventoSignificativoSiat
+                    .ObtenerEstadoContingenciaAsync(codigoSucursal, codigoPuntoVenta, ct);
+
+                if (contingenciaRace.ContingenciaActiva)
+                {
+                    logger.LogInformation(
+                        "Pieza 4 — race con monitor: contingencia activa detectada. "
+                      + "EventoId={Id}.",
+                        contingenciaRace.EventoSignificativoId);
+                    return contingenciaRace;
+                }
+
+                logger.LogWarning(
+                    "Pieza 4 — race detectada pero BD no muestra contingencia activa. "
+                  + "Cajero verá error original.");
+                return null;
+            }
+            catch (Exception fallbackEx)
+            {
+                logger.LogWarning(fallbackEx,
+                    "Pieza 4 — fallback reactivo no pudo registrar contingencia. "
+                  + "Cajero verá error original.");
+                return null;
+            }
         }
     }
 }

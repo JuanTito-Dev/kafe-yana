@@ -40,4 +40,44 @@ namespace KafeYana.Infrastructure.SiatClient
         public string Descripcion { get; set; } = string.Empty;
     }
 
+    /// <summary>
+    /// DTO SOAP para <c>registroEventoSignificativo</c>. Mapea el sobre que
+    /// arma <c>SiatHttpClient.RegistroEventoSignificativoAsync</c>.
+    /// Estructura del request según WSDL SIAT (confirmado por ejemplo en
+    /// producción jun-2026):
+    /// <code>
+    /// &lt;SolicitudEventoSignificativo&gt;
+    ///   &lt;codigoAmbiente/&gt; &lt;codigoPuntoVenta/&gt; &lt;codigoSistema/&gt;
+    ///   &lt;codigoSucursal/&gt; &lt;cufd/&gt; &lt;cufdEvento/&gt; &lt;cuis/&gt;
+    ///   &lt;descripcion/&gt; &lt;fechaHoraInicioEvento/&gt; &lt;fechaHoraFinEvento/&gt;
+    ///   &lt;nit/&gt; &lt;codigoMotivoEvento/&gt;
+    /// &lt;/SolicitudEventoSignificativo&gt;
+    /// </code>
+    /// Respuesta: <c>&lt;RespuestaListaEventos&gt;</c> con <c>codigoRecepcionEventoSignificativo</c>
+    /// + <c>transaccion</c>. Ver [[kafeyana-contingencia-siat]].
+    /// </summary>
+    public class SolicitudRegistroEventoSignificativoSiatDto
+    {
+        public int CodigoAmbiente { get; set; }
+        public int CodigoPuntoVenta { get; set; }
+        public string CodigoSistema { get; set; } = string.Empty;
+        public int CodigoSucursal { get; set; }
+        public string Cufd { get; set; } = string.Empty;
+        public string CufdEvento { get; set; } = string.Empty;
+        public string Cuis { get; set; } = string.Empty;
+        public string Descripcion { get; set; } = string.Empty;
+        public DateTime FechaHoraInicioEvento { get; set; }
+        public DateTime FechaHoraFinEvento { get; set; }
+        public long Nit { get; set; }
+        public int CodigoMotivoEvento { get; set; }
+    }
+
+    /// <summary>Respuesta cruda SOAP de <c>registroEventoSignificativoResponse</c>.</summary>
+    public class RespuestaRegistroEventoSignificativoSiatDto
+    {
+        public bool Transaccion { get; set; }
+        public string? CodigoRecepcionEventoSignificativo { get; set; }
+        public string? CodigoDescripcion { get; set; }
+        public List<CodigoRespuesta> CodigosRespuesta { get; set; } = new();
+    }
 }

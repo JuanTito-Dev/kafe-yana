@@ -15,10 +15,14 @@ public sealed class Detalle_RondaService(
     IInventarioPedidoCompromisoService _compromisoService)
 {
     private static readonly int UnidadMedidaPorDefecto =
-        UnidadMedidaSiatCatalogo.PorDescripcion["UNIDAD"];
+        UnidadMedidaSiatCatalogo.TryGetCodigo("UNIDAD", out var codigoUnidad)
+            ? codigoUnidad
+            : 57;
 
     private static readonly int UnidadMedidaCombo =
-        UnidadMedidaSiatCatalogo.PorDescripcion["UNIDAD"];
+        UnidadMedidaSiatCatalogo.TryGetCodigo("UNIDAD", out var codigoUnidadCombo)
+            ? codigoUnidadCombo
+            : 57;
     public async Task<Ronda> CrearRondaConDetallesAsync(int idPedido, List<DtoRondadetalle> detallesDto)
     {
         var listaDetalles = new List<Detalle_ronda>();

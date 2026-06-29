@@ -122,10 +122,29 @@ namespace KafeYana.Infrastructure.Servicios
 
                 if (datos.Factura)
                 {
-                    envioSiat = await _facturaSiatEnvio.EnviarVentaAsync(resultado.Venta, ct);
+                    // Si VentaServices construyó la venta en modo contingencia
+                    // (TipoEmision=2 + EventoSignificativoSiatId poblado), NO
+                    // intentamos enviar al SIAT: el monitor de conectividad
+                    // lo hará cuando detecte recuperación. Dejamos envioSiat=null
+                    // y la venta persiste como EstadoSiat=Pendiente.
+                    // Ver [[kafeyana-contingencia-siat]].
+                    var esContingenciaOffline = resultado.Venta.TipoEmision == 2
+                        && resultado.Venta.EventoSignificativoSiatId is not null;
 
-                    if (!FacturaSiatCobroPolicy.PermiteCompletarCobro(envioSiat))
-                        throw new VentaException(FacturaSiatCobroPolicy.MensajeRechazoCobro(envioSiat));
+                    if (!esContingenciaOffline)
+                    {
+                        envioSiat = await _facturaSiatEnvio.EnviarVentaAsync(resultado.Venta, ct);
+
+                        if (!FacturaSiatCobroPolicy.PermiteCompletarCobro(envioSiat))
+                            throw new VentaException(FacturaSiatCobroPolicy.MensajeRechazoCobro(envioSiat));
+                    }
+                    else
+                    {
+                        logger.LogInformation(
+                            "Venta construida en modo contingencia (EventoId={Id}). "
+                          + "Envío al SIAT se difiere para cuando se recupere la conexión.",
+                            resultado.Venta.EventoSignificativoSiatId);
+                    }
                 }
 
                 await _db.ventas.Crear(resultado.Venta);

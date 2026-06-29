@@ -27,6 +27,7 @@ namespace KafeYana.Api.Controllers
         private readonly SincronizadorCatTipoDocumentoIdentidad _sincronizadorTipoDocumentoIdentidad;
         private readonly SincronizadorCatTipoEmision _sincronizadorTipoEmision;
         private readonly SincronizadorCatMetodosPago _sincronizadorMetodosPago;
+        private readonly SincronizadorCatUnidadMedida _sincronizadorUnidadMedida;
         private readonly IUnitWork _unitWork;
 
         public CatalogosController(
@@ -41,6 +42,7 @@ namespace KafeYana.Api.Controllers
             SincronizadorCatTipoDocumentoIdentidad sincronizadorTipoDocumentoIdentidad,
             SincronizadorCatTipoEmision sincronizadorTipoEmision,
             SincronizadorCatMetodosPago sincronizadorMetodosPago,
+            SincronizadorCatUnidadMedida sincronizadorUnidadMedida,
             IUnitWork unitWork)
         {
             _sincronizadorActividades = sincronizadorActividades;
@@ -54,6 +56,7 @@ namespace KafeYana.Api.Controllers
             _sincronizadorTipoDocumentoIdentidad = sincronizadorTipoDocumentoIdentidad;
             _sincronizadorTipoEmision = sincronizadorTipoEmision;
             _sincronizadorMetodosPago = sincronizadorMetodosPago;
+            _sincronizadorUnidadMedida = sincronizadorUnidadMedida;
             _unitWork = unitWork;
         }
 
@@ -159,7 +162,9 @@ namespace KafeYana.Api.Controllers
         /// Esta es la fuente de verdad que consumen:
         ///   - Las validaciones de <c>DtoAnularFactura</c> / <c>DtoAnularNotaAjuste</c>.
         ///   - Los servicios <c>FacturaSiatAnulacionService</c> / <c>NotaAjusteSiatAnulacionService</c>.
-        ///   - El frontend (modales de anulación de factura y nota C/D).
+        ///   - El frontend (modales de anulación de factura y nota C/D **y el modal
+        ///     de emisión de nota C/D**, que reutiliza este mismo catálogo porque
+        ///     el SIAT no expone una paramétrica separada para motivos de emisión).
         ///
         /// El caché se refresca automáticamente vía el hosted service diario a las 08:10 BOT
         /// o manualmente vía <c>POST /api/catalogos/sincronizar-motivos-anulacion</c>.
@@ -627,6 +632,98 @@ namespace KafeYana.Api.Controllers
             {
                 items,
                 sincronizado = !MetodoPagoSiatCatalogo.EsFallback
+            });
+        }
+
+        /// <summary>
+        /// POST /api/catalogos/sincronizar-unidades-medida
+        ///
+        /// Ejecuta la sincronización del catálogo paramétrico de unidades de medida
+        /// del SIAT (<c>sincronizarParametricaUnidadMedida</c>) contra el SIAT de
+        /// forma síncrona. Itera todos los PuntosVentaSiat activos, usa la primera
+        /// respuesta exitosa y hace MERGE con la tabla maestra
+        /// <c>CatUnidadesMedida</c> (catálogo universal, no se filtra por
+        /// actividad económica).
+        ///
+        /// **Diferencia con los sync 1..10**: este catálogo tiene un flag
+        /// <c>Activo</c> controlado por el operador. El merge PRESERVA el
+        /// estado de <c>Activo</c> (los códigos nuevos arrancan en false salvo
+        /// los 9 hardcoded {57=UNIDAD, 97=VASO, 5=BOTELLA, 6=CAJA,
+        /// 33=MILIGRAMO, 17=GRAMO, 28=LITRO, 34=MILILITRO, 62=OTRO} que
+        /// arrancan activos).
+        ///
+        /// Corre diario a las 08:10 BOT (espejo de <c>CatTipoEmision</c>).
+        /// </summary>
+        [HttpPost("sincronizar-unidades-medida")]
+        public async Task<IActionResult> SincronizarUnidadesMedida(CancellationToken ct)
+        {
+            try
+            {
+                var (total, nuevos, actualizados, pvsExitosos) =
+                    await _sincronizadorUnidadMedida.SincronizarAsync(ct);
+                return Ok(new
+                {
+                    transaccion = true,
+                    total,
+                    nuevos,
+                    actualizados,
+                    pvsExitosos
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(StatusCodes.Status502BadGateway, new
+                {
+                    transaccion = false,
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// GET /api/catalogos/unidades-medida
+        ///
+        /// Devuelve el catálogo paramétrico de unidades de medida del SIAT
+        /// actualmente persistido en BD (sincronizado por
+        /// <c>SincronizadorCatUnidadMedida</c>, ~50–100 entradas). Solo
+        /// devuelve las unidades con <c>Activo=true</c> (las que el operador
+        /// habilitó — por default los 9 hardcoded que la cafetería ya usaba).
+        ///
+        /// Esta es la fuente de verdad que consume:
+        ///   - <c>VentaServices</c>: valida que el <c>UnidadMedida</c> de cada
+        ///     detalle esté activo.
+        ///   - <c>FacturaVentaSiatPreparer</c>: misma validación antes de
+        ///     armar el sobre SOAP al SIAT.
+        ///   - El frontend (<c>ProductForm</c>, <c>ElaboradoWizard</c>) para
+        ///     mostrar solo las unidades que el sistema acepta.
+        ///
+        /// <c>sincronizado = false</c> indica que el server arrancó pero el
+        /// sync contra el SIAT todavía no corrió o falló en todos los PVs —
+        /// en ese caso <c>items</c> viene del <c>FallbackHardcoded</c> con
+        /// los 12 pares originales. La UI debe mostrar un aviso.
+        ///
+        /// El catálogo se refresca automáticamente al boot del server + diario
+        /// a las 08:10 BOT, o manualmente vía
+        /// <c>POST /api/catalogos/sincronizar-unidades-medida</c>.
+        /// </summary>
+        [HttpGet("unidades-medida")]
+        public IActionResult GetUnidadesMedida()
+        {
+            var cache = UnidadMedidaSiatCatalogo.ObtenerActivos();
+            var items = cache
+                .Select(kvp => new
+                {
+                    codigo = kvp.Key,
+                    descripcion = kvp.Value,
+                    activo = true
+                })
+                .OrderBy(x => x.codigo)
+                .ToList();
+
+            return Ok(new
+            {
+                items,
+                sincronizado = !UnidadMedidaSiatCatalogo.EsFallback
             });
         }
     }
