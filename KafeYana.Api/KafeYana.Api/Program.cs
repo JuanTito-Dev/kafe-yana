@@ -196,11 +196,6 @@ builder.Services.AddGraphQLServer()
 
     })
     .ModifyCostOptions(o => o.EnforceCostLimits = false)
-    .ModifyPagingOptions(o =>
-    {
-        o.DefaultPageSize = 200;
-        o.MaxPageSize = 1000;
-    })
     .AddFiltering<CaseInsensitiveFilteringConvention>()
     .AddProjections()
     .AddSorting()

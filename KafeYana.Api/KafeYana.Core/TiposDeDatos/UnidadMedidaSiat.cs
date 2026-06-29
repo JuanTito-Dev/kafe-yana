@@ -347,18 +347,35 @@ namespace KafeYana.Domain.TiposDeDatos
                 ? v.Descripcion
                 : $"Unidad {codigo}";
 
+        /// Aliases para nombres históricos/coloquiales del frontend que no
+        /// coinciden exactamente con la descripción canónica del SIN.
+        /// Permite editar productos viejos (TAZA, PORCION, etc.) sin romper.
+        private static readonly Dictionary<string, string> _aliases =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["UNIDAD"]  = "UNIDAD (BIENES)",
+                ["TAZA"]    = "UNIDAD (BIENES)",
+                ["PORCION"] = "UNIDAD (BIENES)",
+                ["PLATO"]   = "UNIDAD (BIENES)",
+                ["BOTELLA"] = "BOTELLAS",
+                ["MILIGRAMO"] = "MILIGRAMOS",
+            };
+
         /// <summary>
         /// Resuelve una descripción (ej. "UNIDAD", "VASO") al código SIN
         /// correspondiente. Solo resuelve si la unidad está activa en el
-        /// catálogo vigente. Usado por los formularios de creación/edición de
-        /// productos para traducir el nombre que ve el operador al código
-        /// numérico que va al XML del SIAT.
+        /// catálogo vigente. Soporta aliases coloquiales (TAZA, PORCION…)
+        /// para compatibilidad con productos guardados antes del catálogo SIAT.
         /// </summary>
         public static bool TryResolver(
             string descripcion,
             out int codigo,
             out string descripcionCanonica)
         {
+            // Normalizar: si el input es un alias, usar la descripción canónica
+            if (_aliases.TryGetValue(descripcion, out var canonica))
+                descripcion = canonica;
+
             var snapshot = Volatile.Read(ref _snapshot);
             foreach (var kv in snapshot)
             {

@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Authorization;
+using KafeYana.Api.Helpers;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Domain.Entities;
 using KafeYana.Domain.TiposDeDatos;
@@ -13,15 +14,51 @@ namespace KafeYana.Api.GraphQLMap
     [ExtendObjectType("Query")]
     public class VentaQuery
     {
-        [UsePaging(IncludeTotalCount = true)]
-        [UseProjection]
-        [UseSorting]
-        [UseFiltering]
+        /// <summary>
+        /// Lista de ventas con paginación offset manual.
+        /// Ver <see cref="ClienteQuery.Clientes"/> para la motivación (HotChocolate v15
+        /// removió <c>[UseOffsetPaging]</c>).
+        /// </summary>
         [Authorize(Roles = new[] { RolesKafe.Admin, RolesKafe.Mesero, RolesKafe.Cajero })]
-
-        public IQueryable<Venta> Ventas([Service] IVentaRepositorio _Venta)
+        public Task<OffsetPage<Venta>> Ventas(
+            [Service] IVentaRepositorio _Venta,
+            int? skip,
+            int? take,
+            int? id = null,
+            DateTime? fechaDesde = null,
+            DateTime? fechaHasta = null,
+            string? estadoSiat = null,
+            string? search = null,
+            CancellationToken ct = default)
         {
-            return _Venta.VentaQuery();
+            IQueryable<Venta> q = _Venta.VentaQuery();
+
+            if (id.HasValue)
+                q = q.Where(v => v.Id == id.Value);
+
+            if (fechaDesde.HasValue)
+                q = q.Where(v => v.FechaEmision >= fechaDesde.Value);
+
+            if (fechaHasta.HasValue)
+                q = q.Where(v => v.FechaEmision <= fechaHasta.Value);
+
+            if (!string.IsNullOrWhiteSpace(estadoSiat)
+                && Enum.TryParse<FacturaEstado>(estadoSiat, ignoreCase: true, out var estadoEnum))
+                q = q.Where(v => v.EstadoSiat == estadoEnum);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.ToLower();
+                if (long.TryParse(search.Trim(), out var numFactura))
+                    q = q.Where(v => (v.NombreRazonSocial != null && v.NombreRazonSocial.ToLower().Contains(s))
+                                   || v.Usuario.ToLower().Contains(s)
+                                   || v.NumeroFactura == numFactura);
+                else
+                    q = q.Where(v => (v.NombreRazonSocial != null && v.NombreRazonSocial.ToLower().Contains(s))
+                                   || v.Usuario.ToLower().Contains(s));
+            }
+
+            return q.OrderByDescending(v => v.FechaEmision).ToOffsetPageAsync(skip, take, ct);
         }
 
         /// <summary>

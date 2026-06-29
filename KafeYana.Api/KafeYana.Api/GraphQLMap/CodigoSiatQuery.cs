@@ -1,19 +1,17 @@
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.Authorization;
-using KafeYana.Api.GraphQLMap.Types;
+using KafeYana.Api.Helpers;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Domain.Entities.Facturacion;
 using KafeYana.Domain.TiposDeDatos;
-using Microsoft.EntityFrameworkCore;
 
 namespace KafeYana.Api.GraphQLMap
 {
     [ExtendObjectType("Query")]
     public class CodigoSiatQuery
     {
-        [UsePaging(IncludeTotalCount = true)]
-        [UseProjection]
-        [UseSorting]
-        [UseFiltering]
         [Authorize(Roles = new[]
         {
             RolesKafe.Admin,
@@ -21,10 +19,25 @@ namespace KafeYana.Api.GraphQLMap
             RolesKafe.Cajero,
             RolesKafe.Asistente
         })]
-        [GraphQLType(typeof(ListType<CodigoSiatType>))]
-        public IQueryable<CodigoSiat> CodigosSiat([Service] ICodigoSiatRepositorio repository)
+        public Task<OffsetPage<CodigoSiat>> CodigosSiat(
+            [Service] ICodigoSiatRepositorio repository,
+            int? skip,
+            int? take,
+            string? search = null,
+            CancellationToken ct = default)
         {
-            return repository.Query().OrderBy(x => x.CodigoProducto).ThenBy(x => x.CodigoActividad);
+            IQueryable<CodigoSiat> q = repository.Query();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.ToLower();
+                q = q.Where(x => x.CodigoProducto.ToLower().Contains(s)
+                               || x.DescripcionProducto.ToLower().Contains(s)
+                               || x.DescripcionActividad.ToLower().Contains(s));
+            }
+
+            return q.OrderBy(x => x.CodigoProducto).ThenBy(x => x.CodigoActividad)
+                    .ToOffsetPageAsync(skip, take, ct);
         }
     }
 }

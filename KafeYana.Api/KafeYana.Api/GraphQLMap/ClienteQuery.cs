@@ -1,4 +1,8 @@
-﻿using HotChocolate.Authorization;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using HotChocolate.Authorization;
+using KafeYana.Api.Helpers;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Domain.Entities;
 using KafeYana.Domain.TiposDeDatos;
@@ -10,19 +14,31 @@ namespace KafeYana.Api.GraphQLMap
     public class ClienteQuery
     {
         [Authorize(Roles = new[] { RolesKafe.Admin, RolesKafe.Mesero, RolesKafe.Cajero, RolesKafe.Asistente })]
-        [UsePaging(IncludeTotalCount = true)]
-        [UseProjection]
-        [UseFiltering]
-        [UseSorting]
-        public IQueryable<Cliente> Clientes([Service]IClienteRespositorio _clientes)
+        public Task<OffsetPage<Cliente>> Clientes(
+            [Service] IClienteRespositorio _clientes,
+            int? skip,
+            int? take,
+            string? search = null,
+            int? id = null,
+            int? dni = null,
+            CancellationToken ct = default)
         {
-            return _clientes.GetClientes().AsNoTracking();
-        }
+            IQueryable<Cliente> q = _clientes.GetClientes().AsNoTracking();
 
-        //[Authorize(Roles = new[] { "Admin" })]
-        //public async Task<Cliente?> Cliente([Service] IClienteRespositorio _clientes, int Id )
-        //{
-        //    return await _clientes.GetCliente( Id );
-        //}
+            if (id.HasValue)
+                q = q.Where(c => c.Id == id.Value);
+
+            if (dni.HasValue)
+                q = q.Where(c => c.Dni == dni.Value);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.ToLower();
+                q = q.Where(c => c.Nombre.ToLower().Contains(s)
+                               || (c.Celular != null && c.Celular.ToLower().Contains(s)));
+            }
+
+            return q.OrderBy(c => c.Nombre).ToOffsetPageAsync(skip, take, ct);
+        }
     }
 }
