@@ -2,8 +2,11 @@ using KafeYana.Application.Dtos.FacturacionDtos;
 using KafeYana.Application.Exceptions;
 using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Domain.TiposDeDatos;
+using KafeYana.Infrastructure.Configuration;
+using KafeYana.Infrastructure.Servicios.SiatConnectivity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace KafeYana.Api.Controllers
 {
@@ -26,10 +29,17 @@ namespace KafeYana.Api.Controllers
     public class EventoSignificativoController : ControllerBase
     {
         private readonly IEventoSignificativoSiatService _service;
+        private readonly ISiatConnectivityMonitor _monitor;
+        private readonly SiatOptions _siatOpts;
 
-        public EventoSignificativoController(IEventoSignificativoSiatService service)
+        public EventoSignificativoController(
+            IEventoSignificativoSiatService service,
+            ISiatConnectivityMonitor monitor,
+            IOptions<SiatOptions> siatOpts)
         {
             _service = service;
+            _monitor = monitor;
+            _siatOpts = siatOpts.Value;
         }
 
         /// <summary>
@@ -79,7 +89,16 @@ namespace KafeYana.Api.Controllers
         {
             try
             {
-                var resultado = await _service.RegistrarEventoAsync(dto, ct);
+                var suc = dto.CodigoSucursal ?? _siatOpts.CodigoSucursal;
+                var pv  = dto.CodigoPuntoVenta ?? _siatOpts.CodigoPuntoVenta;
+                var resultado = await _service.RegistrarYActivarAsync(
+                    dto.CodigoMotivo,
+                    "Manual",
+                    suc,
+                    pv,
+                    dto.Descripcion ?? string.Empty,
+                    ct);
+                _monitor.NotificarContingenciaExterna(suc, pv, resultado.EventoId);
                 return Ok(resultado);
             }
             catch (VentaException ex) when (ex.Message.Contains("Ya existe una contingencia activa"))

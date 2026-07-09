@@ -16,6 +16,18 @@ namespace KafeYana.Application.IRepositorio
 
         Task<long> SiguienteNumeroFacturaSiatAsync();
 
+        /// <summary>
+        /// Correlativo SEPARADO para facturas emitidas bajo CAFC (contingencia
+        /// motivos 5/6/7 — talonario/manual). El SIN autoriza un rango propio
+        /// para el CAFC (ej. 1 al 1000), independiente del correlativo online
+        /// normal (que ya va por decenas de miles). Usar el correlativo normal
+        /// para estas ventas causa [1047] "NUMERO FACTURA PARA EL CAFC ENVIADO
+        /// INCORRECTO" porque el número queda fuera del rango habilitado.
+        /// Misma sequence de Postgres atómica que <see cref="SiguienteNumeroFacturaSiatAsync"/>,
+        /// pero "Venta_NumeroFacturaCafc_seq" (creada manualmente, START 1).
+        /// </summary>
+        Task<long> SiguienteNumeroFacturaCafcAsync();
+
         Task<Venta?> TraerVentaConDetallesAsync(int id);
 
         /// <summary>

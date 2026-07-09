@@ -27,7 +27,7 @@ namespace KafeYana.Api.GraphQLMap
                 q = q.Where(r => r.Id == id.Value);
 
             if (soloConElaborado == true)
-                q = q.Where(r => r.Id_Elaborado != null);
+                q = q.Where(r => r.Elaborado != null);
 
             return q.OrderBy(r => r.Nombre).ToOffsetPageAsync(skip, take, ct);
         }

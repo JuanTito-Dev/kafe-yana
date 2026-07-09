@@ -16,6 +16,7 @@ using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace KafeYana.Api.Controllers
 {
@@ -115,7 +116,20 @@ namespace KafeYana.Api.Controllers
 
             if (mesa.pedido.Total > 0) return Conflict(new { message = "No puedes liberar un pedido sin antes cobrar" });
 
-            await _db.Pedidos.Remove(mesa.pedido);
+            var tieneSubVentas = await _db.subventas.Query().AnyAsync(s => s.Id_Pedido == mesa.pedido.Id);
+
+            if (tieneSubVentas)
+            {
+                // Igual que el cierre automático en SubVentaService.CrearSubVentaAsync:
+                // el Pedido queda huérfano en BD, las sub-ventas ya registradas (cobradas
+                // y/o facturadas) lo siguen referenciando (FK Restrict) para historial.
+                mesa.Id_Pedido = null;
+                mesa.pedido = null;
+            }
+            else
+            {
+                await _db.Pedidos.Remove(mesa.pedido);
+            }
 
             mesa.Disponible = true;
 
@@ -254,7 +268,7 @@ namespace KafeYana.Api.Controllers
         [ServiceFilter(typeof(CajaAbiertaFilter))]
         public async Task<IActionResult> Cobrar(int Id, DtoVentaPedido datos)
         {
-            if (!ModelState.IsValid) 
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var nombreUsuario = User.Identity?.Name;
@@ -264,6 +278,43 @@ namespace KafeYana.Api.Controllers
             var caja = (Caja)HttpContext.Items["Caja"]!;
             var cobro = await _cobroPedido.CobrarMesaAsync(Id, datos, nombreUsuario, caja);
 
+            if (cobro.EsAbono)
+            {
+                if (cobro.MesaCerrada && cobro.IdMesa is int mesaId)
+                {
+                    await _notificador.NotificarMesaActualizada(
+                        new MesaActualizadaPayload(mesaId, cobro.OrigenVenta, Disponible: true, IdPedido: null));
+                }
+
+                // Si esta sub-venta facturó, incluir los mismos campos que el
+                // cobro completo (VentaId, NumeroFactura, CUF, etc.) para que
+                // la pantalla de éxito pueda ofrecer "Imprimir factura SIAT".
+                if (cobro.Resultado is not null)
+                {
+                    await _notificador.NotificarVentaProcesada(
+                        new VentaPayload(cobro.OrigenVenta, datos.Id_Pedido, cobro.Resultado.Venta.MontoTotal));
+                }
+
+                var venta = cobro.Resultado?.Venta;
+                return Ok(new
+                {
+                    EsAbono = true,
+                    TotalCobrado = cobro.MontoCubierto ?? 0m,
+                    mesaCerrada = cobro.MesaCerrada,
+                    pedidoActualizado = cobro.PedidoActualizado,
+                    CodigoVenta = venta?.Cuf,
+                    VentaId = venta?.Id,
+                    NumeroFactura = venta?.NumeroFactura,
+                    Facturado = venta?.Facturado,
+                    EstadoSiat = cobro.EnvioSiat?.EstadoSiat ?? venta?.EstadoSiat,
+                    CodigoRecepcion = cobro.EnvioSiat?.CodigoRecepcion ?? venta?.CodigoRecepcion,
+                    SiatAceptada = cobro.EnvioSiat?.Transaccion
+                        ?? (venta is not null && venta.EstadoSiat == FacturaEstado.Validada),
+                    ErrorSiat = cobro.EnvioSiat?.ErrorMensaje ?? venta?.ErrorMensaje,
+                    CodigoHash = venta?.CodigoHash,
+                });
+            }
+
             if (cobro.IdMesa is int idMesa)
             {
                 await _notificador.NotificarMesaActualizada(
@@ -271,9 +322,17 @@ namespace KafeYana.Api.Controllers
             }
 
             await _notificador.NotificarVentaProcesada(
-                new VentaPayload(cobro.OrigenVenta, datos.Id_Pedido, cobro.Resultado.Venta.MontoTotal));
+                new VentaPayload(cobro.OrigenVenta, datos.Id_Pedido, cobro.Resultado!.Venta.MontoTotal));
 
-            return Ok(VentaRespuestaHelper.ConstruirRespuestaCobro(cobro.Resultado, cobro.EnvioSiat));
+            return Ok(VentaRespuestaHelper.ConstruirRespuestaCobro(cobro.Resultado!, cobro.EnvioSiat));
+        }
+
+        [HttpDelete("abono/{abonoId:int}")]
+        [ServiceFilter(typeof(CajaAbiertaFilter))]
+        public async Task<IActionResult> RevertirAbono(int abonoId)
+        {
+            var pedidoActualizado = await _cobroPedido.RevertirAbonoAsync(abonoId);
+            return Ok(new { message = "Pago parcial revertido", pedidoActualizado });
         }
 
         // ─── helper compartido ────────────────────────────────────────────────

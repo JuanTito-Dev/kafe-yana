@@ -116,6 +116,10 @@ namespace KafeYana.Infrastructure.Data
 
         public DbSet<PedidoInventarioComprometidoLinea> PedidoInventarioComprometidoLineas { get; set; }
 
+        public DbSet<SubVenta> SubVentas { get; set; }
+
+        public DbSet<SubVentaDetalle> SubVentaDetalles { get; set; }
+
         public DbSet<Cuis> Cuis { get; set; }
 
         public DbSet<Cufd> Cufd { get; set; }

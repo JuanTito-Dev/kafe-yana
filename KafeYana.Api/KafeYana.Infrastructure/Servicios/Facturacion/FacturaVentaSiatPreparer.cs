@@ -70,6 +70,11 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             // combinación CAEB + CodigoDocumentoSector no está habilitada por el SIN.
             await ValidarMatrizSiatAsync(caeb, _siat.CodigoDocumentoSector, ct);
 
+            // Idem para cada código de producto de la venta: si no está vinculado
+            // a la actividad económica vigente en el padrón SIN, el SIAT rechaza
+            // con [1017]. Lo detectamos acá para no gastar CUFD/número en vano.
+            await ValidarProductosActividadAsync(caeb, venta.Detalles, ct);
+
             if (venta.Facturado)
                 throw new VentaException("La venta ya está marcada como facturada.");
 
@@ -78,7 +83,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
             ValidarDetallesSiat(venta.Detalles);
 
-            var numeroFactura = await _db.ventas.SiguienteNumeroFacturaSiatAsync();
+            var numeroFactura = venta.NumeroFactura ?? await _db.ventas.SiguienteNumeroFacturaSiatAsync();
 
             var fechaEmision = SiatFechaEmision.AhoraUtc();
 
@@ -141,6 +146,74 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             }
         }
 
+        public async Task RegenerarVentaObservadaAsync(Venta venta, CancellationToken ct = default)
+        {
+            // Espejo de PrepararVentaSinFacturarAsync, pero para una venta que YA
+            // tiene Facturado=true y EstadoSiat Observada/Pendiente (el SIAT nunca
+            // la validó). Reusa el NumeroFactura ya asignado — NO pide uno nuevo,
+            // el SIAT rechazaría un número repetido si emitiéramos otro — pero
+            // regenera CUF/CUFD/XML/Hash con los datos fiscales ya corregidos en
+            // la entidad (ver guard en ReenviarFacturaAsync).
+            var caeb = await _actividadResolver.ResolverCaebVigenteAsync(ct);
+            await ValidarMatrizSiatAsync(caeb, _siat.CodigoDocumentoSector, ct);
+            await ValidarProductosActividadAsync(caeb, venta.Detalles, ct);
+
+            if (venta.NumeroFactura is null)
+                throw new VentaException("La venta no tiene número de factura asignado para regenerar.");
+
+            ValidarDetallesSiat(venta.Detalles);
+
+            var fechaEmision = SiatFechaEmision.AhoraUtc();
+            var cuf = venta.Cuf ?? $"PENDIENTE-VTA-{fechaEmision.Year}-{venta.NumeroFactura:D3}";
+            var cufdCodigo = venta.Cufd ?? "PENDIENTE";
+
+            try
+            {
+                var cufd = await _cufdService.ObtenerCufdVigenteAsync(
+                    _siat.CodigoSucursal, _siat.CodigoPuntoVenta, fechaEmision, ct);
+
+                fechaEmision = cufd.FechaEmisionSolicitud;
+                cufdCodigo = cufd.Codigo;
+
+                cuf = _cufGenerator.Generar(new CufGeneracionRequest(
+                    Nit: _siat.Nit,
+                    FechaEmision: fechaEmision,
+                    CodigoSucursal: _siat.CodigoSucursal,
+                    CodigoModalidad: _siat.CodigoModalidad,
+                    TipoEmision: _siat.CodigoEmision,
+                    TipoFacturaDocumento: _siat.TipoFacturaDocumento,
+                    CodigoDocumentoSector: _siat.CodigoDocumentoSector,
+                    NumeroFactura: venta.NumeroFactura.Value,
+                    CodigoPuntoVenta: _siat.CodigoPuntoVenta,
+                    CodigoControl: cufd.CodigoControl));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "CUF/CUFD no generado al regenerar venta observada {VentaId}; se guarda PENDIENTE", venta.Id);
+            }
+
+            venta.FechaEmision = fechaEmision;
+            venta.Cuf = cuf;
+            venta.Cufd = cufdCodigo;
+            venta.Leyenda = await _leyendaResolver.ObtenerAleatoriaAsync(caeb, ct);
+            venta.EstadoSiat = FacturaEstado.Pendiente;
+            venta.CodigoRecepcion = null;
+            venta.ErrorMensaje = null;
+
+            try
+            {
+                var xml = _facturaXmlGenerator.Generar(venta);
+                var archivo = SiatGzip.ComprimirXmlABase64(xml);
+                venta.XmlBase64 = archivo;
+                venta.CodigoHash = _recepcionFactura.CalcularHashArchivo(archivo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "XML/archivo/hash no generado al regenerar venta observada {VentaId}", venta.Id);
+                throw new VentaException("No se pudo generar el archivo de factura para reenviar al SIAT.");
+            }
+        }
+
         private static void ValidarDetallesSiat(IEnumerable<Detalle_Pago> detalles)
         {
             foreach (var detalle in detalles)
@@ -186,6 +259,41 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             _logger.LogInformation(
                 "SIAT matrix check OK: CAEB={Caeb} SectorDoc={Sector}",
                 caeb, codigoDocumentoSector);
+        }
+
+        /// <summary>
+        /// Verifica contra la tabla CodigosSiat (sincronizada por
+        /// SincronizadorCodigosSiat vía sincronizarListaProductosServicios) que
+        /// cada código de producto SIN de la venta esté vinculado, en el padrón
+        /// del contribuyente, a la actividad económica (CAEB) vigente. Si falta
+        /// alguno, lanza VentaException → 409 con instrucción clara, en vez de
+        /// dejar que el SIAT rechace con [1017] después de gastar CUFD/número.
+        /// </summary>
+        private async Task ValidarProductosActividadAsync(
+            string caeb, IEnumerable<Detalle_Pago> detalles, CancellationToken ct)
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+
+            var codigosProducto = detalles.Select(d => d.CodigoProductoSin.ToString()).Distinct().ToList();
+
+            var habilitados = await db.CodigosSiat
+                .AsNoTracking()
+                .Where(c => c.CodigoActividad == caeb && codigosProducto.Contains(c.CodigoProducto))
+                .Select(c => c.CodigoProducto)
+                .ToListAsync(ct);
+
+            var faltantes = detalles
+                .Where(d => !habilitados.Contains(d.CodigoProductoSin.ToString()))
+                .ToList();
+
+            if (faltantes.Count > 0)
+            {
+                var detalle = string.Join(", ", faltantes.Select(d => $"'{d.Descripcion}' (código SIN {d.CodigoProductoSin})"));
+                throw new VentaException(
+                    $"El código de producto SIN no está vinculado a la actividad económica '{caeb}' para: {detalle}. "
+                    + "Verifique/corrija el código SIN del producto en el catálogo (modal de búsqueda SIN) o ejecute "
+                    + "POST /api/catalogos/sincronizar-productos-servicios si el código sí está habilitado pero el catálogo local está desactualizado.");
+            }
         }
     }
 }

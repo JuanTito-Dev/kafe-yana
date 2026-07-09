@@ -47,6 +47,37 @@ public sealed class InventarioPedidoCompromisoService(IUnitWork _unitWork) : IIn
         await RevertirCompromisoAsync(compromiso);
     }
 
+    public async Task RevertirCompromisoParcialAsync(int idDetalleRonda, int cantidadALiberar, int cantidadOriginalDetalle)
+    {
+        if (cantidadALiberar <= 0 || cantidadOriginalDetalle <= 0)
+            return;
+
+        var compromiso = await _unitWork.pedidoInventarioCompromisos.ObtenerPorDetalleAsync(idDetalleRonda);
+        if (compromiso is null)
+            return;
+
+        if (cantidadALiberar >= cantidadOriginalDetalle)
+        {
+            // Se libera todo lo comprometido para este detalle.
+            await RevertirCompromisoAsync(compromiso);
+            return;
+        }
+
+        // Proporción de cada línea (comprometida para cantidadOriginalDetalle
+        // unidades del producto) que corresponde a la porción que se libera.
+        // Nota: si linea.Cantidad no es múltiplo exacto de cantidadOriginalDetalle
+        // el redondeo hacia abajo puede dejar una fracción mínima sin liberar;
+        // aceptable frente a la alternativa de sobre-liberar stock.
+        foreach (var linea in compromiso.Lineas)
+        {
+            var cantidadALiberarLinea = linea.Cantidad * cantidadALiberar / cantidadOriginalDetalle;
+            if (cantidadALiberarLinea <= 0) continue;
+
+            await DevolverLineaAsync(linea, cantidadALiberarLinea);
+            linea.Cantidad -= cantidadALiberarLinea;
+        }
+    }
+
     public async Task AplicarMovimientosYCerrarAsync(int idPedido, string codigoVenta)
     {
         var compromisos = await _unitWork.pedidoInventarioCompromisos.ObtenerPorPedidoAsync(idPedido);
@@ -60,20 +91,25 @@ public sealed class InventarioPedidoCompromisoService(IUnitWork _unitWork) : IIn
         _unitWork.pedidoInventarioCompromisos.EliminarRango(compromisos);
     }
 
-    private async Task DevolverLineaAsync(PedidoInventarioComprometidoLinea linea)
+    private async Task DevolverLineaAsync(PedidoInventarioComprometidoLinea linea) =>
+        await DevolverLineaAsync(linea, linea.Cantidad);
+
+    private async Task DevolverLineaAsync(PedidoInventarioComprometidoLinea linea, int cantidad)
     {
+        if (cantidad <= 0) return;
+
         switch (linea.TipoEntidad)
         {
             case TiposCompromisoInventario.Comprado:
-                await DevolverCompradoAsync(linea);
+                await DevolverCompradoAsync(linea, cantidad);
                 break;
 
             case TiposCompromisoInventario.Elaborado:
-                await DevolverElaboradoAsync(linea);
+                await DevolverElaboradoAsync(linea, cantidad);
                 break;
 
             case TiposCompromisoInventario.Insumo:
-                await DevolverInsumoAsync(linea);
+                await DevolverInsumoAsync(linea, cantidad);
                 break;
 
             case TiposCompromisoInventario.Promocion:
@@ -136,30 +172,30 @@ public sealed class InventarioPedidoCompromisoService(IUnitWork _unitWork) : IIn
         }
     }
 
-    private async Task DevolverCompradoAsync(PedidoInventarioComprometidoLinea linea)
+    private async Task DevolverCompradoAsync(PedidoInventarioComprometidoLinea linea, int cantidad)
     {
         var producto = await _unitWork.productos.TraerProducto(linea.Id_Producto!.Value, comprado: true);
         if (producto?.Comprado is null)
             throw new InventarioException($"Producto comprado no encontrado: {linea.Id_Producto}");
 
-        producto.Comprado.DevolverStock(linea.Cantidad);
+        producto.Comprado.DevolverStock(cantidad);
     }
 
-    private async Task DevolverElaboradoAsync(PedidoInventarioComprometidoLinea linea)
+    private async Task DevolverElaboradoAsync(PedidoInventarioComprometidoLinea linea, int cantidad)
     {
         var elaborado = await _unitWork.elaborados.TraerElaborado(linea.Id_Producto!.Value, withreceta: false);
         if (elaborado is null)
             throw new InventarioException($"Elaborado no encontrado: {linea.Id_Producto}");
 
-        elaborado.DevolverStock(linea.Cantidad);
+        elaborado.DevolverStock(cantidad);
     }
 
-    private async Task DevolverInsumoAsync(PedidoInventarioComprometidoLinea linea)
+    private async Task DevolverInsumoAsync(PedidoInventarioComprometidoLinea linea, int cantidad)
     {
         var insumo = await _unitWork.insumos.FindByIdAsync(linea.Id_Insumo!.Value);
         if (insumo is null)
             throw new InventarioException($"Insumo no encontrado: {linea.Id_Insumo}");
 
-        insumo.DevolverStock(linea.Cantidad);
+        insumo.DevolverStock(cantidad);
     }
 }

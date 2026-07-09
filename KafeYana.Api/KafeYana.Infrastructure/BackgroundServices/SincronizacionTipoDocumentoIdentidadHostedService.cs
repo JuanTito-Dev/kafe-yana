@@ -83,9 +83,23 @@ namespace KafeYana.Infrastructure.BackgroundServices
                 var sincronizador = scope.ServiceProvider
                     .GetRequiredService<SincronizadorCatTipoDocumentoIdentidad>();
                 var (cantidad, pvs) = await sincronizador.SincronizarAsync(ct);
-                _logger.LogInformation(
-                    "Sincronización CatTiposDocumentoIdentidad OK ({Cantidad} filas, {PVs} PVs)",
-                    cantidad, pvs);
+
+                if (pvs == 0)
+                {
+                    // SIAT no respondió en ningún PV: usar la última sync exitosa
+                    // persistida en BD en vez de quedarnos en el fallback hardcodeado.
+                    var desdeBd = await sincronizador.IntentarCargarDesdeBaseDatosAsync(ct);
+                    _logger.LogWarning(
+                        "SIAT no respondió al sincronizar CatTiposDocumentoIdentidad. "
+                        + "Catálogo servido desde BD: {DesdeBd}",
+                        desdeBd);
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "Sincronización CatTiposDocumentoIdentidad OK ({Cantidad} filas, {PVs} PVs)",
+                        cantidad, pvs);
+                }
             }
             catch (Exception ex)
             {

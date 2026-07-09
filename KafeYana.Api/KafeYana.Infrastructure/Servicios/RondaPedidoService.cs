@@ -35,7 +35,7 @@ public sealed class RondaPedidoService(
         {
             if (!idsEnPayload.Contains(detalleExistente.Id))
             {
-                await EliminarDetalleInternoAsync(detalleExistente);
+                await EliminarDetalleInternoConPisoAsync(detalleExistente);
                 ronda.Detalle.Remove(detalleExistente);
             }
         }
@@ -47,6 +47,9 @@ public sealed class RondaPedidoService(
                 var existente = ronda.Detalle.FirstOrDefault(d => d.Id == item.Id_Detalle.Value);
                 if (existente is null)
                     throw new DetalleRondaException($"Detalle {item.Id_Detalle} no pertenece a la ronda.");
+
+                if (item.Cantidad < existente.CantidadDescontada)
+                    existente.CantidadDescontada = item.Cantidad;
 
                 await ReemplazarDetalleAsync(datos.Id_Pedido, existente, item, referencia);
             }
@@ -84,9 +87,13 @@ public sealed class RondaPedidoService(
             throw new DetalleRondaException("El pedido no corresponde a la ronda.");
 
         foreach (var detalle in ronda.Detalle.ToList())
-            await RevertirDetalleAsync(detalle);
+        {
+            await EliminarDetalleInternoConPisoAsync(detalle);
+            ronda.Detalle.Remove(detalle);
+        }
 
         await _unitWork.rondas.Remove(ronda);
+
         await RecalcularTotalPedidoAsync(idPedido);
     }
 
@@ -99,6 +106,9 @@ public sealed class RondaPedidoService(
 
         if (detalle.ronda.Id_Pedido != idPedido)
             throw new DetalleRondaException("El pedido no corresponde al detalle.");
+
+        if (datos.Cantidad < detalle.CantidadDescontada)
+            detalle.CantidadDescontada = datos.Cantidad;
 
         var referencia = Detalle_RondaService.GenerarReferenciaEdicion(idPedido, detalle.Id_Ronda);
         var actualizado = await ReemplazarDetalleAsync(idPedido, detalle, new DtoRondadetalleEditar
@@ -127,9 +137,9 @@ public sealed class RondaPedidoService(
             throw new DetalleRondaException("El pedido no corresponde al detalle.");
 
         var ronda = detalle.ronda;
-        await EliminarDetalleInternoAsync(detalle);
-
+        await EliminarDetalleInternoConPisoAsync(detalle);
         ronda.Detalle.Remove(detalle);
+
         ronda.SubTotal = CalcularSubTotalRonda(ronda.Detalle);
         await RecalcularTotalPedidoAsync(idPedido);
     }
@@ -163,6 +173,9 @@ public sealed class RondaPedidoService(
         var procesado = await _detalleRondaService.ProcesarDetalleAsync(idPedido, dto, referencia);
 
         detalleExistente.Id_Producto = procesado.Id_Producto;
+        detalleExistente.Codigo = procesado.Codigo;
+        detalleExistente.CodigoSin = procesado.CodigoSin;
+        detalleExistente.CodigoUnidadMedida = procesado.CodigoUnidadMedida;
         detalleExistente.Nombre_Producto = procesado.Nombre_Producto;
         detalleExistente.Cantidad = procesado.Cantidad;
         detalleExistente.Precio = procesado.Precio;
@@ -182,9 +195,29 @@ public sealed class RondaPedidoService(
         return detalleExistente;
     }
 
-    private async Task EliminarDetalleInternoAsync(Detalle_ronda detalle)
+    /// <summary>
+    /// Borra un detalle de ronda por completo, revirtiendo del compromiso de
+    /// inventario SOLO la porción aún no vendida (<c>Cantidad - CantidadDescontada</c>):
+    /// lo que ya se vendió vía sub-venta consumió stock real y no se devuelve.
+    /// La sub-venta ya tiene su propia copia independiente de estos datos
+    /// (<see cref="SubVentaDetalle"/>) y no se ve afectada por este borrado.
+    /// </summary>
+    private async Task EliminarDetalleInternoConPisoAsync(Detalle_ronda detalle)
     {
-        await RevertirDetalleAsync(detalle);
+        if (detalle.CantidadDescontada == 0)
+        {
+            await RevertirDetalleAsync(detalle);
+        }
+        else
+        {
+            var cantidadALiberar = detalle.Cantidad - detalle.CantidadDescontada;
+            if (cantidadALiberar > 0)
+            {
+                await _compromisoService.RevertirCompromisoParcialAsync(
+                    detalle.Id, cantidadALiberar, detalle.Cantidad);
+            }
+        }
+
         await _unitWork.detallesRondas.Remove(detalle);
     }
 

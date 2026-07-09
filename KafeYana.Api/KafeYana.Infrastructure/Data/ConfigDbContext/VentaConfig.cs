@@ -12,9 +12,18 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             builder.HasKey(x => x.Id);
 
+            // Correlativo online y correlativo CAFC (motivos 5/6/7) son rangos
+            // independientes autorizados por el SIN (ver IVentaRepositorio.SiguienteNumeroFacturaCafcAsync).
+            // Un solo indice unico global chocaria entre ambos rangos; se parte
+            // por modalidad (Cafc NULL = online, Cafc NOT NULL = CAFC).
             builder.HasIndex(x => x.NumeroFactura)
                 .IsUnique()
-                .HasFilter("\"NumeroFactura\" IS NOT NULL");
+                .HasDatabaseName("IX_Venta_NumeroFactura")
+                .HasFilter("\"NumeroFactura\" IS NOT NULL AND \"Cafc\" IS NULL");
+            builder.HasIndex(x => x.NumeroFactura)
+                .IsUnique()
+                .HasDatabaseName("IX_Venta_NumeroFactura_Cafc")
+                .HasFilter("\"NumeroFactura\" IS NOT NULL AND \"Cafc\" IS NOT NULL");
             builder.HasIndex(x => x.Facturado);
             builder.HasIndex(x => x.Cuf).IsUnique();
             builder.HasIndex(x => x.EstadoSiat);

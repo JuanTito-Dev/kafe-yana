@@ -1,6 +1,8 @@
+using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Domain.Entities.Catalogos;
 using KafeYana.Domain.TiposDeDatos;
 using KafeYana.Infrastructure.Data;
+using KafeYana.Infrastructure.Servicios.Facturacion.Utilidades;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -28,13 +30,19 @@ namespace KafeYana.Api.Controllers
     public class PuntoVentaSiatController : ControllerBase
     {
         private readonly IDbContextFactory<AppDbContext> _dbFactory;
+        private readonly ICuisService _cuisService;
+        private readonly ICufdService _cufdService;
         private readonly ILogger<PuntoVentaSiatController> _logger;
 
         public PuntoVentaSiatController(
             IDbContextFactory<AppDbContext> dbFactory,
+            ICuisService cuisService,
+            ICufdService cufdService,
             ILogger<PuntoVentaSiatController> logger)
         {
             _dbFactory = dbFactory;
+            _cuisService = cuisService;
+            _cufdService = cufdService;
             _logger = logger;
         }
 
@@ -169,7 +177,33 @@ namespace KafeYana.Api.Controllers
                 });
             }
 
-            // 4) Devolver el estado del PV recién activado
+            // 4) Warm-up: si el PV nunca tuvo un cobro online, su tabla Cufd/Cuis
+            //    queda vacía y una contingencia disparada antes del primer cobro
+            //    no tiene CUFD que citar (ObtenerCufdEnCacheAsync no encuentra
+            //    nada → CufdEvento="" → paquete sale con CUFD en cero). Precargamos
+            //    CUIS/CUFD apenas se activa el PV, si el SIAT responde.
+            //    Best-effort: si el SIAT está caído justo al activar, no bloqueamos
+            //    el toggle — el PV queda activo igual, degradado hasta el próximo
+            //    cobro/reintento exitoso.
+            try
+            {
+                await _cuisService.ObtenerCuisVigenteAsync(codigoSucursal, codigoPuntoVenta, ct);
+                await _cufdService.ObtenerCufdVigenteAsync(
+                    codigoSucursal, codigoPuntoVenta, SiatFechaEmision.AhoraUtc(), ct);
+                _logger.LogInformation(
+                    "Warm-up CUIS/CUFD OK para PV recién activado (Suc={Suc}, PV={PV})",
+                    codigoSucursal, codigoPuntoVenta);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Warm-up CUIS/CUFD falló para PV recién activado (Suc={Suc}, PV={PV}). "
+                  + "El PV queda activo; una contingencia antes del primer cobro exitoso "
+                  + "puede quedar con CUFD vacío hasta que el SIAT responda.",
+                    codigoSucursal, codigoPuntoVenta);
+            }
+
+            // 5) Devolver el estado del PV recién activado
             return Ok(new PuntoVentaSiatDto
             {
                 CodigoSucursal = destino.CodigoSucursal,
@@ -178,6 +212,64 @@ namespace KafeYana.Api.Controllers
                 Activo = destino.Activo
             });
         }
+
+        /// <summary>
+        /// PATCH /api/PuntoVentaSiat/{codigoSucursal}/{codigoPuntoVenta}/cafc
+        ///
+        /// Configura el CAFC (Código de Autorización de Facturación por Contingencia)
+        /// que el SIN emitió específicamente para este PV, para usar en motivos 5/6/7
+        /// (talonario/manual). El SIN lo emite por punto de venta vía Oficina Virtual —
+        /// no hay SOAP para pedirlo automáticamente. Usar el CAFC de otro PV es inválido
+        /// y el SIAT rechaza con [1045] "VALOR DE CAFC NO VALIDO".
+        ///
+        /// Enviar cafc=null o vacío limpia el valor (el PV queda sin CAFC — el sistema
+        /// no manda &lt;cafc&gt; en el sobre SOAP para ese PV hasta que se cargue uno).
+        /// </summary>
+        [HttpPatch("{codigoSucursal:int}/{codigoPuntoVenta:int}/cafc")]
+        [Authorize(Roles = RolesKafe.Admin)]
+        public async Task<IActionResult> ActualizarCafc(
+            int codigoSucursal,
+            int codigoPuntoVenta,
+            [FromBody] ActualizarCafcDto dto,
+            CancellationToken ct)
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            var destino = await db.PuntosVentaSiat
+                .FirstOrDefaultAsync(p =>
+                    p.CodigoSucursal == codigoSucursal &&
+                    p.CodigoPuntoVenta == codigoPuntoVenta, ct);
+
+            if (destino is null)
+            {
+                return NotFound(new
+                {
+                    transaccion = false,
+                    error = $"No existe el PV (Suc={codigoSucursal}, PV={codigoPuntoVenta})."
+                });
+            }
+
+            destino.Cafc = string.IsNullOrWhiteSpace(dto.Cafc) ? null : dto.Cafc.Trim();
+            await db.SaveChangesAsync(ct);
+
+            _logger.LogInformation(
+                "CAFC actualizado para PV (Suc={Suc}, PV={PV}): {Estado}",
+                codigoSucursal, codigoPuntoVenta,
+                destino.Cafc is null ? "(limpiado)" : "cargado");
+
+            return Ok(new PuntoVentaSiatDto
+            {
+                CodigoSucursal = destino.CodigoSucursal,
+                CodigoPuntoVenta = destino.CodigoPuntoVenta,
+                Nombre = destino.Nombre,
+                Activo = destino.Activo,
+                Cafc = destino.Cafc
+            });
+        }
+    }
+
+    public class ActualizarCafcDto
+    {
+        public string? Cafc { get; set; }
     }
 
     /// <summary>
@@ -206,5 +298,6 @@ namespace KafeYana.Api.Controllers
         public int CodigoPuntoVenta { get; set; }
         public string Nombre { get; set; } = string.Empty;
         public bool Activo { get; set; }
+        public string? Cafc { get; set; }
     }
 }

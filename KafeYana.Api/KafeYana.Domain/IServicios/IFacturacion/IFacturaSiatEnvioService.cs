@@ -11,6 +11,7 @@ namespace KafeYana.Application.IServicios.IFacturacion
 
         Task<ResultadoEnvioFacturaSiatDto> ReenviarFacturaAsync(
             int ventaId,
+            DtoDatosFiscalesReenvio? datosFiscales = null,
             CancellationToken ct = default);
     }
 }

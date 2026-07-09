@@ -420,11 +420,21 @@ namespace KafeYana.Api.Controllers
             try
             {
                 var (cantidad, pvsExitosos) = await _sincronizadorTipoDocumentoIdentidad.SincronizarAsync(ct);
+
+                var desdeBaseDatos = false;
+                if (pvsExitosos == 0)
+                {
+                    // SIAT no respondió en ningún PV: usar la última sync exitosa
+                    // persistida en BD en vez de dejar el catálogo en fallback hardcodeado.
+                    desdeBaseDatos = await _sincronizadorTipoDocumentoIdentidad.IntentarCargarDesdeBaseDatosAsync(ct);
+                }
+
                 return Ok(new
                 {
                     transaccion = true,
                     cantidad = cantidad,
-                    pvsExitosos = pvsExitosos
+                    pvsExitosos = pvsExitosos,
+                    desdeBaseDatos = desdeBaseDatos
                 });
             }
             catch (InvalidOperationException ex)
@@ -472,7 +482,8 @@ namespace KafeYana.Api.Controllers
             return Ok(new
             {
                 items,
-                sincronizado = !TipoDocumentoIdentidadSiatCatalogo.EsFallback
+                sincronizado = !TipoDocumentoIdentidadSiatCatalogo.EsFallback,
+                desdeBaseDatos = TipoDocumentoIdentidadSiatCatalogo.EsDesdeBaseDatos
             });
         }
 

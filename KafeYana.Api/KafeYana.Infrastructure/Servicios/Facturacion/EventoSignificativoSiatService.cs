@@ -105,9 +105,13 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             }
 
             // Resolver CUIS + CUFD vigentes — los necesita el sobre SOAP.
+            // esContingencia=true: en contingencia el SIAT no compara fechaEmision contra
+            // hora actual, podemos reusar el CUFD durante sus 24h oficiales. Sin este flag
+            // el sistema descarta el CUFD cada 5 min y dispara requests innecesarios que
+            // pueden agotar el timeout (pérdida de paquetes contingencia).
             var cuis = await _cuisService.ObtenerCuisVigenteAsync(codigoSucursal, codigoPuntoVenta, ct);
             var cufd = await _cufdService.ObtenerCufdVigenteAsync(
-                codigoSucursal, codigoPuntoVenta, fechaInicio, ct);
+                codigoSucursal, codigoPuntoVenta, fechaInicio, ct, esContingencia: true);
 
             // Después de ValidarContraCatalogoYAutoFillAsync, Descripcion SIEMPRE
             // está poblada (auto-fill desde catálogo o el valor custom del caller).
@@ -550,44 +554,24 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             // El cortocircuito está bypaseado globalmente por el probe (ver
             // SiatConnectivityMonitor._bypassActivo), así que las llamadas
             // SOAP pasan sin necesidad de propagar flags por la cadena.
+            // esContingencia=true: reenvío de registro SIEMPRE es contingencia.
             var cuis = await _cuisService.ObtenerCuisVigenteAsync(
                 entity.CodigoSucursal, entity.CodigoPuntoVenta, ct);
             var cufd = await _cufdService.ObtenerCufdVigenteAsync(
                 entity.CodigoSucursal, entity.CodigoPuntoVenta,
-                entity.FechaHoraInicioEvento, ct);
+                entity.FechaHoraInicioEvento, ct, esContingencia: true);
 
-            // Si CufdEvento estaba vacío en el registro local (modo degradado),
-            // usar el CUFD fresco que acabamos de obtener. Si no, mantener el
-            // original (consistencia con la fechaEmision del CUF que se usó en
-            // contingencia por ConstruirVentaOfflineAsync).
-            //
-            // Gap 8.3: SIAT rechaza con 981 cuando el rango del evento excede la
-            // FechaVigencia del CufdEvento. El CufdEvento persistido durante la
-            // contingencia (entity.CufdEvento) es el CUFD que estaba en cache
-            // cuando arrancó la caída — su VigenteHasta probablemente ya pasó
-            // cuando reenviamos al recuperar SIAT. El comentario del SiatHttpClient
-            // dice "en operación normal ambos [cufd/cufdEvento] son iguales"; en
-            // contingencia no hay razón válida para que difieran, así que usamos
-            // SIEMPRE el CUFD fresco, que sí cubre el rango del evento por estar
-            // recién emitido con VigenteHasta = ahora + 35min.
-            //
-            // Riesgo: las ventas contingencia ya emitidas tienen CUF calculado con
-            // la FechaEmisionSolicitud del CUFD viejo, NO del fresco. PERO la
-            // FechaEmisionSolicitud es LA MISMA en ambos CUFDs en modo contingencia
-            // (ambos heredan el inicio del evento), por lo que los CUF siguen
-            // siendo válidos. Verificado en BD: CUFD viejo (Id 1779) y fresco
-            // (Id 1783) ambos tienen FechaEmisionSolicitud = 03:33:08.
-            var cufdEventoParaSoap = cufd.Codigo;
-
-            // Gap 7: CodigoControlEvento se actualiza SIEMPRE con el CUFD fresco
-            // que acabamos de obtener, porque en este punto (recuperación) el
-            // monitor ya validó que el SIAT responde. Si la entidad tenía un
-            // CodigoControlEvento viejo (de un registro local previo), lo
-            // reemplazamos para que las NUEVAS ventas contingencia que se emitan
-            // entre este reenvío y el cierre del evento usen el hex correcto.
-            // Las ventas ya emitidas mantienen su CUF original (no se
-            // regenera retroactivo — sweep Gap 7 las marca si están mal).
-            var codigoControlEventoParaReenvio = cufd.CodigoControl;
+            // Fix [984]: SIAT valida que cufdEvento sea el CUFD activo en FechaHoraInicioEvento.
+            // entity.CufdEvento fue persistido por RegistrarLocalmenteSinSoapAsync desde la
+            // cache en el momento exacto del corte — es el valor correcto.
+            // Antes se usaba siempre cufd.Codigo (fresco); si el CUFD había rotado más de
+            // 5 min después del corte (AntiguedadMaximaCufd online), ObtenerCufdVigenteAsync
+            // emitía uno nuevo → SIAT rechazaba [984] porque ese CUFD no existía en FechaInicio.
+            // El cufd fresco (sobre SOAP exterior) sigue siendo fresco; solo cufdEvento cambia.
+            // Fallback al fresco solo si entity.CufdEvento está vacío (cache vacía al inicio del corte).
+            var cufdEventoParaSoap = !string.IsNullOrEmpty(entity.CufdEvento)
+                ? entity.CufdEvento
+                : cufd.Codigo;
 
             // Si fechaFin venía NULL (registro local sin SOAP), setearla AHORA
             // con la hora OFICIAL del SIAT (no DateTime.UtcNow del backend,
@@ -686,7 +670,10 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             // UPDATE entity existente (no INSERT).
             entity.Cufd = cufd.Codigo;
             entity.CufdEvento = cufdEventoParaSoap;
-            entity.CodigoControlEvento = codigoControlEventoParaReenvio;
+            // CodigoControlEvento NO se sobreescribe: fue seteado desde entity.CufdEvento
+            // en RegistrarLocalmenteSinSoapAsync y las facturas contingencia ya calcularon
+            // sus CUFs con ese hex. Reemplazarlo con el CodigoControl del CUFD fresco
+            // dejaría la entidad inconsistente con los CUFs emitidos.
             entity.Cuis = cuis.Codigo;
             entity.CodigoRecepcionEventoSignificativo = respuesta.CodigoRecepcionEventoSignificativo;
             entity.Transaccion = respuesta.Transaccion;

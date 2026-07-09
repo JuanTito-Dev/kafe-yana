@@ -41,7 +41,7 @@ namespace KafeYana.Domain.TiposDeDatos
             };
 
         /// <summary>Seed default: códigos que arrancan <c>Activo=true</c> en el primer sync.</summary>
-        private static readonly HashSet<int> SeedActivosPorDefault = new() { 1, 7 };
+        private static readonly HashSet<int> SeedActivosPorDefault = new() { 1, 2, 7 };
 
         /// <summary>
         /// Snapshot inmutable del catálogo (código → (descripción, activo)).

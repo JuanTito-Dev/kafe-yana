@@ -14,6 +14,26 @@ namespace KafeYana.Application.Dtos.VentaDtos
         [Required]
         public required DtoPagos Pagos { get; set; }
 
+        /// <summary>
+        /// Bloque de pagos consolidado para emitir al SIAT cuando se usó
+        /// división de cuenta (varios métodos) pero la factura debe mostrar
+        /// un único método predominante con el monto total.
+        ///
+        /// Reglas:
+        ///   - Si se envía con exactamente 1 línea y monto > 0, su
+        ///     <c>CodigoMetodoPago</c> se usa como <c>Venta.CodigoMetodoPago</c>
+        ///     (campo XML al SIAT), ignorando el desempate por mayor monto
+        ///     que el backend aplicaría sobre <see cref="Pagos"/>.
+        ///   - Si es <c>null</c> o tiene 0/N líneas, se mantiene el
+        ///     comportamiento legacy: <c>Venta.CodigoMetodoPago</c> = la línea
+        ///     de mayor monto de <see cref="Pagos"/>.
+        ///
+        /// NO afecta <c>VentaPagos</c> ni <c>Caja</c>: ambos siguen leyendo
+        /// <see cref="Pagos"/>.<c>Lineas</c> (el split original se conserva
+        /// para auditoría interna y para los acumuladores de caja).
+        /// </summary>
+        public DtoPagos? PagosFactura { get; set; }
+
         /// <summary>Si es true, aplica el mejor descuento permanente disponible. Default: false.</summary>
         public bool AplicarDescuentos { get; set; } = false;
 
@@ -72,6 +92,12 @@ namespace KafeYana.Application.Dtos.VentaDtos
         /// campo se IGNORA: el país se lee de la BD (cliente ya persistido).
         /// </summary>
         public int? CodigoPaisOrigen { get; set; }
+
+        /// <summary>Items parciales a cobrar (producto + cantidad, FIFO across rondas). Si viene con items, es una sub-venta (cobro parcial).</summary>
+        public List<DtoItemProductoCobrar>? ItemsCubiertos { get; set; }
+
+        /// <summary>Si true, la mesa queda abierta tras el cobro (pago parcial). Default false.</summary>
+        public bool MantenerMesaAbierta { get; set; } = false;
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

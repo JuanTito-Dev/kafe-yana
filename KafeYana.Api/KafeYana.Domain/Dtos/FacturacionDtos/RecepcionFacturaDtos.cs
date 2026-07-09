@@ -75,6 +75,12 @@ namespace KafeYana.Application.Dtos.FacturacionDtos
         public long CodigoEvento { get; set; }
         public int CantidadFacturas { get; set; }
         public string? Cafc { get; set; } = string.Empty;
+
+        // CodigoMotivo del evento significativo (1-7). Se usa en SiatHttpClient para
+        // decidir si enviar <cafc>: sólo se incluye cuando el motivo es 5, 6 o 7
+        // (factura manual / talonario físico). Para motivos 1-4 (sistema/caída),
+        // el SIN espera que el campo <cafc> NO esté presente.
+        public int? CodigoMotivo { get; set; }
     }
 
     /// <summary>

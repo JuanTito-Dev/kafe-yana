@@ -7,6 +7,9 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 {
     public static class ClientePedidoHelper
     {
+        // Debe coincidir con CONSUMIDOR_FINAL_NAME en frontend/src/constants/facturacion.ts.
+        private const string ConsumidorFinalNombre = "Consumidor Final";
+
         public static async Task<Cliente?> VincularClienteAlPedidoAsync(
             IUnitWork db,
             int? idCliente,
@@ -60,7 +63,10 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 return (cliente, cliente.Dni?.ToString() ?? "0");
             }
 
-            throw new VentaException("Debe indicar el cliente para registrar el cobro.");
+            // Cliente no es obligatorio para cobrar: sin selección, se cobra a
+            // "Consumidor Final" (se crea en BD la primera vez que se necesita).
+            var cf = await ResolverConsumidorFinalAsync(db);
+            return (cf, cf.Dni?.ToString() ?? "0");
         }
 
         public static async Task<(Cliente Cliente, string NumeroDocumento)> ResolverParaFacturacionAsync(
@@ -86,8 +92,33 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 return (cliente, ObtenerNumeroDocumento(cliente));
             }
 
-            throw new VentaException(
-                "Debe enviar Id_Cliente o Nombre y C.L., o el pedido debe tener un cliente asignado.");
+            // Cliente no es obligatorio para facturar: sin selección, se factura a
+            // "Consumidor Final" (NIT, numeroDocumento="0").
+            var cf = await ResolverConsumidorFinalAsync(db);
+            return (cf, cf.Dni?.ToString() ?? "0");
+        }
+
+        private static async Task<Cliente> ResolverConsumidorFinalAsync(IUnitWork db)
+        {
+            var existente = await db.clientes.GetByNombreAsync(ConsumidorFinalNombre);
+            if (existente is not null)
+                return existente;
+
+            var cf = new Cliente
+            {
+                Nombre = ConsumidorFinalNombre,
+                Dni = null,
+                Celular = null,
+                Correo = null,
+                Correonormalizado = string.Empty,
+                Estado = true
+            };
+
+            await db.clientes.Crear(cf);
+            await db.SaveUnitWork();
+            cf.AsignarCodigoFacturacion(ClienteCodigoService.Generar(cf.Nombre, cf.Id));
+
+            return cf;
         }
 
         private static async Task<Cliente> ObtenerClienteDelPedidoAsync(

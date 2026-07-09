@@ -59,6 +59,14 @@ namespace KafeYana.Domain.TiposDeDatos
         /// </summary>
         public static bool EsFallback { get; private set; } = true;
 
+        /// <summary>
+        /// True cuando el caché fue poblado desde <c>CatTiposDocumentoIdentidad</c> (última
+        /// sync exitosa persistida en BD) en lugar de una respuesta en vivo del SIAT. Se usa
+        /// cuando SIAT no responde pero hay datos previos utilizables — ver
+        /// <see cref="CargarDesdeBaseDatos"/>. Vuelve a false apenas un sync en vivo tiene éxito.
+        /// </summary>
+        public static bool EsDesdeBaseDatos { get; private set; }
+
         /// <summary>True si el código está en el catálogo vigente (BD o fallback).</summary>
         public static bool EsValido(int codigo) => _cache.ContainsKey(codigo);
 
@@ -81,19 +89,44 @@ namespace KafeYana.Domain.TiposDeDatos
         /// </summary>
         public static void Refrescar(IEnumerable<(int Codigo, string Descripcion)> tipos)
         {
-            if (tipos is null) return;
+            var nuevo = Normalizar(tipos);
+            if (nuevo is null) return;
+
+            // Reemplazo atómico: cualquier lector en vuelo verá el diccionario viejo
+            // o el nuevo, nunca uno parcial.
+            Interlocked.Exchange(ref _cache, nuevo);
+            EsFallback = false;
+            EsDesdeBaseDatos = false;
+        }
+
+        /// <summary>
+        /// Llamado cuando el SIAT no responde (boot o sync manual) pero
+        /// <c>CatTiposDocumentoIdentidad</c> ya tiene datos de una sync anterior exitosa.
+        /// Sirve ese último catálogo conocido en vez del fallback hardcodeado, sin límite
+        /// de antigüedad: los códigos de tipo de documento del SIN cambian muy rara vez.
+        /// No pisa el caché si el sync en vivo ya lo actualizó o si la BD está vacía
+        /// (instalación nueva, nunca sincronizó — ahí se mantiene <see cref="FallbackHardcoded"/>).
+        /// </summary>
+        public static void CargarDesdeBaseDatos(IEnumerable<(int Codigo, string Descripcion)> tipos)
+        {
+            var nuevo = Normalizar(tipos);
+            if (nuevo is null) return;
+
+            Interlocked.Exchange(ref _cache, nuevo);
+            EsFallback = false;
+            EsDesdeBaseDatos = true;
+        }
+
+        private static IReadOnlyDictionary<int, string>? Normalizar(IEnumerable<(int Codigo, string Descripcion)> tipos)
+        {
+            if (tipos is null) return null;
 
             var nuevo = tipos
                 .Where(t => t.Codigo > 0 && !string.IsNullOrWhiteSpace(t.Descripcion))
                 .GroupBy(t => t.Codigo)
                 .ToDictionary(g => g.Key, g => g.First().Descripcion.Trim());
 
-            if (nuevo.Count == 0) return;
-
-            // Reemplazo atómico: cualquier lector en vuelo verá el diccionario viejo
-            // o el nuevo, nunca uno parcial.
-            Interlocked.Exchange(ref _cache, nuevo);
-            EsFallback = false;
+            return nuevo.Count == 0 ? null : nuevo;
         }
     }
 }

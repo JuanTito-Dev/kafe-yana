@@ -28,10 +28,14 @@ namespace KafeYana.Api.GraphQLMap
             DateTime? fechaDesde = null,
             DateTime? fechaHasta = null,
             string? estadoSiat = null,
+            bool? facturado = null,
             string? search = null,
             CancellationToken ct = default)
         {
-            IQueryable<Venta> q = _Venta.VentaQuery();
+            IQueryable<Venta> q = _Venta.VentaQuery()
+                .Include(v => v.Detalles)
+                .Include(v => v.Pagos)
+                .Include(v => v.NotasAjuste);
 
             if (id.HasValue)
                 q = q.Where(v => v.Id == id.Value);
@@ -46,6 +50,9 @@ namespace KafeYana.Api.GraphQLMap
                 && Enum.TryParse<FacturaEstado>(estadoSiat, ignoreCase: true, out var estadoEnum))
                 q = q.Where(v => v.EstadoSiat == estadoEnum);
 
+            if (facturado.HasValue)
+                q = q.Where(v => v.Facturado == facturado.Value);
+
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var s = search.ToLower();
@@ -58,7 +65,7 @@ namespace KafeYana.Api.GraphQLMap
                                    || v.Usuario.ToLower().Contains(s));
             }
 
-            return q.OrderByDescending(v => v.FechaEmision).ToOffsetPageAsync(skip, take, ct);
+            return q.OrderByDescending(v => v.Id).ToOffsetPageAsync(skip, take, ct);
         }
 
         /// <summary>
@@ -86,6 +93,8 @@ namespace KafeYana.Api.GraphQLMap
                     q = q.Where(v => v.FechaEmision <= where.FechaHasta.Value);
                 if (where.EstadoSiat.HasValue)
                     q = q.Where(v => v.EstadoSiat == where.EstadoSiat.Value);
+                if (where.Facturado.HasValue)
+                    q = q.Where(v => v.Facturado == where.Facturado.Value);
             }
 
             // Sin filtro de estado SIAT aquí a propósito: el usuario pidió
@@ -146,5 +155,6 @@ namespace KafeYana.Api.GraphQLMap
         public DateTime? FechaDesde { get; set; }
         public DateTime? FechaHasta { get; set; }
         public FacturaEstado? EstadoSiat { get; set; }
+        public bool? Facturado { get; set; }
     }
 }

@@ -72,15 +72,17 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
                 ?? throw new VentaException(
                     $"ReenviarVentasPendientesAsync: evento {eventoSignificativoId} no existe");
 
-            if (string.IsNullOrWhiteSpace(evento.CodigoRecepcionEventoSignificativo))
+            if (string.IsNullOrWhiteSpace(evento.CodigoRecepcionEventoSignificativo)
+                || evento.CodigoRecepcionEventoSignificativo.Trim() == "0")
             {
-                // El evento fue rechazado por SIAT (EstadoContingencia=Rechazado) o
-                // todavía no se registró OK. Sin codigoRecepcion no podemos paquetizar.
+                // El evento fue rechazado por SIAT (EstadoContingencia=Rechazado),
+                // todavía no se registró OK, o el SIAT devolvió "0" como código.
+                // En cualquier caso, sin codigoRecepcion válido no podemos paquetizar.
                 var ventasSinCodRecep = await _db.ventas.BuscarPendientesPorEventoAsync(eventoSignificativoId, ct);
                 _logger.LogWarning(
-                    "ReenviarVentasPendientesAsync: evento {Id} sin CodigoRecepcionEventoSignificativo. "
+                    "ReenviarVentasPendientesAsync: evento {Id} con CodigoRecepcionEventoSignificativo inválido ('{Valor}'). "
                   + "Las {Count} ventas Pendientes NO se procesan hasta que el evento se registre OK en el SIAT.",
-                    evento.Id, ventasSinCodRecep.Count);
+                    evento.Id, evento.CodigoRecepcionEventoSignificativo ?? "(null)", ventasSinCodRecep.Count);
                 return new ResultadoReenvioContingenciaDto
                 {
                     EventoSignificativoId = eventoSignificativoId,
@@ -103,10 +105,20 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
                 };
             }
 
+            // Split: ventas sin CodigoRecepcion → Path A (envío + validación).
+            //        ventas con CodigoRecepcion ya asignado → Path B (sólo revalidar).
+            //        Evita duplicar recepcionPaqueteFactura cuando SIAT devolvió 901
+            //        sostenido en el ciclo anterior y el HostedService reintenta.
+            var ventasNuevas = ventas.Where(v => string.IsNullOrWhiteSpace(v.CodigoRecepcion)).ToList();
+            var ventasPendienteVal = ventas.Where(v => !string.IsNullOrWhiteSpace(v.CodigoRecepcion)).ToList();
+
             _logger.LogInformation(
-                "Reenvío contingencia (eventoId={Id}): {N} ventas pendientes. "
-              + "Agrupando por (suc,pv,evento,cufd) y paquetizando hasta {Max} por SOAP.",
-                eventoSignificativoId, ventas.Count, _opts.CantidadMaximaPaquete);
+                "Reenvío contingencia (eventoId={Id}): {N} ventas pendientes "
+              + "({Nuevas} nuevas para envío, {Revalidar} ya enviadas para revalidar). "
+              + "Paquetizando hasta {Max} por SOAP.",
+                eventoSignificativoId, ventas.Count,
+                ventasNuevas.Count, ventasPendienteVal.Count,
+                _opts.CantidadMaximaPaquete);
 
             // ════════════════════════════════════════════════════════════════
             // LOG DEBUG: batch-level. Usa un correlation ID de batch (sufijo
@@ -140,7 +152,7 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
             //    uniformes por paquete (todas las facturas del paquete deben compartir
             //    el mismo CUFD). Si un evento cubre facturas con CUFDs distintos
             //    (rollover de día durante contingencia), subdividimos.
-            var grupos = ventas
+            var grupos = ventasNuevas
                 .GroupBy(v => new
                 {
                     v.CodigoSucursal,
@@ -192,6 +204,11 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
                         ContingenciaContext.CorrelationId = previousCorrelationId;
                     }
 
+                    // Capturar CUFD ANTES del SOAP: Pieza 3b puede haber actualizado
+                    // evento.CufdEvento a un CUFD fresco; la validación debe usar el
+                    // mismo CUFD que se envió en el sobre recepción (Bug 2).
+                    var cufdPaquete = paquete[0].Cufd ?? string.Empty;
+
                     RespuestaRecepcionPaqueteFacturaDto respuesta;
                     try
                     {
@@ -231,7 +248,7 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
                         continue;
                     }
 
-                    var mapeo = await MapearRespuestaPaqueteAsync(paquete, evento, respuesta, ct);
+                    var mapeo = await MapearRespuestaPaqueteAsync(paquete, evento, respuesta, cufdPaquete, ct);
                     totalValidadas += mapeo.Validadas;
                     totalObservadas += mapeo.Observadas;
                     totalErrores += mapeo.Errores;
@@ -254,6 +271,133 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
 
                     paqueteGlobalIdx++;
                 }
+            }
+
+            // ════════════════════════════════════════════════════════════════
+            // Path B: ventas que ya tienen CodigoRecepcion de un envío previo.
+            // No llamar recepcionPaqueteFactura (evita duplicados en piloto/prod).
+            // Sólo revalidar con validacionRecepcionPaqueteFactura.
+            // ════════════════════════════════════════════════════════════════
+            var gruposRevalidacion = ventasPendienteVal
+                .GroupBy(v => v.CodigoRecepcion!)
+                .ToList();
+
+            foreach (var grupoVal in gruposRevalidacion)
+            {
+                if (ct.IsCancellationRequested) break;
+
+                var codRecepVal = grupoVal.Key;
+                // Mismo orden que el TAR.GZ original para que NumeroArchivo coincida.
+                var loteVal = grupoVal.OrderBy(v => v.FechaEmision).ToList();
+                var cufdPaqueteVal = loteVal[0].Cufd ?? string.Empty;
+
+                try
+                {
+                    ContingenciaContext.CorrelationId = batchId;
+                    _debug.LogInfo("ReenvioFacturasContingencia", "revalidacion_inicio",
+                        $"codRecep={codRecepVal} ventas={loteVal.Count} cufdLen={cufdPaqueteVal.Length}");
+                }
+                finally { ContingenciaContext.CorrelationId = previousCorrelationId; }
+
+                var ventasRechazadasVal = new HashSet<int>();
+                int? estadoVal = null;
+                RespuestaValidacionRecepcionPaqueteDto validacionVal = null!;
+
+                for (int intento = 0; intento < 10; intento++)
+                {
+                    ct.ThrowIfCancellationRequested();
+
+                    validacionVal = await _recepcionFactura.ValidarRecepcionPaqueteContingenciaAsync(
+                        codRecepVal,
+                        evento.CodigoSucursal,
+                        evento.CodigoPuntoVenta,
+                        evento.CodigoAmbiente,
+                        evento.Cuis ?? string.Empty,
+                        cufdPaqueteVal,
+                        _opts.CodigoSistema,
+                        _opts.Nit,
+                        ct);
+
+                    estadoVal = validacionVal.CodigoEstado;
+
+                    if (estadoVal is 908 or 904)
+                    {
+                        foreach (var msg in validacionVal.MensajesList ?? new())
+                        {
+                            if (string.IsNullOrWhiteSpace(msg.NumeroArchivo)) continue;
+                            if (!int.TryParse(msg.NumeroArchivo, out var num)
+                                || num < 1 || num > loteVal.Count) continue;
+                            var idx = num - 1;
+                            if (ventasRechazadasVal.Contains(idx)) continue;
+                            var vr = loteVal[idx];
+                            vr.EstadoSiat = FacturaEstado.Observada;
+                            vr.ErrorMensaje = $"Observada en revalidación: [{(msg.Codigo ?? "?")}] {msg.Descripcion ?? "(sin descripción)"}";
+                            ventasRechazadasVal.Add(idx);
+                        }
+                        break;
+                    }
+
+                    if (estadoVal is 901)
+                    {
+                        _logger.LogInformation(
+                            "Revalidación-only: paquete {CodRecep} en estado 901. Reintento {N}/10.",
+                            codRecepVal, intento + 1);
+                        await Task.Delay(TimeSpan.FromSeconds(3), ct);
+                        continue;
+                    }
+
+                    _logger.LogWarning(
+                        "Revalidación-only: paquete {CodRecep} estado inesperado {Estado}. Dejando Pendiente.",
+                        codRecepVal, estadoVal);
+                    break;
+                }
+
+                int valVal = 0, obsVal = 0;
+                if (estadoVal == 908)
+                {
+                    foreach (var (idx, v) in loteVal.Select((vv, i) => (i, vv)))
+                    {
+                        if (ventasRechazadasVal.Contains(idx)) continue;
+                        v.EstadoSiat = FacturaEstado.Validada;
+                        v.CodigoRecepcion = codRecepVal;
+                        v.ErrorMensaje = null;
+                        valVal++;
+                        totalValidadas++;
+                    }
+                }
+                else if (estadoVal == 904)
+                {
+                    foreach (var (idx, v) in loteVal.Select((vv, i) => (i, vv)))
+                    {
+                        if (ventasRechazadasVal.Contains(idx)) continue;
+                        v.EstadoSiat = FacturaEstado.Observada;
+                        v.ErrorMensaje = "Paquete 904 observada por SIN al revalidar.";
+                        obsVal++;
+                        totalObservadas++;
+                    }
+                }
+                else
+                {
+                    // 901 sostenido (>30s) u otro estado desconocido.
+                    // Mantener Pendiente — CodigoRecepcion ya está asignado, no tocar.
+                    foreach (var (idx, v) in loteVal.Select((vv, i) => (i, vv)))
+                    {
+                        if (ventasRechazadasVal.Contains(idx)) continue;
+                        v.EstadoSiat = FacturaEstado.Pendiente;
+                        v.ErrorMensaje = $"Revalidación no convergió tras 10 reintentos (estado {estadoVal?.ToString() ?? "?"}).";
+                    }
+                }
+
+                try
+                {
+                    ContingenciaContext.CorrelationId = batchId;
+                    _debug.LogInfo("ReenvioFacturasContingencia", "revalidacion_resultado",
+                        $"codRecep={codRecepVal} estadoFinal={estadoVal} "
+                      + $"validadas={valVal} observadas={obsVal} rechazadas={ventasRechazadasVal.Count}");
+                }
+                finally { ContingenciaContext.CorrelationId = previousCorrelationId; }
+
+                totalProcesadas += loteVal.Count;
             }
 
             await _db.SaveUnitWork();
@@ -313,6 +457,7 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
                 IReadOnlyList<Venta> paquete,
                 EventoSignificativoSiat evento,
                 RespuestaRecepcionPaqueteFacturaDto respuesta,
+                string cufdPaquete,
                 CancellationToken ct)
         {
             int validadas = 0, observadas = 0, errores = 0, pendientes = 0;
@@ -373,14 +518,14 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
             //    901 transitorio (paquete recibido pero todavía procesado) requiere espera.
             //    908 = validada → marcamos las no-rechazadas como Validadas.
             //    904 = observada → marcamos como Observadas con la descripción del SIN.
-            //    Timeout (5 intentos × 1s) → no marcamos, dejamos Pendiente para reintento
+            //    Timeout (10 intentos × 3s = 30s) → no marcamos, dejamos Pendiente para reintento
             //    posterior desde ContingencyResendHostedService.
             //    Usamos los datos del evento (que es invariante para todas las ventas
             //    del paquete) y NO de `muestra` (que es una venta individual y no
             //    carga CodigoAmbiente ni Cuis en el modelo Venta).
             RespuestaValidacionRecepcionPaqueteDto validacion;
             int? estadoDefinitivo = null;
-            for (int intento = 0; intento < 5; intento++)
+            for (int intento = 0; intento < 10; intento++)
             {
                 ct.ThrowIfCancellationRequested();
 
@@ -390,7 +535,7 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
                     evento.CodigoPuntoVenta,
                     evento.CodigoAmbiente,
                     evento.Cuis ?? string.Empty,
-                    evento.CufdEvento,           // FIX #10: CUFD del momento del envío, NO el vigente
+                    cufdPaquete,                 // FIX #11: CUFD real del sobre enviado (no evento.CufdEvento que Pieza3b ya mutó)
                     _opts.CodigoSistema,
                     _opts.Nit,
                     ct);
@@ -417,9 +562,9 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
                 if (estadoDefinitivo is 901)
                 {
                     _logger.LogInformation(
-                        "FIX #1: paquete {CodRecep} en estado 901 (pendiente). Reintento {N}/5.",
+                        "FIX #1: paquete {CodRecep} en estado 901 (pendiente). Reintento {N}/10.",
                         codRecep, intento + 1);
-                    await Task.Delay(TimeSpan.FromSeconds(1), ct);
+                    await Task.Delay(TimeSpan.FromSeconds(3), ct);
                     continue;
                 }
 

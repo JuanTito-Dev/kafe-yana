@@ -6,6 +6,7 @@ using KafeYana.Infrastructure.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
 
 namespace KafeYana.Api.Controllers
@@ -231,9 +232,12 @@ namespace KafeYana.Api.Controllers
         /// </summary>
         [HttpPost("reenviar/{ventaId:int}")]
         [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
-        public async Task<IActionResult> ReenviarFactura(int ventaId, CancellationToken ct)
+        public async Task<IActionResult> ReenviarFactura(
+            int ventaId,
+            [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] DtoDatosFiscalesReenvio? datosFiscales,
+            CancellationToken ct)
         {
-            var envioSiat = await _facturaSiatEnvio.ReenviarFacturaAsync(ventaId, ct);
+            var envioSiat = await _facturaSiatEnvio.ReenviarFacturaAsync(ventaId, datosFiscales, ct);
 
             var mensaje = envioSiat.Transaccion
                 ? envioSiat.Enviado

@@ -78,6 +78,14 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
         void LimpiarEstadoContingencia(int codigoSucursal, int codigoPuntoVenta);
 
         /// <summary>
+        /// Registra en memoria una contingencia creada externamente (endpoint manual)
+        /// sin pasar por el detector automático. Necesario para que el probe incluya
+        /// este par en su ciclo y dispare el reenvío automático cuando el SIAT vuelva,
+        /// sin requerir reinicio del backend.
+        /// </summary>
+        void NotificarContingenciaExterna(int codigoSucursal, int codigoPuntoVenta, int eventoId);
+
+        /// <summary>
         /// Devuelve los pares (sucursal, puntoVenta) que el monitor está
         /// trackeando actualmente — típicamente los que tienen contingencia
         /// activa. Lo usa <c>SiatConnectivityProbeService</c> para iterar

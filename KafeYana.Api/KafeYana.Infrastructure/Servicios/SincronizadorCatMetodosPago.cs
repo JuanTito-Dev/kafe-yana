@@ -20,9 +20,9 @@ namespace KafeYana.Infrastructure.Servicios
     ///        configuración manual.
     ///     2. El catálogo tiene ~308 entradas y cambia poco — no aporta un
     ///        sync diario (decisión confirmada).
-    ///   - **Seed default**: los códigos 1=EFECTIVO y 7=TRANSFERENCIA
-    ///        arrancan <c>Activo=true</c> la primera vez. El resto
-    ///        <c>Activo=false</c> hasta que el operador los habilite.
+    ///   - **Seed default**: los códigos 1=EFECTIVO, 2=TARJETA y
+    ///        7=TRANSFERENCIA arrancan <c>Activo=true</c> la primera vez.
+    ///        El resto <c>Activo=false</c> hasta que el operador los habilite.
     ///   - **Conservador**: si el SIN deja de devolver un código que estaba
     ///        activo, NO se desactiva (preserva la config manual).
     ///
@@ -58,7 +58,7 @@ namespace KafeYana.Infrastructure.Servicios
         ///      del SIN.
         ///   3. Para cada código del SIN:
         ///      - Si NO existe en BD → INSERT con <c>Activo</c> según el seed
-        ///        default (1=EFECTIVO, 7=TRANSFERENCIA → true; resto → false).
+        ///        default (1=EFECTIVO, 2=TARJETA, 7=TRANSFERENCIA → true; resto → false).
         ///      - Si existe en BD → UPDATE solo <c>Descripcion</c> y
         ///        <c>FechaSincronizacion</c>. **NO toca <c>Activo</c>**.
         ///   4. Filas que estaban en BD pero el SIN ya no devuelve → quedan
@@ -201,8 +201,8 @@ namespace KafeYana.Infrastructure.Servicios
             var existentes = await db.CatMetodosPago
                 .ToDictionaryAsync(m => m.Codigo, ct);
 
-            // Seed default: 1=EFECTIVO y 7=TRANSFERENCIA arrancan activos.
-            bool SeedActivo(int codigo) => codigo == 1 || codigo == 7;
+            // Seed default: 1=EFECTIVO, 2=TARJETA y 7=TRANSFERENCIA arrancan activos.
+            bool SeedActivo(int codigo) => codigo == 1 || codigo == 2 || codigo == 7;
 
             foreach (var m in metodosSiat)
             {

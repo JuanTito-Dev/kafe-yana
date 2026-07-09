@@ -342,6 +342,16 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                   + $"'{evento.CodigoRecepcionEventoSignificativo}'. Corregir manualmente en BD antes de reintentar.");
             }
 
+            if (codigoEvento == 0)
+            {
+                _debug.LogError("RecepcionFacturaService", "codigo_evento_cero",
+                    $"eventoId={evento.Id} codRecepEventoRaw='{evento.CodigoRecepcionEventoSignificativo}'", null);
+                throw new VentaException(
+                    $"Evento {evento.Id} tiene CodigoRecepcionEventoSignificativo = '0'. "
+                  + "SIAT acepta el paquete pero no lo acredita como prueba INACCESIBILIDAD. "
+                  + "Verificar que registroEventoSignificativo devolvió un código válido y que la BD lo persistió correctamente.");
+            }
+
             // 2. Armar la solicitud SOAP.
             var solicitud = new SolicitudRecepcionPaqueteFacturaDto
             {
@@ -361,7 +371,10 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 FechaEnvio = DateTime.UtcNow,
                 CodigoEvento = codigoEvento,
                 CantidadFacturas = ventas.Count,
-                Cafc = ventas.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v.Cafc))?.Cafc
+                Cafc = ventas.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v.Cafc))?.Cafc,
+                // CodigoMotivo del evento significativo (1-7). El HTTP client usa esto
+                // para decidir si incluir <cafc>: solo para motivos 5/6/7 (manual/talonario).
+                CodigoMotivo = evento.CodigoMotivo
             };
 
             // Log a archivo contingencia: campos relevantes de la solicitud (sin
@@ -458,9 +471,17 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
             var respuesta = await _siat.ValidacionRecepcionPaqueteFacturaAsync(solicitud, ct);
 
+            // DIAG: serializar mensajesList para entender el 904 (NO cambia lógica de negocio,
+            // solo expone el detalle de observación que el SIAT devuelve junto al codigoEstado).
+            var mensajesStr = string.Join(" | ", respuesta.MensajesList
+                .Select(m => $"[arch={m.NumeroArchivo ?? "?"} det={m.NumeroDetalle ?? "?"} "
+                           + $"cod={m.Codigo ?? "?"} adv={m.Advertencia ?? "?"}] "
+                           + $"{m.Descripcion ?? "(sin descripción)"}"));
+
             _logger.LogInformation(
-                "FIX #1 ValidarRecepcionPaqueteContingencia: codigoRecepcion={CodRecep}, codigoEstado={Estado}, transaccion={Tx}",
-                respuesta.CodigoRecepcion, respuesta.CodigoEstado, respuesta.Transaccion);
+                "FIX #1 ValidarRecepcionPaqueteContingencia: codigoRecepcion={CodRecep}, "
+              + "codigoEstado={Estado}, transaccion={Tx}, mensajes=[{Mensajes}]",
+                respuesta.CodigoRecepcion, respuesta.CodigoEstado, respuesta.Transaccion, mensajesStr);
 
             return respuesta;
         }

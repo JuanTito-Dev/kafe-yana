@@ -31,7 +31,12 @@ namespace KafeYana.Infrastructure.Data.Seeders
                     CodigoPuntoVenta = 0,
                     Nombre = "Caja 1",
                     Activo = true,
-                    UltimaSyncActividades = null
+                    UltimaSyncActividades = null,
+                    // CAFC histórico emitido por el SIN para este PV (motivos 5/6/7,
+                    // contingencia talonario/manual). Ver [[kafeyana-cafc-por-pv]] —
+                    // cada PV nuevo necesita el suyo propio, el SIN no lo emite igual
+                    // para todos; PV 1 (abajo) queda sin CAFC hasta que se cargue el real.
+                    Cafc = "10135395A0C0C"
                 },
                 new PuntoVentaSiat
                 {

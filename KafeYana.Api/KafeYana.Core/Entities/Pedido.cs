@@ -22,5 +22,7 @@ namespace KafeYana.Domain.Entities
 
         public List<Ronda> Rondas { get; set; } = new List<Ronda>();
 
+        public List<SubVenta> SubVentas { get; set; } = [];
+
     }
 }

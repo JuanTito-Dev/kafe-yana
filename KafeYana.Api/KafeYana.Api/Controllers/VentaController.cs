@@ -17,6 +17,7 @@ using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
 namespace KafeYana.Api.Controllers
@@ -201,12 +202,49 @@ namespace KafeYana.Api.Controllers
             var caja = (Caja)HttpContext.Items["Caja"]!;
             var cobro = await _cobroPedido.CobrarParaLlevarAsync(datos, nombreUsuario, caja);
 
+            if (cobro.EsAbono)
+            {
+                if (cobro.MesaCerrada)
+                {
+                    await _notificador.NotificarPedidoParaLlevarActualizado(
+                        new ParaLlevarPayload(IdPedido: null, Disponible: true));
+                }
+
+                // Si esta sub-venta facturó, incluir los mismos campos que el
+                // cobro completo (VentaId, NumeroFactura, CUF, etc.) para que
+                // la pantalla de éxito pueda ofrecer "Imprimir factura SIAT".
+                if (cobro.Resultado is not null)
+                {
+                    await _notificador.NotificarVentaProcesada(
+                        new VentaPayload(cobro.OrigenVenta, datos.Id_Pedido, cobro.Resultado.Venta.MontoTotal));
+                }
+
+                var venta = cobro.Resultado?.Venta;
+                return Ok(new
+                {
+                    EsAbono = true,
+                    TotalCobrado = cobro.MontoCubierto ?? 0m,
+                    mesaCerrada = cobro.MesaCerrada,
+                    pedidoActualizado = cobro.PedidoActualizado,
+                    CodigoVenta = venta?.Cuf,
+                    VentaId = venta?.Id,
+                    NumeroFactura = venta?.NumeroFactura,
+                    Facturado = venta?.Facturado,
+                    EstadoSiat = cobro.EnvioSiat?.EstadoSiat ?? venta?.EstadoSiat,
+                    CodigoRecepcion = cobro.EnvioSiat?.CodigoRecepcion ?? venta?.CodigoRecepcion,
+                    SiatAceptada = cobro.EnvioSiat?.Transaccion
+                        ?? (venta is not null && venta.EstadoSiat == FacturaEstado.Validada),
+                    ErrorSiat = cobro.EnvioSiat?.ErrorMensaje ?? venta?.ErrorMensaje,
+                    CodigoHash = venta?.CodigoHash,
+                });
+            }
+
             await _notificador.NotificarVentaProcesada(
-                new VentaPayload(cobro.OrigenVenta, datos.Id_Pedido, cobro.Resultado.Venta.MontoTotal));
+                new VentaPayload(cobro.OrigenVenta, datos.Id_Pedido, cobro.Resultado!.Venta.MontoTotal));
             await _notificador.NotificarPedidoParaLlevarActualizado(
                 new ParaLlevarPayload(IdPedido: null, Disponible: true));
 
-            return Ok(VentaRespuestaHelper.ConstruirRespuestaCobro(cobro.Resultado, cobro.EnvioSiat));
+            return Ok(VentaRespuestaHelper.ConstruirRespuestaCobro(cobro.Resultado!, cobro.EnvioSiat));
         }
 
         [HttpPost("{id:int}/enviar-siat")]
@@ -243,7 +281,10 @@ namespace KafeYana.Api.Controllers
             if (paraLlevar.Pedido.Total > 0)
                 return BadRequest(new { message = "No puedes liberar un pedido sin antes cobrar" });
 
-            await _db.Pedidos.Remove(paraLlevar.Pedido);
+            var tieneSubVentas = await _db.subventas.Query().AnyAsync(s => s.Id_Pedido == paraLlevar.Pedido.Id);
+
+            if (!tieneSubVentas)
+                await _db.Pedidos.Remove(paraLlevar.Pedido);
 
             paraLlevar.Disponible = true;
             paraLlevar.Pedido = null;

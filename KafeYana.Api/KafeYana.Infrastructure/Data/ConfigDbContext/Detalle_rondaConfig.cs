@@ -53,6 +53,10 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
                 .IsRequired()
                 .HasDefaultValue(57);
 
+            builder.Property(x => x.CantidadDescontada)
+                .IsRequired()
+                .HasDefaultValue(0);
+
             // Relación con Ronda
             builder.HasOne(x => x.ronda)
                 .WithMany(x => x.Detalle)

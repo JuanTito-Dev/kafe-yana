@@ -91,6 +91,8 @@ namespace KafeYana.Infrastructure.Data.Repositorio
 
         public IEventoSignificativoSiatRepositorio eventosSignificativosSiat { get; private set; }
 
+        public ISubVentaRepositorio subventas { get; private set; }
+
         public UnitWork(AppDbContext db, IProductoRepositorio productos, IElaboradoRepositorio elaborados,
                 IInsumoRepositorio insumos,
                 IAjusteStockRepositorio ajusteStocks,
@@ -129,7 +131,8 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                 IHistorialReferidoRepositorio historialReferidos,
                 IConfiguracionQrRepositorio configuracionQr,
                 IPedidoInventarioCompromisoRepositorio pedidoInventarioCompromisos,
-                IEventoSignificativoSiatRepositorio eventosSignificativosSiat
+                IEventoSignificativoSiatRepositorio eventosSignificativosSiat,
+                ISubVentaRepositorio subventas
                 )
         {
             _db = db;
@@ -173,6 +176,7 @@ namespace KafeYana.Infrastructure.Data.Repositorio
             this.configuracionQr = configuracionQr;
             this.pedidoInventarioCompromisos = pedidoInventarioCompromisos;
             this.eventosSignificativosSiat = eventosSignificativosSiat;
+            this.subventas = subventas;
         }
 
         public void Dispose()

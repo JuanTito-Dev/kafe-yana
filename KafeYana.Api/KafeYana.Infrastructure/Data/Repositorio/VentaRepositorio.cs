@@ -52,6 +52,15 @@ namespace KafeYana.Infrastructure.Data.Repositorio
             return result[0];
         }
 
+        public async Task<long> SiguienteNumeroFacturaCafcAsync()
+        {
+            var result = await _db.Database
+                .SqlQueryRaw<long>("SELECT nextval('\"Venta_NumeroFacturaCafc_seq\"')")
+                .ToListAsync();
+
+            return result[0];
+        }
+
         public async Task<Venta?> TraerVentaConDetallesAsync(int id)
         {
             return await _db.Ventas

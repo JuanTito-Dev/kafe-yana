@@ -154,6 +154,38 @@ namespace KafeYana.Infrastructure.Servicios
             return (cantidad, pvsExitosos.Count);
         }
 
+        /// <summary>
+        /// Sirve el catálogo desde <c>CatTiposDocumentoIdentidad</c> cuando el SIAT
+        /// no respondió (<see cref="SincronizarAsync"/> devolvió 0 PVs exitosos).
+        /// Usa la última sync exitosa persistida, sin límite de antigüedad: los códigos
+        /// de tipo de documento del SIN cambian muy rara vez. Si la tabla está vacía
+        /// (instalación nueva, nunca sincronizó), no hace nada y el caché sigue en
+        /// <c>FallbackHardcoded</c>.
+        /// </summary>
+        public async Task<bool> IntentarCargarDesdeBaseDatosAsync(CancellationToken ct = default)
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            var filas = await db.CatTiposDocumentoIdentidad
+                .AsNoTracking()
+                .Select(c => new { c.Codigo, c.Descripcion })
+                .ToListAsync(ct);
+
+            if (filas.Count == 0)
+            {
+                _logger.LogWarning(
+                    "CatTiposDocumentoIdentidad está vacía. Se mantiene el fallback hardcodeado.");
+                return false;
+            }
+
+            TipoDocumentoIdentidadSiatCatalogo.CargarDesdeBaseDatos(
+                filas.Select(f => (f.Codigo, f.Descripcion)));
+
+            _logger.LogInformation(
+                "SIAT no respondió: se sirvió CatTiposDocumentoIdentidad desde BD ({Cantidad} tipos).",
+                filas.Count);
+            return true;
+        }
+
         private async Task<int> ReemplazarTablaMaestraAsync(
             List<TipoDocumentoIdentidadSiatDto> tipos,
             CancellationToken ct)

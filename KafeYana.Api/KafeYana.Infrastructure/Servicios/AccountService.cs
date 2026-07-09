@@ -30,10 +30,15 @@ namespace KafeYana.Infrastructure.Servicios
                 throw new UsuarioExiste(datos.Email);
             }
 
+            if (await _usuarios.FindByNameAsync(datos.Usuario) != null)
+            {
+                throw new UsuarioExiste(datos.Usuario);
+            }
+
             await using var transaction = await _db.Database.BeginTransactionAsync();
             try
             {
-                var user = Usuario.Crear(email: datos.Email, datos.Nombre, datos.Apellido, datos.NumeroPhone);
+                var user = Usuario.Crear(email: datos.Email, username: datos.Usuario, datos.Nombre, datos.Apellido, datos.NumeroPhone);
 
                 user.LockoutEnabled = datos.Rol != 0;
 
@@ -61,11 +66,15 @@ namespace KafeYana.Infrastructure.Servicios
 
         public async Task<DtoUsuarioAnswer> Login(LoginRequest datos)
         {
-            var user = await _usuarios.FindByEmailAsync(datos.Email);
+            var identificador = datos.Identificador.Trim();
+
+            var user = identificador.Contains('@')
+                ? await _usuarios.FindByEmailAsync(identificador)
+                : await _usuarios.FindByNameAsync(identificador);
 
             if (user == null || !await _usuarios.CheckPasswordAsync(user, datos.Password))
             {
-                throw new LoginFailException($"Credenciales incorrectas {datos.Email}");
+                throw new LoginFailException("Credenciales incorrectas");
             }
 
             if (await _usuarios.IsLockedOutAsync(user))

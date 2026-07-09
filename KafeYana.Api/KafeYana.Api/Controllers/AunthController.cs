@@ -131,10 +131,17 @@ namespace KafeYana.Api.Controllers
             if (usuario is null)
                 return NotFound(new { message = "Usuario no encontrado" });
 
+            if (!string.Equals(usuario.UserName, datos.usuario, StringComparison.OrdinalIgnoreCase))
+            {
+                var existe = await _userManager.FindByNameAsync(datos.usuario);
+                if (existe != null && existe.Id != usuario.Id)
+                    return BadRequest(new { message = "El nombre de usuario ya está en uso" });
+            }
+
             usuario.Email = datos.email.ToLower();
-            usuario.UserName = datos.email.ToLower();
+            usuario.UserName = datos.usuario;
             usuario.NormalizedEmail = datos.email.ToUpper();
-            usuario.NormalizedUserName = datos.email.ToUpper();
+            usuario.NormalizedUserName = datos.usuario.ToUpper();
             usuario.Nombre = datos.nombre;
             usuario.Apellido = datos.apellido;
             usuario.PhoneNumber = datos.telefono;
@@ -145,6 +152,8 @@ namespace KafeYana.Api.Controllers
             {
                 var error = resultado.Errors.First();
                 if (error.Code == "DuplicateUserName")
+                    return BadRequest(new { message = "Intente con otro usuario o email" });
+                if (error.Code == "DuplicateEmail")
                     return BadRequest(new { message = "Intente con otro email" });
                 return BadRequest(new { message = error.Description });
             }

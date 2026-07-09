@@ -32,7 +32,7 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
     public class SiatConnectivityMonitor : ISiatConnectivityMonitor
     {
         private readonly IServiceScopeFactory _scopeFactory;
-        private readonly DetectorOptions _opts;
+        private readonly IOptionsMonitor<DetectorOptions> _opts;
         private readonly SiatOptions _siatOpts;
         private readonly ILogger<SiatConnectivityMonitor> _logger;
 
@@ -44,12 +44,12 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
 
         public SiatConnectivityMonitor(
             IServiceScopeFactory scopeFactory,
-            IOptions<DetectorOptions> opts,
+            IOptionsMonitor<DetectorOptions> opts,
             IOptions<SiatOptions> siatOpts,
             ILogger<SiatConnectivityMonitor> logger)
         {
             _scopeFactory = scopeFactory;
-            _opts = opts.Value;
+            _opts = opts;
             _siatOpts = siatOpts.Value;
             _logger = logger;
         }
@@ -186,6 +186,22 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
             _logger.LogInformation(
                 "Estado de contingencia limpiado en monitor. Suc={Suc}, PV={PV}",
                 key.suc, key.pv);
+        }
+
+        public void NotificarContingenciaExterna(int codigoSucursal, int codigoPuntoVenta, int eventoId)
+        {
+            var key = (suc: codigoSucursal, pv: codigoPuntoVenta);
+            var estado = _estados.GetOrAdd(key, _ => new EstadoConexion());
+            if (!estado.ContingenciaActiva)
+            {
+                estado.ContingenciaActiva = true;
+                estado.EventoSignificativoId = eventoId;
+                estado.Origen = "Manual";
+                _logger.LogInformation(
+                    "Contingencia manual registrada en monitor (endpoint). "
+                  + "Suc={Suc}, PV={PV}, EventoId={Id}",
+                    key.suc, key.pv, eventoId);
+            }
         }
 
         public void ActivarBypass(int codigoSucursal, int codigoPuntoVenta)
@@ -352,12 +368,12 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
             // =false en finally (incluso si la operación falla) para que
             // llamadas re-entrantes desde SOAPs exitosos internos sean
             // rechazadas con LogDebug y NO disparen otra instancia.
-            if (string.IsNullOrEmpty(codigoRecepcion))
+            if (string.IsNullOrEmpty(codigoRecepcion) || codigoRecepcion.Trim() == "0")
             {
                 _logger.LogInformation(
-                    "Pieza 3: evento {Id} sin codigoRecepcion (persistido sin SOAP). "
+                    "Pieza 3: evento {Id} sin codigoRecepcion válido (valor='{Valor}'). "
                   + "Reenviando al SIAT antes de cerrar contingencia.",
-                    eventoId);
+                    eventoId, codigoRecepcion ?? "(null)");
 
                 estado.Pieza3bEnProgreso = true;
                 try
@@ -365,7 +381,7 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
                     var codigoRecepcionNuevo = await ReenviarRegistroAsync(
                         eventoId, key.suc, key.pv, ct);
 
-                    if (string.IsNullOrEmpty(codigoRecepcionNuevo))
+                    if (string.IsNullOrEmpty(codigoRecepcionNuevo) || codigoRecepcionNuevo.Trim() == "0")
                     {
                         // Bug fixed (jun-2026): el monitor cachea el ID del
                         // evento desde el boot (o desde Pieza 2 fallback) en
@@ -455,6 +471,21 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
                 {
                     estado.Pieza3bEnProgreso = false;
                 }
+            }
+
+            // Contingencia manual: el operador la abrió desde la API y la cierra
+            // explícitamente. El probe NO debe cerrarla automáticamente — si lo hace,
+            // las ventas 2+ quedan sin evento activo y se facturan online (Bug 1).
+            // Solo dejar de monitorear el par y disparar el resend de pendientes.
+            if (estado.Origen == "Manual")
+            {
+                _logger.LogInformation(
+                    "ReportarExito: contingencia manual (evento {Id}, suc={Suc}, pv={PV}). "
+                  + "No se auto-cierra. Disparando resend de pendientes.",
+                    eventoId, key.suc, key.pv);
+                LimpiarEstadoContingencia(key.suc, key.pv);
+                OnRecuperacionDetectada?.Invoke(key.suc, key.pv, eventoId);
+                return;
             }
 
             await CerrarContingenciaAsync(eventoId, key.suc, key.pv, codigoRecepcion, ct);
@@ -594,7 +625,7 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
 
             // Si ya pasó más tiempo que la ventana desde el primer fallo, reseteamos.
             if (estado.PrimerFalloUtc is DateTime primer
-                && (ahora - primer).TotalSeconds > _opts.VentanaFallosSegundos)
+                && (ahora - primer).TotalSeconds > _opts.CurrentValue.VentanaFallosSegundos)
             {
                 estado.FallosConsecutivos = 0;
                 estado.PrimerFalloUtc = null;
@@ -606,10 +637,10 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
             _logger.LogWarning(
                 "SIAT {Op} falló ({ExType}: {ExMsg}). Fallos consecutivos: {N}/{Umbral}. Suc={Suc}, PV={PV}",
                 operacion, ex.GetType().Name, ex.Message,
-                estado.FallosConsecutivos, _opts.UmbralFallosConsecutivos, key.suc, key.pv);
+                estado.FallosConsecutivos, _opts.CurrentValue.UmbralFallosConsecutivos, key.suc, key.pv);
 
             // Si todavía no llegamos al umbral, no disparamos nada.
-            if (estado.FallosConsecutivos < _opts.UmbralFallosConsecutivos)
+            if (estado.FallosConsecutivos < _opts.CurrentValue.UmbralFallosConsecutivos)
                 return;
 
             // Si ya hay contingencia activa para este PV, no abrimos otra.
@@ -677,11 +708,11 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
                     estado.FallosConsecutivos, key.suc, key.pv);
 
                 var resultado = await eventoSvc.RegistrarYActivarAsync(
-                    motivo: _opts.MotivoDefault,
+                    motivo: _opts.CurrentValue.MotivoDefault,
                     origen: "Automatico",
                     codigoSucursal: codigoSucursal,
                     codigoPuntoVenta: codigoPuntoVenta,
-                    descripcion: _opts.DescripcionDefault,
+                    descripcion: _opts.CurrentValue.DescripcionDefault,
                     ct: ct);
 
                 estado.ContingenciaActiva = true;
@@ -693,7 +724,7 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
                     "Contingencia automática registrada. EventoId={Id}, CodigoRecepcion={Cod}, "
                   + "Suc={Suc}, PV={PV}, Motivo={Motivo}",
                     resultado.EventoId, resultado.CodigoRecepcionEventoSignificativo,
-                    key.suc, key.pv, _opts.MotivoDefault);
+                    key.suc, key.pv, _opts.CurrentValue.MotivoDefault);
 
                 // Reclamo retroactivo de ventas del "período gris" (las que
                 // fallaron antes de cruzar el umbral y quedaron Pendiente
@@ -721,7 +752,7 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
                             "Contingencia {Id} registrada pero SIN ventas del período gris que vincular. "
                           + "Posible causa: ninguna venta falló antes de cruzar el umbral, "
                           + "o el umbral ({Umbral}) se cruzó en una sola ráfaga.",
-                            resultado.EventoId, _opts.UmbralFallosConsecutivos);
+                            resultado.EventoId, _opts.CurrentValue.UmbralFallosConsecutivos);
                     }
                     else
                     {
@@ -823,11 +854,11 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
                         .GetRequiredService<IEventoSignificativoSiatService>();
 
                     var resultadoLocal = await eventoSvcLocal.RegistrarLocalmenteSinSoapAsync(
-                        motivo: _opts.MotivoDefault,
+                        motivo: _opts.CurrentValue.MotivoDefault,
                         origen: "AutomaticoSinSoap",
                         codigoSucursal: codigoSucursal,
                         codigoPuntoVenta: codigoPuntoVenta,
-                        descripcion: _opts.DescripcionDefault,
+                        descripcion: _opts.CurrentValue.DescripcionDefault,
                         ct: ct);
 
                     estado.ContingenciaActiva = true;
@@ -838,7 +869,7 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
                     _logger.LogWarning(
                         "Contingencia registrada LOCALMENTE sin SOAP (fallback Pieza 2). "
                       + "EventoId={Id}, Suc={Suc}, PV={PV}, Motivo={Motivo}",
-                        resultadoLocal.EventoId, key.suc, key.pv, _opts.MotivoDefault);
+                        resultadoLocal.EventoId, key.suc, key.pv, _opts.CurrentValue.MotivoDefault);
 
                     // Reclamo retroactivo de ventas del "período gris" — mismo
                     // patrón que el camino feliz, en transacción separada para
@@ -864,7 +895,7 @@ namespace KafeYana.Infrastructure.Servicios.SiatConnectivity
                                 "Contingencia local {Id} registrada pero SIN ventas del período gris. "
                               + "Posible causa: ninguna venta falló antes de cruzar el umbral, "
                               + "o el umbral ({Umbral}) se cruzó en una sola ráfaga.",
-                                resultadoLocal.EventoId, _opts.UmbralFallosConsecutivos);
+                                resultadoLocal.EventoId, _opts.CurrentValue.UmbralFallosConsecutivos);
                         }
                         else
                         {

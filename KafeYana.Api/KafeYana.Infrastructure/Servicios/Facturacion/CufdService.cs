@@ -34,13 +34,17 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
         /// <summary>
         /// Antigüedad máxima permitida del CUFD para reusarlo entre cobros,
-        /// calculada según el <c>CodigoEmision</c> configurado en appsettings.
-        /// En línea = 5 min (evita error SIAT 1009). Offline/masivo/contingencia = 24 h.
+        /// calculada según el contexto. Contingencia siempre 24 h (el SIAT no compara
+        /// contra hora actual en este modo). Resto: según <c>CodigoEmision</c> de
+        /// appsettings: en línea = 5 min (evita SIAT 1009); offline/masivo = 24 h.
         /// </summary>
-        private TimeSpan AntiguedadMaximaCufd =>
-            _siatOptions.Value.CodigoEmision == 1
+        private TimeSpan AntiguedadMaximaCufd(bool esContingencia)
+        {
+            if (esContingencia) return AntiguedadMaximaCufdOffline;
+            return _siatOptions.Value.CodigoEmision == 1
                 ? AntiguedadMaximaCufdEnLinea
                 : AntiguedadMaximaCufdOffline;
+        }
 
         public CufdService(
             SiatHttpClient siat,
@@ -117,16 +121,16 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             int codigoPuntoVenta,
             DateTime fechaEmision,
             CancellationToken ct = default,
-            bool bypassCortocircuito = false)
+            bool bypassCortocircuito = false,
+            bool esContingencia = false)
         {
             await using var db = await _dbFactory.CreateDbContextAsync(ct);
 
             // Buscar un CUFD que esté (a) vigente (FechaVigencia > NOW) y
-            // (b) suficientemente reciente (FechaEmisionSolicitud dentro de los
-            // últimos AntiguedadMaximaCufd, que depende del CodigoEmision).
-            // En línea = 5 min (si pasa más, el SIAT rechaza con 1009).
-            // Offline = 24 h (reuso durante toda la vigencia oficial).
-            var limite = AntiguedadMaximaCufd;
+            // (b) suficientemente reciente (FechaEmisionSolicitud dentro del umbral,
+            // que depende del contexto). Contingencia: 24 h. En línea (CodigoEmision=1
+            // en appsettings): 5 min (evita error SIAT 1009). Offline puro: 24 h.
+            var limite = AntiguedadMaximaCufd(esContingencia);
             var vigente = await db.Cufd
                 .Where(c =>
                     c.CodigoSucursal == codigoSucursal

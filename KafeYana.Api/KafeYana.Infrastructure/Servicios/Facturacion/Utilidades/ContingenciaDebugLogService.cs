@@ -182,12 +182,14 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion.Utilidades
             var hoyUtc = DateTime.UtcNow.Date;
             if (_rutaArchivoActual is null || _fechaActual != hoyUtc)
             {
-                Directory.CreateDirectory(_opts.DebugLogPath);
                 _rutaArchivoActual = Path.Combine(
                     _opts.DebugLogPath,
                     $"contingencia-{hoyUtc:yyyy-MM-dd}.log");
                 _fechaActual = hoyUtc;
             }
+            // Siempre recrear directorio — si el usuario lo borra mientras corre la app,
+            // File.AppendAllText falla silenciosamente sin este CreateDirectory.
+            Directory.CreateDirectory(_opts.DebugLogPath);
             return _rutaArchivoActual;
         }
 

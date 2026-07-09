@@ -35,6 +35,16 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 };
             }
 
+            // Si la venta nunca fue confirmada por el SIAT (nunca pasó por el
+            // preparer con éxito), un rechazo o error de comunicación en este
+            // intento debe dejarla otra vez en Facturado=false — así el próximo
+            // reintento vuelve a pasar por el preparer (fecha/CUF/CUFD/XML
+            // frescos) en vez de reenviar el XML viejo, y el guard de edición de
+            // datos fiscales en ReenviarFacturaAsync no bloquea la corrección.
+            // NO afecta al cobro normal con Factura=true (ahí Facturado ya es
+            // true ANTES de entrar acá, por lo que eraNuncaFacturada es false).
+            var eraNuncaFacturada = !venta.Facturado;
+
             try
             {
                 // FIX #6/FIX #4 — si la venta llega sin preparar (Facturado=false),
@@ -128,6 +138,9 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
                 if (!respuesta.Transaccion)
                 {
+                    if (eraNuncaFacturada)
+                        venta.Facturado = false;
+
                     logger.LogWarning(
                         "SIAT rechazó factura {NumeroFactura} (VentaId={VentaId}). {Error}",
                         venta.NumeroFactura,
@@ -185,6 +198,9 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 venta.CodigoRecepcion = null;
                 venta.ErrorMensaje = $"No se pudo enviar al SIAT: {ex.Message}";
 
+                if (eraNuncaFacturada)
+                    venta.Facturado = false;
+
                 return new ResultadoEnvioFacturaSiatDto
                 {
                     Enviado = false,
@@ -197,6 +213,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
         public async Task<ResultadoEnvioFacturaSiatDto> ReenviarFacturaAsync(
             int ventaId,
+            DtoDatosFiscalesReenvio? datosFiscales = null,
             CancellationToken ct = default)
         {
             var venta = await _db.ventas.TraerVentaConDetallesAsync(ventaId);
@@ -205,6 +222,38 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
             if (venta.EstadoSiat == FacturaEstado.Anulada)
                 throw new VentaException("No se puede reenviar al SIAT una venta anulada.");
+
+            if (datosFiscales is not null)
+            {
+                // El guard es contra EstadoSiat==Validada (aceptada por el SIAT), no
+                // contra Facturado a secas: una venta Observada/Pendiente/Rechazada
+                // tiene Facturado=true (se intentó enviar) pero el SIAT NUNCA la
+                // aceptó, así que corregir NIT/nombre y reenviar debe permitirse. Solo
+                // una factura ya Validada requiere Nota de Ajuste para corregirse.
+                if (venta.EstadoSiat == FacturaEstado.Validada)
+                    throw new VentaException(
+                        "No se pueden modificar los datos fiscales de una venta ya facturada. Use Nota de Ajuste.");
+
+                var cliente = await ClientePedidoHelper.VincularClienteAlPedidoAsync(
+                    _db, datosFiscales.Id_Cliente, datosFiscales.Nombre, datosFiscales.Dni);
+
+                if (cliente is not null)
+                {
+                    if (!cliente.Dni.HasValue)
+                        throw new VentaException("El cliente no tiene C.L. registrada.");
+
+                    venta.NombreRazonSocial = cliente.Nombre;
+                    venta.NumeroDocumento = cliente.Dni.Value.ToString();
+                    venta.CodigoCliente = !string.IsNullOrWhiteSpace(cliente.Codigo)
+                        ? cliente.Codigo
+                        : ClienteCodigoService.Generar(cliente.Nombre, cliente.Id);
+                    venta.CodigoTipoDocumentoIdentidad = datosFiscales.CodigoTipoDocumento
+                        ?? venta.CodigoTipoDocumentoIdentidad;
+                    venta.Complemento = string.IsNullOrWhiteSpace(datosFiscales.Complemento)
+                        ? null
+                        : datosFiscales.Complemento.Trim();
+                }
+            }
 
             if (venta.Facturado && venta.EstadoSiat == FacturaEstado.Validada)
             {
@@ -254,11 +303,13 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             }
             else
             {
-                if (string.IsNullOrWhiteSpace(venta.XmlBase64))
-                    throw new VentaException("La venta no tiene XML guardado para reenviar al SIAT.");
-
-                if (string.IsNullOrWhiteSpace(venta.CodigoHash))
-                    throw new VentaException("La venta no tiene hash guardado para reenviar al SIAT.");
+                // Facturado=true y llegamos hasta acá => EstadoSiat != Validada (el caso
+                // Validada ya retornó arriba). Es Observada/Pendiente: el SIAT nunca
+                // aceptó esta venta, así que regeneramos CUF/CUFD/XML/Hash — si el
+                // cajero corrigió datos fiscales (guard arriba), el XML viejo tenía el
+                // error; si fue un reenvío simple, esto solo refresca fecha/CUF/leyenda
+                // sin costo (reusa CUFD en caché, ver [[kafeyana-cufd-1dia]]).
+                await _facturaVentaSiatPreparer.RegenerarVentaObservadaAsync(venta, ct);
             }
 
             var resultado = await EnviarVentaAsync(venta, ct);

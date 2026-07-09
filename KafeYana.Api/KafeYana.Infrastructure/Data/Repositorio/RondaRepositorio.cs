@@ -45,21 +45,10 @@ namespace KafeYana.Infrastructure.Data.Repositorio
             var trackedSum = tracked
                 .Where(e => e.State != EntityState.Deleted)
                 .Sum(e => e.Entity.SubTotal);
-//<<<<<<< Updated upstream
+
             decimal dbSum = trackedIds.Count > 0
                 ? await _Rondas.Where(r => r.Id_Pedido == idPedido && !trackedIds.Contains(r.Id)).SumAsync(r => r.SubTotal)
                 : await _Rondas.Where(r => r.Id_Pedido == idPedido).SumAsync(r => r.SubTotal);
-//=======
-//            decimal dbSum;
-//            if (trackedIds.Count > 0)
-//                dbSum = await _Rondas
-//                    .Where(r => r.Id_Pedido == idPedido && !trackedIds.Contains(r.Id))
-//                    .SumAsync(r => r.SubTotal);
-//            else
-//                dbSum = await _Rondas
-//                    .Where(r => r.Id_Pedido == idPedido)
-//                    .SumAsync(r => r.SubTotal);
-//>>>>>>> Stashed changes
 
             return trackedSum + dbSum;
         }

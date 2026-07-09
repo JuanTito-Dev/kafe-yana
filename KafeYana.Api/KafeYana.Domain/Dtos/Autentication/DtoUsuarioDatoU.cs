@@ -19,6 +19,10 @@ namespace KafeYana.Application.Dtos.Autentication
         public string email {  get; set; }
 
         [Required]
+        [RegularExpression(@"^[a-zA-Z0-9._-]{3,20}$", ErrorMessage = "Usuario: 3-20 caracteres, solo letras, números, puntos, guiones y guiones bajos")]
+        public string usuario {  get; set; }
+
+        [Required]
         public string telefono {  get; set; }
     }
 }

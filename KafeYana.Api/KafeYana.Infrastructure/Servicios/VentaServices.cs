@@ -12,6 +12,7 @@ using KafeYana.Infrastructure.Configuration;
 using KafeYana.Infrastructure.Data;
 using KafeYana.Infrastructure.Servicios.Facturacion;
 using KafeYana.Infrastructure.Servicios.Facturacion.Utilidades;
+using KafeYana.Infrastructure.Servicios.SiatConnectivity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -33,6 +34,7 @@ namespace KafeYana.Infrastructure.Servicios
         IEventoSignificativoSiatService _eventoSignificativoSiat,
         IOptions<SiatOptions> siatOpts,
         IOptions<DatosEmpresaOptions> empresaOpts,
+        IOptionsMonitor<DetectorOptions> detectorOpts,
         IDbContextFactory<AppDbContext> dbFactory,
         ICatActividadResolver actividadResolver,
         ICatLeyendaResolver catLeyendaResolver,
@@ -41,6 +43,11 @@ namespace KafeYana.Infrastructure.Servicios
         private readonly SiatOptions _siat = siatOpts.Value;
         private readonly DatosEmpresaOptions _empresa = empresaOpts.Value;
         private readonly ICatActividadResolver _actividadResolver = actividadResolver;
+
+        // detectorOpts es IOptionsMonitor<DetectorOptions> (no IOptions): se lee vía
+        // detectorOpts.CurrentValue.* en el momento de uso, no se cachea en un campo.
+        // Esto refleja cambios a DetectorSiat:MotivoDefault en appsettings.json sin
+        // reiniciar el backend — IOptions<T>.Value queda congelado desde el arranque.
 
         public async Task<ResultadoProcesarVenta> ProcesarVenta(DtoVentaPedido datos, string cajero)
         {
@@ -53,6 +60,18 @@ namespace KafeYana.Infrastructure.Servicios
 
             if (pedido.Rondas.Count == 0 || !pedido.Rondas.Any(r => r.Detalle.Count > 0))
                 throw new VentaException("El pedido no tiene productos para cobrar.");
+
+            // Este camino borra el Pedido entero al terminar (EliminarConAbonosAsync):
+            // solo es válido para "pagar el 100% de una sola vez". Si ya hubo
+            // sub-ventas (cobros parciales) sobre este pedido, el saldo restante
+            // DEBE cobrarse también como sub-venta (endpoint de cobro parcial) para
+            // no perder el historial de cobros/facturas ya emitidas.
+            if (pedido.SubVentas.Count > 0)
+            {
+                throw new VentaException(
+                    "Este pedido ya tiene cobros parciales (sub-ventas) registrados. " +
+                    "Cobre el saldo restante como cobro parcial en vez de un cobro completo.");
+            }
 
             var (cliente, numeroDocumento) = await ClientePedidoHelper.ResolverClienteParaCobroAsync(
                 _db, datos, pedido);
@@ -76,7 +95,7 @@ namespace KafeYana.Infrastructure.Servicios
             string codigoVenta;
             if (datos.Factura)
             {
-                numeroFacturaSiat = await _db.ventas.SiguienteNumeroFacturaSiatAsync() /*+ 20*/;
+                numeroFacturaSiat = await SiguienteNumeroFacturaParaPvAsync(pvActual);
                 codigoVenta = GenerarCodigoVentaFacturada(anio, numeroFacturaSiat);
             }
             else
@@ -103,7 +122,7 @@ namespace KafeYana.Infrastructure.Servicios
 
             var (totalCobrar, descuento) = await ResolverTotalCobrarAsync(datos, cliente, subtotal, codigoVenta);
 
-            if (datos.Pagos.Total != totalCobrar)
+            if (Math.Round(datos.Pagos.Total, 2, MidpointRounding.AwayFromZero) != Math.Round(totalCobrar, 2, MidpointRounding.AwayFromZero))
             {
                 var esperado = datos.AplicarDescuentos
                     ? $"total con descuento ({totalCobrar:F2})"
@@ -116,7 +135,7 @@ namespace KafeYana.Infrastructure.Servicios
                 ? await ConstruirVentaFacturadaAsync(datos, cajero, cliente, numeroDocumento, fechaEmision, numeroFacturaSiat, totalCobrar, descuento, detallesVenta, pvActual, actividadEconomica)
                 : ConstruirVentaSinFactura(datos, cajero, cliente, numeroDocumento, fechaEmision, codigoVenta, totalCobrar, descuento, detallesVenta);
 
-            await _db.Pedidos.Remove(pedido);
+            await _db.Pedidos.EliminarConAbonosAsync(pedido);
 
             var puntosPorVenta = await _puntos.CalcularYAplicarPuntosAsync(cliente, subtotal, tieneCombo, codigoVenta);
             var promocionPermanente = await _promocionPermanenteVenta.ProcesarAlFinalizarVentaAsync(
@@ -132,6 +151,189 @@ namespace KafeYana.Infrastructure.Servicios
                 PromocionPermanente = promocionPermanente,
                 DescuentoPromocion = descuento
             };
+        }
+
+        public async Task<ResultadoProcesarVenta> ProcesarVentaDesdeSubVentaAsync(
+            SubVenta subVenta, DtoVentaPedido datos, string cajero)
+        {
+            var pvActual = await ResolverPuntoVentaParaCobroAsync(datos);
+
+            DateTime fechaEmision = default;
+            var anio = SiatFechaEmision.AhoraUtc().Year;
+            var numeroFacturaSiat = await SiguienteNumeroFacturaParaPvAsync(pvActual);
+            var codigoVenta = GenerarCodigoVentaFacturada(anio, numeroFacturaSiat);
+
+            var comun = await PrepararComunDesdeSubVentaAsync(subVenta, datos, cajero, codigoVenta);
+
+            var venta = await ConstruirVentaFacturadaAsync(
+                datos, cajero, comun.Cliente, comun.NumeroDocumento, fechaEmision, numeroFacturaSiat,
+                comun.TotalCobrar, descuento: null, comun.DetallesVenta, pvActual, comun.ActividadEconomica);
+
+            var puntosPorVenta = await _puntos.CalcularYAplicarPuntosAsync(comun.Cliente, comun.TotalCobrar, tieneCombo: false, codigoVenta);
+            comun.Cliente.RegistrarCompra();
+
+            return new ResultadoProcesarVenta
+            {
+                Venta = venta,
+                PuntosPorVenta = puntosPorVenta,
+                PromocionPermanente = null,
+                DescuentoPromocion = null
+            };
+        }
+
+        /// <summary>
+        /// Igual que <see cref="ProcesarVentaDesdeSubVentaAsync"/> pero para el cobro
+        /// de una sub-venta que NO se factura: no consume correlativo SIAT y construye
+        /// la Venta con <see cref="ConstruirVentaSinFactura"/> (Facturado=false, sin CUF).
+        /// Necesario para que el historial de ventas (que solo lee la tabla Venta)
+        /// muestre también los cobros parciales/finales sin facturar — antes de este
+        /// método, esa rama de <c>SubVentaService.CrearSubVentaAsync</c> nunca creaba
+        /// una fila en Venta y la venta desaparecía del historial.
+        /// </summary>
+        public async Task<ResultadoProcesarVenta> ProcesarVentaSinFacturaDesdeSubVentaAsync(
+            SubVenta subVenta, DtoVentaPedido datos, string cajero)
+        {
+            var anio = SiatFechaEmision.AhoraUtc().Year;
+            var codigoVenta = $"VTA-{anio}-C{subVenta.Id_Pedido}-{Guid.NewGuid():N}";
+
+            var comun = await PrepararComunDesdeSubVentaAsync(subVenta, datos, cajero, codigoVenta);
+
+            var venta = ConstruirVentaSinFactura(
+                datos, cajero, comun.Cliente, comun.NumeroDocumento, fechaEmision: default,
+                codigoVenta, comun.TotalCobrar, descuento: null, comun.DetallesVenta);
+
+            var puntosPorVenta = await _puntos.CalcularYAplicarPuntosAsync(comun.Cliente, comun.TotalCobrar, tieneCombo: false, codigoVenta);
+            comun.Cliente.RegistrarCompra();
+
+            return new ResultadoProcesarVenta
+            {
+                Venta = venta,
+                PuntosPorVenta = puntosPorVenta,
+                PromocionPermanente = null,
+                DescuentoPromocion = null
+            };
+        }
+
+        private record ComunSubVenta(
+            Cliente Cliente,
+            string NumeroDocumento,
+            decimal TotalCobrar,
+            List<Detalle_Pago> DetallesVenta,
+            string ActividadEconomica);
+
+        /// <summary>
+        /// Parte común a facturar/no-facturar una sub-venta: resolver cliente,
+        /// cerrar el compromiso de inventario si este es el pago final del pedido,
+        /// armar el detalle y validar el monto contra lo efectivamente pagado.
+        /// </summary>
+        private async Task<ComunSubVenta> PrepararComunDesdeSubVentaAsync(
+            SubVenta subVenta, DtoVentaPedido datos, string cajero, string codigoVenta)
+        {
+            if (string.IsNullOrWhiteSpace(cajero))
+                throw new VentaException("Usuario cajero no identificado.");
+
+            if (subVenta.Detalles.Count == 0)
+                throw new VentaException("La sub-venta no tiene detalle para facturar.");
+
+            var pedido = subVenta.Pedido ?? await _db.Pedidos.FindByIdAsync(subVenta.Id_Pedido)
+                ?? throw new InventarioException("Pedido asociado a la sub-venta no encontrado.");
+
+            var (cliente, numeroDocumento) = await ClientePedidoHelper.ResolverClienteParaCobroAsync(_db, datos, pedido);
+            if (!cliente.Estado)
+                throw new VentaException("El cliente está inactivo y no puede realizarse el cobro.");
+
+            // El compromiso de inventario se creó/cerró a nivel de ronda, no de cobro.
+            // Solo forzamos el cierre si esta sub-venta deja el pedido entero en 0
+            // pendiente (evita aplicar movimientos dos veces si ya se cerró antes).
+            // Se ejecuta facture o no la sub-venta: el cierre de inventario no
+            // depende de si se emite factura electrónica.
+            if (subVenta.EsPagoFinal)
+                await _inventarioPedidoCompromiso.AplicarMovimientosYCerrarAsync(subVenta.Id_Pedido, codigoVenta);
+
+            var actividadEconomica = await _actividadResolver.ResolverCaebVigenteAsync();
+
+            var (detallesVenta, _) = await ConstruirDetallesDesdeSubVenta(subVenta, actividadEconomica);
+            if (detallesVenta.Count == 0)
+                throw new VentaException("No se pudo armar el detalle de la sub-venta.");
+
+            var totalCobrar = subVenta.Monto;
+            if (totalCobrar <= 0)
+                throw new VentaException("El monto de la sub-venta debe ser mayor a cero.");
+
+            if (Math.Round(datos.Pagos.Total, 2, MidpointRounding.AwayFromZero) != Math.Round(totalCobrar, 2, MidpointRounding.AwayFromZero))
+                throw new InventarioException(
+                    $"El total de los pagos no coincide con el monto de la sub-venta ({totalCobrar:F2}).");
+
+            return new ComunSubVenta(cliente, numeroDocumento, totalCobrar, detallesVenta, actividadEconomica);
+        }
+
+        /// <summary>
+        /// Construye las líneas de <see cref="Detalle_Pago"/> a partir de las líneas
+        /// ya copiadas de una <see cref="SubVenta"/>. A diferencia de
+        /// <see cref="ConstruirDetalles"/> (que consolida por producto y puede perder
+        /// el precio unitario real cuando el mismo producto tuvo distintos precios en
+        /// distintas rondas), acá se agrupa por (producto, precio): dos líneas del
+        /// mismo producto con precios distintos NUNCA se colapsan en una sola, para
+        /// que PrecioUnitario * Cantidad siempre sea igual a SubTotal en el XML SIAT.
+        /// </summary>
+        private async Task<(List<Detalle_Pago> Detalles, bool TieneCombo)> ConstruirDetallesDesdeSubVenta(
+            SubVenta subVenta, string actividadEconomica)
+        {
+            var productoIds = subVenta.Detalles.Select(l => l.Id_Producto).Distinct().ToList();
+            var productosById = await _db.productos.Query()
+                .Where(p => productoIds.Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id);
+
+            var detallesPorClave = new Dictionary<(int Producto, decimal Precio), Detalle_Pago>();
+
+            foreach (var linea in subVenta.Detalles)
+            {
+                var clave = (linea.Id_Producto, linea.Precio);
+                var subtotalLinea = linea.Precio * linea.Cantidad;
+
+                if (detallesPorClave.TryGetValue(clave, out var existente))
+                {
+                    existente.Cantidad += linea.Cantidad;
+                    existente.SubTotal += subtotalLinea;
+                }
+                else
+                {
+                    detallesPorClave[clave] = new Detalle_Pago
+                    {
+                        ActividadEconomica = actividadEconomica,
+                        CodigoProductoSin = ResolverCodigoProductoSinDesdeSnapshot(linea, productosById),
+                        CodigoProducto = !string.IsNullOrWhiteSpace(linea.Codigo)
+                            ? linea.Codigo.Trim()
+                            : ProductoCodigoService.Generar(linea.Id_Producto),
+                        Descripcion = linea.Nombre_Producto,
+                        Cantidad = linea.Cantidad,
+                        UnidadMedida = linea.CodigoUnidadMedida > 0 ? linea.CodigoUnidadMedida : 58,
+                        PrecioUnitario = linea.Precio,
+                        MontoDescuento = null,
+                        SubTotal = subtotalLinea,
+                        NumeroSerie = null,
+                        NumeroImei = null
+                    };
+                }
+            }
+
+            return (detallesPorClave.Values.ToList(), false);
+        }
+
+        private static int ResolverCodigoProductoSinDesdeSnapshot(
+            SubVentaDetalle linea, IReadOnlyDictionary<int, Producto> productosById)
+        {
+            if (!string.IsNullOrWhiteSpace(linea.CodigoSin) && int.TryParse(linea.CodigoSin.Trim(), out var codigo))
+                return codigo;
+
+            if (productosById.TryGetValue(linea.Id_Producto, out var producto)
+                && !string.IsNullOrWhiteSpace(producto.CodigoSin)
+                && int.TryParse(producto.CodigoSin.Trim(), out var legacy))
+                return legacy;
+
+            throw new VentaException(
+                $"El producto '{linea.Nombre_Producto}' no tiene código SIN configurado. "
+                + "Configure el código SIN en el producto antes de facturar.");
         }
 
         private static string GenerarCodigoVentaFacturada(int anio, long numeroFactura) =>
@@ -247,6 +449,10 @@ namespace KafeYana.Infrastructure.Servicios
                       + "Redirigiendo venta a modo offline (TipoEmision=2).",
                         detalle, contingenciaReactiva.EventoSignificativoId);
 
+                    // numeroFactura acá es solo un valor de partida (viene del correlativo
+                    // online, calculado antes de saber que esto terminaría offline);
+                    // ConstruirVentaOfflineAsync lo recalcula según el motivo real de
+                    // contingenciaReactiva antes de usarlo.
                     return await ConstruirVentaOfflineAsync(
                         datos, cajero, cliente, numeroDocumento, numeroFactura, totalCobrar,
                         descuento, detallesVenta, pvActual, actividadEconomica,
@@ -341,6 +547,14 @@ namespace KafeYana.Infrastructure.Servicios
             if (contingencia.EventoSignificativoId is not int eventoId)
                 throw new VentaException("Estado de contingencia inconsistente: sin EventoSignificativoId.");
 
+            // El numeroFactura que llega del caller puede ser stale: se calculó ANTES de
+            // saber que la venta terminaría en modo offline (caso reactivo — la
+            // contingencia se activó recién en el catch de ConstruirVentaFacturadaAsync,
+            // después de haber pedido ya un numeroFactura del correlativo online). Este es
+            // el único punto que conoce con certeza el motivo real de la contingencia activa,
+            // así que recalculamos acá para no mezclar numero online + Cafc (rechazo SIAT 1047).
+            numeroFactura = await SiguienteNumeroFacturaParaPvAsync(pvActual);
+
             // Para el CUF en contingencia usamos TipoEmision=2 (Contingencia computarizada).
             // El resto de campos del CUF se mantienen iguales.
             // Para CodigoModalidad=2 (Computarizada), codigoEmision=2 = "Computarizada fuera de línea"
@@ -419,6 +633,25 @@ namespace KafeYana.Infrastructure.Servicios
             venta.NumeroFactura = numeroFactura;
             venta.Cuf = cuf;
             venta.Cufd = cufdCodigo;
+            // CAFC solo aplica en motivos 5/6/7 (talonario/manual) — para 1-4 el SIN espera
+            // que el campo NO esté presente, ni siquiera en el XML interno de la factura
+            // (FacturaXmlGenerator escribe <cafc> si venta.Cafc tiene valor, sin mirar el
+            // motivo — por eso hay que gatearlo acá, en el único lugar que sí conoce el
+            // motivo de la contingencia). El CAFC lo emite el SIN específico por punto de
+            // venta (Oficina Virtual, no hay SOAP para pedirlo); usar un valor de OTRO PV
+            // es inválido y el SIAT rechaza con [1045] "VALOR DE CAFC NO VALIDO".
+            string? cafcPv = null;
+            if (contingencia.CodigoMotivo is >= 5 and <= 7)
+            {
+                await using var dbCafc = await dbFactory.CreateDbContextAsync();
+                cafcPv = await dbCafc.PuntosVentaSiat
+                    .AsNoTracking()
+                    .Where(p => p.CodigoSucursal == pvActual.CodigoSucursal
+                             && p.CodigoPuntoVenta == pvActual.CodigoPuntoVenta)
+                    .Select(p => p.Cafc)
+                    .FirstOrDefaultAsync();
+            }
+            venta.Cafc = string.IsNullOrWhiteSpace(cafcPv) ? null : cafcPv.Trim();
             venta.TipoEmision = tipoEmisionContingencia;
             venta.EventoSignificativoSiatId = eventoId;
             venta.CodigoTipoDocumentoIdentidad = datos.CodigoTipoDocumento!.Value;
@@ -502,8 +735,9 @@ namespace KafeYana.Infrastructure.Servicios
             List<Detalle_Pago> detallesVenta)
         {
             // Construir las líneas de pago (VentaPagos) y resolver el código
-            // principal que se serializa en el XML (el de mayor monto).
-            var (lineasPago, codigoPrincipal) = ResolverLineasYPagoPrincipal(datos.Pagos);
+            // principal que se serializa en el XML (el de mayor monto, o el
+            // override PagosFactura cuando viene de una división de cuenta).
+            var (lineasPago, codigoPrincipal) = ResolverLineasYPagoPrincipal(datos.Pagos, datos.PagosFactura);
 
             return new Venta
             {
@@ -525,7 +759,11 @@ namespace KafeYana.Infrastructure.Servicios
                 MontoTotalSujetoIva = totalCobrar,
                 DescuentoAdicional = descuento?.MontoDescuento > 0 ? descuento.MontoDescuento : null,
                 CodigoExcepcion = _siat.CodigoExcepcion,
-                Cafc = string.IsNullOrWhiteSpace(_siat.Cafc) ? null : _siat.Cafc.Trim(),
+                // CAFC es exclusivo de contingencia — CrearVentaBase es compartido
+                // por online normal / offline contingencia / sin factura, así que
+                // acá siempre queda null. Solo ConstruirVentaOfflineAsync lo setea
+                // explícitamente después de esta construcción base.
+                Cafc = null,
                 CodigoMoneda = _siat.CodigoMoneda,
                 TipoCambio = _siat.TipoCambio,
                 MontoTotalMoneda = totalCobrar,
@@ -550,12 +788,21 @@ namespace KafeYana.Infrastructure.Servicios
         ///      Hoy el XSD SIAT acepta un solo <c>codigoMetodoPago</c> por factura,
         ///      así que se toma la línea de MAYOR monto (la más representativa).
         ///
+        /// Override por división de cuenta: si el caller envía
+        /// <c>PagosFactura</c> con una única línea (caso típico: el frontend
+        /// consolidó un split de métodos en un único predominante para
+        /// cumplir la regla de facturación), se usa esa línea como código
+        /// principal sin importar el monto. <c>VentaPago</c> y los
+        /// acumuladores de caja siguen leyendo <paramref name="pagos"/>, así
+        /// que el split original queda preservado para auditoría interna.
+        ///
         /// Nota: la validación contra <c>MetodoPagoSiatCatalogo</c> la hace
         /// <c>DtoPagos.Validate</c> en el request — si llega acá significa que
         /// todos los códigos son válidos y activos.
         /// </summary>
         private static (List<VentaPago> Lineas, int CodigoPrincipal) ResolverLineasYPagoPrincipal(
-            DtoPagos pagos)
+            DtoPagos pagos,
+            DtoPagos? pagosFactura = null)
         {
             var lineasConMonto = (pagos.Lineas ?? new List<DtoPagoLinea>())
                 .Where(l => l.Monto > 0)
@@ -575,11 +822,26 @@ namespace KafeYana.Infrastructure.Servicios
                 })
                 .ToList();
 
-            // Pago principal = el de mayor monto. Si hay empate, el primero de la lista.
-            var principal = lineasConMonto
-                .OrderByDescending(l => l.Monto)
-                .First()
-                .CodigoMetodoPago;
+            int principal;
+
+            // Override: si el caller consolidó el split en una sola línea para
+            // la factura, esa línea manda para Venta.CodigoMetodoPago.
+            var lineaFactura = pagosFactura?.Lineas?
+                .Where(l => l.Monto > 0)
+                .ToList();
+
+            if (lineaFactura is { Count: 1 })
+            {
+                principal = lineaFactura[0].CodigoMetodoPago;
+            }
+            else
+            {
+                // Pago principal = el de mayor monto. Si hay empate, el primero de la lista.
+                principal = lineasConMonto
+                    .OrderByDescending(l => l.Monto)
+                    .First()
+                    .CodigoMetodoPago;
+            }
 
             return (entidades, principal);
         }
@@ -688,6 +950,37 @@ namespace KafeYana.Infrastructure.Servicios
             throw new VentaException(
                 $"El producto '{detalle.Nombre_Producto}' no tiene código SIN configurado. "
                 + "Configure el código SIN en el producto antes de facturar.");
+        }
+
+        /// <summary>
+        /// Elige de qué correlativo sacar el próximo número de factura: el
+        /// normal (online) o el separado de CAFC. El SIN autoriza el CAFC
+        /// (motivos 5/6/7 — contingencia manual/talonario) con un RANGO propio
+        /// de numeración (ej. 1 al 1000), independiente del correlativo online
+        /// que ya lleva decenas de miles. Usar el correlativo online para estas
+        /// ventas causa [1047] "NUMERO FACTURA PARA EL CAFC ENVIADO INCORRECTO".
+        ///
+        /// Se decide ANTES de pedir el número (no se puede corregir después:
+        /// el número ya viaja en el CUF). Por eso se consulta acá si ya existe
+        /// una contingencia Activa para este PV y si su motivo es 5/6/7.
+        ///
+        /// Limitación conocida: si la contingencia se activa DE FORMA REACTIVA
+        /// a mitad de este mismo cobro (ver catch en <see cref="ConstruirVentaFacturadaAsync"/>,
+        /// Pieza 4), el número ya se pidió del correlativo normal antes de
+        /// saberlo — ese caso raro no queda cubierto acá.
+        /// </summary>
+        private async Task<long> SiguienteNumeroFacturaParaPvAsync(
+            (int CodigoSucursal, int CodigoPuntoVenta) pv)
+        {
+            var contingenciaActiva = await _db.eventosSignificativosSiat
+                .ObtenerContingenciaActivaAsync(pv.CodigoSucursal, pv.CodigoPuntoVenta);
+
+            var usaCafc = contingenciaActiva is not null
+                && contingenciaActiva.CodigoMotivo is >= 5 and <= 7;
+
+            return usaCafc
+                ? await _db.ventas.SiguienteNumeroFacturaCafcAsync()
+                : await _db.ventas.SiguienteNumeroFacturaSiatAsync();
         }
 
         /// <summary>
@@ -860,16 +1153,12 @@ namespace KafeYana.Infrastructure.Servicios
             //    con SIAT caído, monitor todavía en FallosConsecutivos=1 < 2.
             try
             {
-                // motivo=1 = CORTE DEL SERVICIO DE INTERNET (hardcoded porque
-                // este es el motivo por defecto del monitor; ver DetectorOptions).
-                // Si en el futuro se quiere parametrizar, leer de appsettings.
                 var resultado = await _eventoSignificativoSiat.RegistrarLocalmenteSinSoapAsync(
-                    motivo: 1,
+                    motivo: detectorOpts.CurrentValue.MotivoDefault,
                     origen: "AutomaticoSinSoap",
                     codigoSucursal: codigoSucursal,
                     codigoPuntoVenta: codigoPuntoVenta,
-                    descripcion:
-                        "FALLBACK REACTIVO: SIAT caído detectado durante cobro de venta.",
+                    descripcion: detectorOpts.CurrentValue.DescripcionDefault,
                     ct: ct);
 
                 logger.LogInformation(

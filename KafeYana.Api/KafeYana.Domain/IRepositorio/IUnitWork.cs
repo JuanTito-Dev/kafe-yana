@@ -99,6 +99,8 @@ namespace KafeYana.Application.IRepositorio
         /// </summary>
         IEventoSignificativoSiatRepositorio eventosSignificativosSiat { get; }
 
+        ISubVentaRepositorio subventas { get; }
+
         Task<int> SaveUnitWork();
     }
 }

@@ -115,6 +115,7 @@ namespace KafeYana.Application.Exceptions
                 "Codigo-repetido" => "Ya existe una venta con ese código. Intente de nuevo.",
                 "IX_Venta_Cuf" => "Conflicto de CUF: reintenta el cobro en unos segundos.",
                 "IX_Venta_NumeroFactura" => "Conflicto de correlativo: reintenta el cobro en unos segundos.",
+                "IX_Venta_NumeroFactura_Cafc" => "Conflicto de correlativo CAFC: reintenta el cobro en unos segundos.",
                 "PK_Venta" => "Conflicto interno: reintenta el cobro. Si persiste, contacta al administrador.",
                 "PK_Detalle_Pago" => "Conflicto interno: reintenta el cobro. Si persiste, contacta al administrador.",
 
@@ -279,6 +280,7 @@ namespace KafeYana.Application.Exceptions
                 // ==================== DETALLE RONDA ====================
                 "FK_Detalle_Ronda_Opcion_Opcion_Id_Opcion" => "La opción no puede ser eliminada.",
                 "fk_detallerondaopcion_opcion" => "No puedes eliminar esta opcion esta en un pedido",
+                "fk_pedidoabonodetalle_detalle" => "No se puede eliminar este item porque tiene un cobro parcial vinculado.",
 
                 // ==================== VENTAS ====================
                 "Producto asociado a una venta" => "El producto está asociado a una venta y no puede eliminarse.",

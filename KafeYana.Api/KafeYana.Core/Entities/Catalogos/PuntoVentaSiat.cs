@@ -113,5 +113,15 @@ namespace KafeYana.Domain.Entities.Catalogos
         /// de <c>CatTipoEmision</c>).
         /// </summary>
         public DateTime? UltimaSyncUnidadMedida { get; set; }
+
+        /// <summary>
+        /// CAFC (Código de Autorización de Facturación por Contingencia) que el SIN
+        /// emitió específicamente para este punto de venta, para usar en motivos 5/6/7
+        /// (talonario/manual). Null si el SIN todavía no emitió uno para este PV — en
+        /// ese caso NO se debe enviar el campo &lt;cafc&gt; en el sobre SOAP (el SIAT
+        /// rechaza con [1045] "VALOR DE CAFC NO VALIDO" si se manda cualquier valor
+        /// sin que el SIN lo tenga registrado para ese PV).
+        /// </summary>
+        public string? Cafc { get; set; }
     }
 }

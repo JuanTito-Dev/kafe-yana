@@ -21,6 +21,7 @@ namespace KafeYana.Infrastructure.Servicios
         IUnitWork _db,
         AppDbContext _dbContext,
         IVentaServices _venta,
+        ISubVentaService _subVenta,
         IFacturaSiatEnvioService _facturaSiatEnvio,
         ILogger<CobroPedidoService> logger) : ICobroPedidoService
     {
@@ -55,6 +56,23 @@ namespace KafeYana.Infrastructure.Servicios
 
             if (!await _db.mesas.MesaConpedido(datos.Id_Pedido, idMesa))
                 throw new InventarioException("El pedido no corresponde a la mesa.");
+
+            if (await DebeUsarSubVentaAsync(datos))
+            {
+                return await _subVenta.CrearSubVentaAsync(
+                    datos,
+                    cajero,
+                    caja,
+                    mesa.Nombre,
+                    liberarPedido: () =>
+                    {
+                        mesa.Disponible = true;
+                        mesa.Id_Pedido = null;
+                        mesa.pedido = null;
+                    },
+                    idMesa,
+                    ct);
+            }
 
             var pedido = await _db.Pedidos.FindByIdAsync(datos.Id_Pedido);
             if (pedido is null)
@@ -91,6 +109,22 @@ namespace KafeYana.Infrastructure.Servicios
             if (paraLlevar.Id_Pedido != datos.Id_Pedido)
                 throw new InventarioException("El pedido no corresponde al pedido para llevar activo.");
 
+            if (await DebeUsarSubVentaAsync(datos))
+            {
+                return await _subVenta.CrearSubVentaAsync(
+                    datos,
+                    cajero,
+                    caja,
+                    "Para llevar",
+                    liberarPedido: () =>
+                    {
+                        paraLlevar.Disponible = true;
+                        paraLlevar.Pedido = null;
+                    },
+                    idMesa: null,
+                    ct);
+            }
+
             return await EjecutarCobroAsync(
                 datos,
                 cajero,
@@ -102,6 +136,47 @@ namespace KafeYana.Infrastructure.Servicios
                     paraLlevar.Pedido = null;
                 },
                 ct);
+        }
+
+        public async Task<DtoPedidoActualizado> RevertirAbonoAsync(int abonoId, CancellationToken ct = default) =>
+            await _subVenta.RevertirSubVentaAsync(abonoId, ct);
+
+        /// <summary>
+        /// Decide si este cobro debe ir por el camino de sub-venta (cobro parcial):
+        /// el caller pidió explícitamente cobrar solo ciertos productos
+        /// (<c>ItemsCubiertos</c> + <c>MantenerMesaAbierta</c>), o el pedido ya
+        /// tiene sub-ventas previas — en ese caso, aunque el cajero use el botón de
+        /// "cobrar todo", el resto DEBE seguir siendo una sub-venta (que naturalmente
+        /// cierra la mesa si deja el pendiente en 0) para no perder el historial de
+        /// cobros/facturas ya emitidas que el camino de cobro completo destruiría.
+        /// Si el pedido no trae items explícitos pero ya tiene sub-ventas, se
+        /// completan automáticamente con TODO lo pendiente de cada producto.
+        /// </summary>
+        private async Task<bool> DebeUsarSubVentaAsync(DtoVentaPedido datos)
+        {
+            if (datos.MantenerMesaAbierta && datos.ItemsCubiertos?.Count > 0)
+                return true;
+
+            var tieneSubVentasPrevias = await _dbContext.SubVentas.AnyAsync(s => s.Id_Pedido == datos.Id_Pedido);
+            if (!tieneSubVentasPrevias)
+                return false;
+
+            if (datos.ItemsCubiertos is null || datos.ItemsCubiertos.Count == 0)
+            {
+                var pendientesPorProducto = await _dbContext.Detalle_rondas
+                    .Where(d => d.ronda!.Id_Pedido == datos.Id_Pedido && d.Cantidad - d.CantidadDescontada > 0)
+                    .GroupBy(d => d.Id_Producto)
+                    .Select(g => new DtoItemProductoCobrar
+                    {
+                        Id_Producto = g.Key,
+                        Cantidad = g.Sum(d => d.Cantidad - d.CantidadDescontada),
+                    })
+                    .ToListAsync();
+
+                datos.ItemsCubiertos = pendientesPorProducto;
+            }
+
+            return true;
         }
 
         private async Task<ResultadoCobroPedidoDto> EjecutarCobroAsync(

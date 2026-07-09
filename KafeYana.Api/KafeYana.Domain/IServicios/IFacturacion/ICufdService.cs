@@ -35,13 +35,22 @@ namespace KafeYana.Application.IServicios.IFacturacion
         /// <para>
         /// <c>bypassCortocircuito=true</c> se propaga a <see cref="SolicitarCufdAsync"/>.
         /// </para>
+        ///
+        /// <para>
+        /// <c>esContingencia=true</c> relaja el umbral de antigüedad a 24 horas (en
+        /// línea usa 5 min para evitar el error SIAT 1009). Para contingencia el SIAT
+        /// no compara contra hora actual, así que se puede reusar durante toda la
+        /// vigencia oficial del CUFD. Usar en flujos de registro de eventos
+        /// significativos y reenvíos de paquetes contingencia.
+        /// </para>
         /// </summary>
         Task<Cufd> ObtenerCufdVigenteAsync(
             int codigoSucursal,
             int codigoPuntoVenta,
             DateTime fechaEmision,
             CancellationToken ct = default,
-            bool bypassCortocircuito = false);
+            bool bypassCortocircuito = false,
+            bool esContingencia = false);
 
         /// <summary>
         /// Devuelve el CUFD más reciente de BD con <c>FechaVigencia &gt; NOW</c> sin

@@ -1312,8 +1312,13 @@ namespace KafeYana.Infrastructure.SiatClient
                 Campo("hashArchivo", solicitud.HashArchivo)
             };
 
-            // `cafc` es opcional (minOccurs="0"). Sólo lo incluimos si tiene valor.
-            if (!string.IsNullOrWhiteSpace(solicitud.Cafc))
+            // `cafc` es opcional (minOccurs="0"). Sólo lo incluimos si tiene valor Y
+            // el CodigoMotivo del evento es 5, 6 o 7 (factura manual con talonario físico).
+            // Para motivos 1-4 (sistema/caída), el SIN espera que el campo no esté presente.
+            // Validado contra el piloto: enviar Cafc en motivos 1-4 produce observación 904;
+            // no enviar Cafc en motivos 5-7 produce rechazo 902.
+            if (solicitud.CodigoMotivo is >= 5 and <= 7
+                && !string.IsNullOrWhiteSpace(solicitud.Cafc))
             {
                 camposBase.Add(Campo("cafc", solicitud.Cafc));
             }

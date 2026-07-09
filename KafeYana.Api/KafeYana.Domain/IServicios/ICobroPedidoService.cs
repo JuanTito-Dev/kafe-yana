@@ -23,5 +23,7 @@ namespace KafeYana.Application.IServicios
             string cajero,
             Caja caja,
             CancellationToken ct = default);
+
+        Task<DtoPedidoActualizado> RevertirAbonoAsync(int abonoId, CancellationToken ct = default);
     }
 }
