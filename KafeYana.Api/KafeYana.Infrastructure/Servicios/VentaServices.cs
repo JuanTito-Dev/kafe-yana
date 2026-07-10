@@ -133,7 +133,7 @@ namespace KafeYana.Infrastructure.Servicios
 
             var venta = datos.Factura
                 ? await ConstruirVentaFacturadaAsync(datos, cajero, cliente, numeroDocumento, fechaEmision, numeroFacturaSiat, totalCobrar, descuento, detallesVenta, pvActual, actividadEconomica)
-                : ConstruirVentaSinFactura(datos, cajero, cliente, numeroDocumento, fechaEmision, codigoVenta, totalCobrar, descuento, detallesVenta);
+                : ConstruirVentaSinFactura(datos, cajero, cliente, numeroDocumento, SiatFechaEmision.AhoraUtc(), codigoVenta, totalCobrar, descuento, detallesVenta);
 
             await _db.Pedidos.EliminarConAbonosAsync(pedido);
 
@@ -199,7 +199,7 @@ namespace KafeYana.Infrastructure.Servicios
             var comun = await PrepararComunDesdeSubVentaAsync(subVenta, datos, cajero, codigoVenta);
 
             var venta = ConstruirVentaSinFactura(
-                datos, cajero, comun.Cliente, comun.NumeroDocumento, fechaEmision: default,
+                datos, cajero, comun.Cliente, comun.NumeroDocumento, fechaEmision: SiatFechaEmision.AhoraUtc(),
                 codigoVenta, comun.TotalCobrar, descuento: null, comun.DetallesVenta);
 
             var puntosPorVenta = await _puntos.CalcularYAplicarPuntosAsync(comun.Cliente, comun.TotalCobrar, tieneCombo: false, codigoVenta);

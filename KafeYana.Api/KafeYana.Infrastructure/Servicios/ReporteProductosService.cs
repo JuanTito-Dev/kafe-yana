@@ -9,8 +9,9 @@ namespace KafeYana.Infrastructure.Servicios
     /// <summary>
     /// Reporte mensual de productos más vendidos / mayor rotación.
     ///
-    /// Fuente de ventas: <c>Venta</c> con EstadoSiat ∈ {Validada, Observada}
-    /// (excluye Anulada, Pendiente, Rechazada) en el rango del mes calendario.
+    /// Fuente de ventas: <c>Venta</c> con EstadoSiat == null (sin factura) o
+    /// EstadoSiat ∈ {Validada, Observada} (excluye Anulada, Pendiente, Rechazada)
+    /// en el rango del mes calendario.
     /// Las líneas de producto vienen de <c>Detalle_Pago.Descripcion</c> (mismo
     /// approach que el Top 10 ya implementado en <c>SalesReportPage</c>).
     ///
@@ -43,11 +44,13 @@ namespace KafeYana.Infrastructure.Servicios
 
             // ── Ventas del mes + sus detalles ─────────────────────────────────────
             // Agrupamos por descripción de Detalle_Pago (clave de producto en la factura).
-            // EstadoSiat ∈ {Validada, Observada} → no anuladas ni pendientes.
+            // Incluye ventas sin factura (EstadoSiat == null) además de
+            // EstadoSiat ∈ {Validada, Observada} → excluye solo Anulada, Pendiente, Rechazada.
             var ventasQuery = _db.Ventas
                 .AsNoTracking()
                 .Where(v => v.FechaEmision >= inicioUtc && v.FechaEmision < finUtc)
-                .Where(v => v.EstadoSiat == FacturaEstado.Validada
+                .Where(v => v.EstadoSiat == null
+                         || v.EstadoSiat == FacturaEstado.Validada
                          || v.EstadoSiat == FacturaEstado.Observada);
 
             var lineas = await ventasQuery
