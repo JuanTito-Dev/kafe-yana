@@ -28,6 +28,7 @@ using Scalar.AspNetCore;
 using System.Text;
 using KafeYana.Infrastructure;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Query = KafeYana.Api.GraphQLMap.Query;
 
 QuestPDF.Settings.License = LicenseType.Community;
 
@@ -134,7 +135,7 @@ builder.Services.AddCors( x =>
 
 builder.Services.AddGraphQLServer()
     .RegisterDbContextFactory<AppDbContext>()
-    .AddQueryType<Query>()
+    .AddQueryType<Query>(d => d.Name("Query"))
     .AddTypeExtension<AjustesQuery>()
     .AddTypeExtension<CategoriaQuery>()
     .AddTypeExtension<ClienteQuery>()
@@ -201,6 +202,8 @@ builder.Services.AddGraphQLServer()
     .AddSorting()
     .AddAuthorization()
     .AddTypeExtension<ProveedorQuery>()
+    .AddTypeExtension<ReporteCajaQuery>()
+    .AddTypeExtension<ReporteProductoQuery>()
     .AddType<ProveedorType>()
     .AddType<HistorialPuntosType>()
     .AddType<ProductoCanjeableType>()
@@ -261,6 +264,8 @@ builder.Services.AddScoped<IInventarioPedidoCompromisoService, InventarioPedidoC
 builder.Services.AddScoped<Detalle_RondaService>();
 builder.Services.AddScoped<IRondaPedidoService, RondaPedidoService>();
 builder.Services.AddScoped<ReporteInventarioService>();
+builder.Services.AddScoped<ReporteCajaService>();
+builder.Services.AddScoped<ReporteProductosService>();
 builder.Services.AddScoped<IProductoMovimientoRepositorio, ProductoMovimientoRepositorio>();
 builder.Services.AddScoped<IInsumoMovimientoRepositorio, InsumoMovimientoRepositorio>();
 builder.Services.AddScoped<IParaLlevarRepositorio, ParaLlevarRepositorio>();
