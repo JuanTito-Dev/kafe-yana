@@ -7,4 +7,3 @@ obj/
 *.backup.json
 
 # EF Core migrations — generated, not source-controlled
-**/Migrations/
