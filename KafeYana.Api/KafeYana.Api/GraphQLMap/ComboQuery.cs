@@ -1,101 +1,48 @@
-﻿using HotChocolate.Authorization;
-using KafeYana.Application.Dtos.ComboDtos;
-using KafeYana.Application.Dtos.CompradoDtos;
+using HotChocolate.Authorization;
+using KafeYana.Api.Helpers;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Domain.Entities.Inventario;
 using KafeYana.Domain.TiposDeDatos;
-using KafeYana.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace KafeYana.Api.GraphQLMap
 {
     [ExtendObjectType("Query")]
     public class ComboQuery
     {
-        [UsePaging(IncludeTotalCount = true)]
-        [UseProjection]
-        [UseSorting]
-        [UseFiltering]
+        /// <summary>
+        /// Lista de combos (promociones) con paginación offset y búsqueda opcional.
+        /// El filtrado y el orden se aplican directamente sobre el IQueryable antes de paginar.
+        /// </summary>
         [Authorize(Roles = new[] { RolesKafe.Admin, RolesKafe.Mesero, RolesKafe.Cajero })]
-
-        public IQueryable<Promocion> Combos([Service] IComboRepositorio _db)
+        public Task<OffsetPage<Promocion>> Combos(
+            [Service] IComboRepositorio _db,
+            int? skip,
+            int? take,
+            string? search = null,
+            int? idProducto = null,
+            CancellationToken ct = default)
         {
+            IQueryable<Promocion> q = _db.GetCombos()
+                .AsNoTracking()
+                .Include(p => p.Producto)
+                .Include(p => p.Detalles)
+                    .ThenInclude(d => d.Producto);
 
-            return _db.GetCombos();
+            if (idProducto.HasValue)
+                q = q.Where(p => p.Producto_Id == idProducto.Value);
 
-        }  
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.ToLower();
+                q = q.Where(p => p.Producto!.Nombre.ToLower().Contains(s));
+            }
 
-        //[Authorize(Roles = new[] { "Admin" })]
-        //[UseProjection]
-        //public async Task<DtoComboGet?> Combo([Service] AppDbContext _db, int Id)
-        //{
-        //    if (Id <= 0) return null;
-
-        //    var raw = await _db.Productos
-        //        .Where(x => x.Id == Id && x.Tipo == TiposProductos.Promocion)
-        //        .Select(p => new
-        //        {
-        //            p.Id,
-        //            p.Nombre,
-        //            p.Descripcion,
-        //            p.Precio,
-        //            p.Tipo,
-        //            p.Categoria_Id,
-        //            Detalles = p.Promocion.Detalles.Select(d => new
-        //            {
-        //                d.Id_Producto,
-        //                d.Cantidad,
-        //                d.Opcional,
-        //                TipoProducto = d.Producto.Tipo,
-        //                StockComprado = d.Producto.Comprado != null
-        //                    ? (decimal?)d.Producto.Comprado.Stock_actual
-        //                    : null,
-        //                StockElaborado = d.Producto.Elaborado != null && d.Producto.Elaborado.Receta != null
-        //                    ? d.Producto.Elaborado.Receta.Detalles.Select(det => new
-        //                    {
-        //                        det.Cantidad,
-        //                        det.Merma,
-        //                        StockInsumo = (decimal)det.Insumo.Stock_actual
-        //                    }).ToList()
-        //                    : null
-        //            }).ToList()
-        //        })
-        //        .FirstOrDefaultAsync();
-
-        //    if (raw == null) return null;
-
-        //    // Cálculo en memoria
-        //    return new DtoComboGet
-        //    {
-        //        Id = raw.Id,
-        //        Nombre = raw.Nombre,
-        //        Descripcion = raw.Descripcion,
-        //        Precio = raw.Precio,
-        //        Tipo = raw.Tipo,
-        //        Categoria_Id = raw.Categoria_Id,
-        //        Productos = raw.Detalles.Select(d => new ComboDetalleDto
-        //        {
-        //            ProductoId = d.Id_Producto,
-        //            Cantidad = d.Cantidad,
-        //            Opcional = d.Opcional
-        //        }).ToList(),
-        //        CantidadProducible = raw.Detalles
-        //            .Where(d => !d.Opcional)
-        //            .Select(d => d.TipoProducto == TiposProductos.Comprado
-        //                ? (d.StockComprado.HasValue
-        //                    ? (int)(d.StockComprado.Value / d.Cantidad)
-        //                    : 0)
-        //                : (d.StockElaborado != null && d.StockElaborado.Any()
-        //                    ? d.StockElaborado
-        //                        .Select(det => (int)(det.StockInsumo /
-        //                            (det.Cantidad * (1 + det.Merma / 100m))))
-        //                        .Min()
-        //                    : 0)
-        //            )
-        //            .DefaultIfEmpty(0)
-        //            .Min()
-        //    };
-        //}
+            return q.OrderBy(p => p.Producto!.Nombre)
+                    .ToOffsetPageAsync(skip, take, ct);
+        }
     }
 }
-

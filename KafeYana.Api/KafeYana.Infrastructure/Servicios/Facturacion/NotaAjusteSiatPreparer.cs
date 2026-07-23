@@ -1,9 +1,13 @@
 using KafeYana.Application.Exceptions;
+using KafeYana.Application.IServicios;
 using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Domain.Entities;
+using KafeYana.Domain.Entities.Catalogos;
 using KafeYana.Domain.TiposDeDatos;
 using KafeYana.Infrastructure.Configuration;
+using KafeYana.Infrastructure.Data;
 using KafeYana.Infrastructure.Servicios.Facturacion.Utilidades;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -15,7 +19,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 {
     /// <summary>
     /// Prepara una NotaAjuste para ser enviada al SIAT: valida, calcula totales,
-    /// genera CUF, arma XML, gzipea, hashea. Espejo de FacturaVentaSiatPreparer.
+    /// genera CUF, arma XML, gzipea, hashea. Espejo de <c>FacturaVentaSiatPreparer</c>.
     /// </summary>
     public class NotaAjusteSiatPreparer : INotaAjusteSiatPreparer
     {
@@ -25,6 +29,10 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
         private readonly INotaAjusteXmlGenerator _notaXmlGenerator;
         private readonly ICufdService _cufdService;
         private readonly ICufGenerator _cufGenerator;
+        private readonly IFechaHoraSiatService _fechaHoraSiat;
+        private readonly IDbContextFactory<AppDbContext> _dbFactory;
+        private readonly ICatActividadResolver _actividadResolver;
+        private readonly ICatLeyendaResolver _leyendaResolver;
         private readonly SiatOptions _siat;
         private readonly ILogger<NotaAjusteSiatPreparer> _logger;
 
@@ -33,6 +41,10 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             INotaAjusteXmlGenerator notaXmlGenerator,
             ICufdService cufdService,
             ICufGenerator cufGenerator,
+            IFechaHoraSiatService fechaHoraSiat,
+            IDbContextFactory<AppDbContext> dbFactory,
+            ICatActividadResolver actividadResolver,
+            ICatLeyendaResolver leyendaResolver,
             IOptions<SiatOptions> siatOpts,
             ILogger<NotaAjusteSiatPreparer> logger)
         {
@@ -40,17 +52,68 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             _notaXmlGenerator = notaXmlGenerator;
             _cufdService = cufdService;
             _cufGenerator = cufGenerator;
+            _fechaHoraSiat = fechaHoraSiat;
+            _dbFactory = dbFactory;
+            _actividadResolver = actividadResolver;
+            _leyendaResolver = leyendaResolver;
             _siat = siatOpts.Value;
             _logger = logger;
         }
 
+        private (int CodigoSucursal, int CodigoPuntoVenta) ResolverPuntoVentaActivo()
+        {
+            using var db = _dbFactory.CreateDbContext();
+            var pv = db.PuntosVentaSiat
+                .AsNoTracking()
+                .Where(p => p.Activo)
+                .OrderBy(p => p.CodigoSucursal)
+                .ThenBy(p => p.CodigoPuntoVenta)
+                .FirstOrDefault();
+
+            if (pv is not null)
+                return (pv.CodigoSucursal, pv.CodigoPuntoVenta);
+
+            return (_siat.CodigoSucursal, _siat.CodigoPuntoVenta);
+        }
+
         public async Task PrepararNotaAsync(NotaAjuste nota, CancellationToken ct = default)
         {
+            // 1) Resolver CAEB UNA vez. Lo usamos para (a) validar la matriz
+            //    CAEB+Sector contra el SIN y (b) elegir la leyenda obligatoria.
+            var caeb = await _actividadResolver.ResolverCaebVigenteAsync(ct);
+
+            // Bloquear antes de quemar CUFD / generar XML si la combinación CAEB +
+            // CodigoDocumentoSector (sector 24 = NCD por defecto) no está habilitada
+            // por el SIN. Mismo patrón que FacturaVentaSiatPreparer.
+            await ValidarMatrizSiatAsync(caeb, _siat.CodigoDocumentoSectorNotaAjuste, ct);
+
             ValidarEstructura(nota);
 
-            var fechaEmision = SiatFechaEmision.AhoraUtc();
+            // Asignar NroItem correlativo 1..N dentro de la nota. Solo se serializa
+            // en el XML cuando sector==47 (XSD notaComputarizadaCreditoDebitoDescuento.xsd
+            // lo exige como primer hijo de <detalle>); para sector 24 el generator
+            // lo ignora. Ver NotaAjusteXmlGenerator.Sector47.
+            for (var i = 0; i < nota.Detalles.Count; i++)
+                nota.Detalles[i].NroItem = i + 1;
+
+            // Usamos el Sucursal/PuntoVenta que ya viene en la nota (heredado de la Venta).
+            // Antes este método llamaba a ResolverPuntoVentaActivo() independientemente,
+            // lo que podía divergir del PV real de la Venta si había varios PuntosVentaSiat
+            // activos → CUF construido con un PV y nota persistida con otro → inconsistencia.
+            // Ver [[kafeyana-multipv-resolver]] — el fix equivalente en VentaServices
+            // sobrecarga venta.CodigoSucursal/PuntoVenta con pvActual, así que al copiar
+            // esos campos a la NotaAjuste (NotaAjusteSiatEnvioService:170) ya son correctos.
+            var sucNota = nota.CodigoSucursal;
+            var pvNota = nota.CodigoPuntoVenta;
+
+            // fechaEmision la asigna el SIAT (sincronizarFechaHora) justo después.
+            DateTime fechaEmision = default;
             nota.FechaEmision = fechaEmision;
-            nota.Leyenda = LeyendaSiatService.ObtenerAleatoria();
+
+            // Leyenda obligatoria del SIN, filtrada por el CAEB principal del
+            // operador. El resolver tira VentaException si CatLeyendas está
+            // vacía → fail-closed (ver [[kafeyana-vservices-throw-on-missing-config]]).
+            nota.Leyenda = await _leyendaResolver.ObtenerAleatoriaAsync(caeb, ct);
             nota.CodigoDocumentoSector = _siat.CodigoDocumentoSectorNotaAjuste;
             nota.EstadoSiat = FacturaEstado.Pendiente;
             nota.CodigoRecepcion = null;
@@ -62,21 +125,45 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
             try
             {
+                // 1) Fecha/hora oficial del SIN (bloquea si el SIAT no responde).
+                fechaEmision = await _fechaHoraSiat.ObtenerFechaHoraOficialAsync(
+                    sucNota, pvNota, ct);
+                // El SIAT devuelve hora BOT. La convertimos a UTC (+4h) con Kind=Utc
+                // para que Npgsql pueda escribirla en la columna "timestamp with time zone".
+                fechaEmision = SiatFechaEmision.ToUtcForDb(fechaEmision);
+
+                // 2) CUFD vigente del PV activo (con la misma fechaEmision del CUF)
                 var cufd = await _cufdService.ObtenerCufdVigenteAsync(
-                    _siat.CodigoSucursal, _siat.CodigoPuntoVenta, ct);
+                    sucNota, pvNota, fechaEmision, ct);
+
+                // El CUF DEBE construirse con EXACTAMENTE la misma fechaEmisionBOT
+                // que el SIAT embebió en el CUFD. Si usáramos la `fechaEmision` local
+                // (la del SOAP sincronizarFechaHora), puede haber drift de milisegundos
+                // respecto a lo que el SIAT tiene persistido en Cufd.FechaEmisionSolicitud,
+                // y el SIAT rechaza con 1002/1003 ("EL CODIGO UNICO DE FACTURA (CUF)
+                // ENVIADO EN EL XML ES INVALIDO"). Ver Cufd.FechaEmisionSolicitud.
+                fechaEmision = cufd.FechaEmisionSolicitud;
+                // Sincronizamos también la fechaEmision de la nota para que el XML
+                // lleve exactamente la misma fecha que el CUF y el CUFD.
+                nota.FechaEmision = fechaEmision;
 
                 cufdCodigo = cufd.Codigo;
                 cuf = _cufGenerator.Generar(new CufGeneracionRequest(
                     Nit: _siat.Nit,
                     FechaEmision: fechaEmision,
-                    CodigoSucursal: _siat.CodigoSucursal,
+                    CodigoSucursal: sucNota,
                     CodigoModalidad: _siat.CodigoModalidad,
                     TipoEmision: _siat.CodigoEmision,
                     TipoFacturaDocumento: _siat.TipoFacturaDocumentoNotaAjuste,
                     CodigoDocumentoSector: _siat.CodigoDocumentoSectorNotaAjuste,
                     NumeroFactura: nota.NumeroNotaCreditoDebito,
-                    CodigoPuntoVenta: _siat.CodigoPuntoVenta,
+                    CodigoPuntoVenta: pvNota,
                     CodigoControl: cufd.CodigoControl));
+            }
+            catch (VentaException)
+            {
+                // Relanzar: el SIAT no respondió o rechazó fechaHora
+                throw;
             }
             catch (Exception ex)
             {
@@ -85,6 +172,11 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                     nota.Id);
             }
 
+            // Persistir el CUF/CUFD calculados (o el placeholder PENDIENTE-NOTA-…)
+            // en la entidad. Sin esto, nota.Cuf queda con el "PENDIENTE" puesto
+            // en NotaAjusteSiatEnvioService.cs:199 y el INSERT choca con cualquier
+            // otra fila que tenga ese placeholder en IX_NotaAjuste_Cuf (23505).
+            // Espejo de FacturaVentaSiatPreparer.cs:118-119.
             nota.Cuf = cuf;
             nota.Cufd = cufdCodigo;
 
@@ -92,105 +184,70 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             {
                 var xml = _notaXmlGenerator.Generar(nota);
                 var archivo = SiatGzip.ComprimirXmlABase64(xml);
-
                 nota.XmlBase64 = archivo;
                 nota.CodigoHash = _recepcionNota.CalcularHashArchivo(archivo);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "XML/archivo/hash no generado al preparar nota {NotaId}", nota.Id);
-                throw new VentaException("No se pudo generar el archivo de la nota para enviar al SIAT.");
+                throw new VentaException("No se pudo generar el archivo de nota para enviar al SIAT.");
             }
         }
 
-        private static void ValidarEstructura(NotaAjuste nota)
+        /// <summary>
+        /// Valida estructura de la nota (mínimo 2 detalles, cuadre de totales,
+        /// trans=1 y trans=2 presentes, referencias válidas a IdDetallePagoOriginal,
+        /// etc.). Levanta VentaException con código SIAT específico para
+        /// diagnóstico rápido desde el front.
+        /// </summary>
+        private void ValidarEstructura(NotaAjuste nota)
         {
-            if (nota is null)
-                throw new InvalidOperationException("La nota de ajuste es nula.");
-
-            if (nota.IdVenta <= 0)
-                throw new InvalidOperationException("La nota debe referenciar una Venta (IdVenta requerido).");
-
-            if (nota.Detalles is null || nota.Detalles.Count == 0)
-                throw new InvalidOperationException(
-                    "La nota debe tener al menos un detalle.");
-
-            // El XSD oficial (notaComputarizadaCreditoDebito.xsd, línea 215) exige
-            // <xs:element name="detalle" minOccurs="2" maxOccurs="500">.
-            // Cada nota DEBE contener al menos un par (trans=1 + trans=2) por producto
-            // a devolver. El servicio de envío (NotaAjusteSiatEnvioService) ya garantiza
-            // esta estructura antes de llegar aquí.
             if (nota.Detalles.Count < 2)
-                throw new InvalidOperationException(
-                    $"La nota debe tener al menos 2 detalles (XSD minOccurs=2). Actual: {nota.Detalles.Count}.");
+                throw new VentaException(
+                    "La nota debe tener al menos 2 detalles (transacción 1 = descuento/bonificación, transacción 2 = devolución/anulación). Error SIAT 1042 esperado.");
 
-            if (!nota.Detalles.Any(d => d.CodigoDetalleTransaccion == 1) ||
-                !nota.Detalles.Any(d => d.CodigoDetalleTransaccion == 2))
-                throw new InvalidOperationException(
-                    "La nota debe contener al menos un detalle con codigoDetalleTransaccion=1 "
-                    + "(referencia al item original) y otro con codigoDetalleTransaccion=2 (devolución).");
+            var trans1 = nota.Detalles.Count(d => d.CodigoDetalleTransaccion == 1);
+            var trans2 = nota.Detalles.Count(d => d.CodigoDetalleTransaccion == 2);
+            if (trans1 == 0 || trans2 == 0)
+                throw new VentaException(
+                    "La nota debe tener al menos un detalle con codigoDetalleTransaccion=1 (descuento/bonificación) y otro con =2 (devolución/anulación). Error SIAT 1042 esperado.");
 
-            // Cada detalle debe referenciar una línea original (XSD obliga).
-            for (var i = 0; i < nota.Detalles.Count; i++)
-            {
-                var d = nota.Detalles[i];
-                if (d.IdDetallePagoOriginal <= 0)
-                    throw new InvalidOperationException(
-                        $"Detalle #{i + 1}: IdDetallePagoOriginal es obligatorio (XSD exige referencia a la línea original).");
-                if (d.NumeroLineaOriginal <= 0)
-                    throw new InvalidOperationException(
-                        $"Detalle #{i + 1}: NumeroLineaOriginal es obligatorio (XSD exige referencia a la línea original).");
-                if (d.CodigoDetalleTransaccion <= 0)
-                    throw new InvalidOperationException(
-                        $"Detalle #{i + 1}: CodigoDetalleTransaccion debe ser > 0.");
-            }
-
-            // ═══ Validaciones anti-rechazo SIAT (errores 1029 / 1030 / 1031) ═══
-            // 1029: suma de subtotales de líneas con codigoDetalleTransaccion=2 no cuadra
-            //       con montoTotalDevuelto (el SIAT computa este valor a partir de los detalles).
-            // 1030: suma de subtotales de líneas con codigoDetalleTransaccion=1 no cuadra
-            //       con montoTotalOriginal. NO es venta.MontoTotal: en devoluciones parciales
-            //       el SIAT espera sólo el subtotal de los items seleccionados.
-            // 1031: montoEfectivoCreditoDebito no cuadra con (montoTotalDevuelto - descuento) * 0.13
-            //       (es el IVA / crédito fiscal de la nota, NO el total devuelto).
-            var sumaTrans1 = nota.Detalles
-                .Where(d => d.CodigoDetalleTransaccion == 1)
-                .Sum(d => d.SubTotal);
-            if (Math.Abs(sumaTrans1 - nota.MontoTotalOriginal) > ToleranciaCentavos)
-            {
-                throw new InvalidOperationException(
-                    $"La suma de subtotales con codigoDetalleTransaccion=1 ({sumaTrans1:0.00}) " +
-                    $"no coincide con montoTotalOriginal ({nota.MontoTotalOriginal:0.00}). " +
-                    $"Diferencia: {(sumaTrans1 - nota.MontoTotalOriginal):0.00}. " +
-                    "Revise los detalles antes de enviar al SIAT (esto sería rechazado con error 1030).");
-            }
-
-            var sumaTrans2 = nota.Detalles
-                .Where(d => d.CodigoDetalleTransaccion == 2)
-                .Sum(d => d.SubTotal);
-            if (Math.Abs(sumaTrans2 - nota.MontoTotalDevuelto) > ToleranciaCentavos)
-            {
-                throw new InvalidOperationException(
-                    $"La suma de subtotales con codigoDetalleTransaccion=2 ({sumaTrans2:0.00}) " +
-                    $"no coincide con montoTotalDevuelto ({nota.MontoTotalDevuelto:0.00}). " +
-                    $"Diferencia: {(sumaTrans2 - nota.MontoTotalDevuelto):0.00}. " +
-                    "Revise los detalles antes de enviar al SIAT (esto sería rechazado con error 1029).");
-            }
-
-            var efectivoEsperado = Math.Round(
-                (nota.MontoTotalDevuelto - nota.MontoDescuentoCreditoDebito) * 0.13m,
-                2, MidpointRounding.AwayFromZero);
-            if (Math.Abs(nota.MontoEfectivoCreditoDebito - efectivoEsperado) > ToleranciaCentavos)
-            {
-                throw new InvalidOperationException(
-                    $"montoEfectivoCreditoDebito ({nota.MontoEfectivoCreditoDebito:0.00}) no cuadra con " +
-                    $"(montoTotalDevuelto - montoDescuentoCreditoDebito) * 0.13 ({efectivoEsperado:0.00}). " +
-                    "Revise los cálculos antes de enviar al SIAT (esto sería rechazado con error 1031).");
-            }
-
+            // montoEfectivoCreditoDebito = montoTotalDevuelto * 0.13 (IVA Boliviano).
+            // Ver [[kafeyana-notaajuste-siat-reglas]] para el detalle del cálculo.
             if (nota.MontoEfectivoCreditoDebito < 0)
                 throw new InvalidOperationException(
                     $"montoEfectivoCreditoDebito ({nota.MontoEfectivoCreditoDebito:0.00}) no puede ser negativo.");
+        }
+
+        /// <summary>
+        /// Verifica contra la tabla CatActividadesDocumentosSector que el CAEB
+        /// vigente pueda emitir documentos del sector indicado (24 = NCD por
+        /// defecto). Si la combinación no existe, lanza VentaException → 409 con
+        /// instrucción clara al operador. Espejo del método del facturero.
+        /// </summary>
+        private async Task ValidarMatrizSiatAsync(string caeb, int codigoDocumentoSector, CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(caeb))
+                throw new VentaException("No se pudo resolver la actividad económica (CAEB vacío).");
+
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            var existe = await db.CatActividadesDocumentosSector
+                .AsNoTracking()
+                .AnyAsync(m => m.CodigoActividad == caeb
+                            && m.CodigoDocumentoSector == codigoDocumentoSector, ct);
+
+            if (!existe)
+            {
+                throw new VentaException(
+                    $"La actividad económica CAEB '{caeb}' no está autorizada por el SIAT "
+                    + $"para emitir documentos sector {codigoDocumentoSector}. "
+                    + "Ejecute POST /api/catalogos/sincronizar-actividades-documento-sector "
+                    + "o actualice DatosEmpresaOptions.CodigoActividad.");
+            }
+
+            _logger.LogInformation(
+                "SIAT matrix check OK: CAEB={Caeb} SectorDoc={Sector}",
+                caeb, codigoDocumentoSector);
         }
     }
 }

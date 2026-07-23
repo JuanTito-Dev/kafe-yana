@@ -1,10 +1,12 @@
 ﻿using KafeYana.Application.Dtos.FacturacionDtos;
+using KafeYana.Application.Exceptions;
 using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Domain.TiposDeDatos;
 using KafeYana.Infrastructure.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
 
 namespace KafeYana.Api.Controllers
@@ -29,7 +31,8 @@ namespace KafeYana.Api.Controllers
         private readonly IFacturaSiatAnulacionService _facturaSiatAnulacion;
         private readonly IFacturaSiatReversionAnulacionService _facturaSiatReversionAnulacion;
         private readonly IFacturaImpresionService _facturaImpresion;
-        private readonly SiatOptions _opts;
+        private readonly ICatLeyendaResolver _catLeyendaResolver;
+        private readonly DatosEmpresaOptions _empresaOpts;
 
         public FacturacionController(
             ICuisService cuisService,
@@ -39,7 +42,8 @@ namespace KafeYana.Api.Controllers
             IFacturaSiatAnulacionService facturaSiatAnulacion,
             IFacturaSiatReversionAnulacionService facturaSiatReversionAnulacion,
             IFacturaImpresionService facturaImpresion,
-            IOptions<SiatOptions> opts)
+            ICatLeyendaResolver catLeyendaResolver,
+            IOptions<DatosEmpresaOptions> empresaOpts)
         {
             _cuis = cuisService;
             _cufd = cufdService;
@@ -48,7 +52,8 @@ namespace KafeYana.Api.Controllers
             _facturaSiatAnulacion = facturaSiatAnulacion;
             _facturaSiatReversionAnulacion = facturaSiatReversionAnulacion;
             _facturaImpresion = facturaImpresion;
-            _opts = opts.Value;
+            _catLeyendaResolver = catLeyendaResolver;
+            _empresaOpts = empresaOpts.Value;
         }
 
         /// <summary>
@@ -96,7 +101,7 @@ namespace KafeYana.Api.Controllers
         {
             try
             {
-                var cufd = await _cufd.ObtenerCufdVigenteAsync(sucursal, puntoVenta, ct);
+                var cufd = await _cufd.ObtenerCufdVigenteAsync(sucursal, puntoVenta, DateTime.UtcNow, ct);
                 return Ok(new
                 {
                     id = cufd.Id,
@@ -115,6 +120,27 @@ namespace KafeYana.Api.Controllers
                 return BadRequest(new { error = ex.Message });
             }
             catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Devuelve una leyenda aleatoria del catálogo sincronizado
+        /// (`CatLeyendas`) para el CAEB del emisor.
+        /// La usa el frontend para mostrar la leyenda obligatoria en la
+        /// preview de impresión de la factura (la impresión real la toma
+        /// el backend de `Venta.Leyenda` al persistir).
+        /// </summary>
+        [HttpGet("leyenda-aleatoria")]
+        public async Task<IActionResult> ObtenerLeyendaAleatoria(CancellationToken ct = default)
+        {
+            try
+            {
+                var leyenda = await _catLeyendaResolver.ObtenerAleatoriaAsync("5610200", ct);
+                return Ok(new { leyenda });
+            }
+            catch (VentaException ex)
             {
                 return BadRequest(new { error = ex.Message });
             }
@@ -206,9 +232,12 @@ namespace KafeYana.Api.Controllers
         /// </summary>
         [HttpPost("reenviar/{ventaId:int}")]
         [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
-        public async Task<IActionResult> ReenviarFactura(int ventaId, CancellationToken ct)
+        public async Task<IActionResult> ReenviarFactura(
+            int ventaId,
+            [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] DtoDatosFiscalesReenvio? datosFiscales,
+            CancellationToken ct)
         {
-            var envioSiat = await _facturaSiatEnvio.ReenviarFacturaAsync(ventaId, ct);
+            var envioSiat = await _facturaSiatEnvio.ReenviarFacturaAsync(ventaId, datosFiscales, ct);
 
             var mensaje = envioSiat.Transaccion
                 ? envioSiat.Enviado

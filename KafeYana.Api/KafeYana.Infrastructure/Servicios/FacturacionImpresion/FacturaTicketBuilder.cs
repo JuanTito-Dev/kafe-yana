@@ -100,11 +100,6 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
                 EscribirIzq(ms, linea);
 
             foreach (var linea in PartirTexto(
-                "Ley N 453: El proveedor debera entregar el producto en las modalidades y terminos ofertados o convenidos.",
-                anchoCaracteres))
-                EscribirIzq(ms, linea);
-
-            foreach (var linea in PartirTexto(
                 "Este documento es la Representacion Grafica de un Documento Fiscal Digital emitido en una modalidad de facturacion en linea",
                 anchoCaracteres))
                 EscribirIzq(ms, linea);
@@ -143,10 +138,19 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
             return bolivia.ToString("dd/MM/yyyy hh:mm tt", CultureInfo.InvariantCulture);
         }
 
-        private static string EtiquetaDocumento(int codigo) =>
-            TipoDocumentoIdentidadSiatDescripciones.PorCodigo.TryGetValue(codigo, out var d)
-                ? d.Split('-')[0].Trim()
-                : codigo.ToString(CultureInfo.InvariantCulture);
+        private static string EtiquetaDocumento(int codigo)
+        {
+            // Lee del catálogo sincronizado (catálogo SIAT vigente, con fallback
+            // hardcoded mientras el primer sync no haya corrido). Ver
+            // TipoDocumentoIdentidadSiatCatalogo.
+            var descripcion = TipoDocumentoIdentidadSiatCatalogo.ObtenerDescripcion(codigo);
+            if (string.IsNullOrEmpty(descripcion) || descripcion == $"Tipo {codigo}")
+                return codigo.ToString(CultureInfo.InvariantCulture);
+
+            // El SIN devuelve descripciones con formato "PREFIJO - RESTO".
+            // Para el ticket solo queremos el prefijo corto ("CI", "CEX", etc.).
+            return descripcion.Split('-')[0].Trim();
+        }
 
         private static string EtiquetaUnidad(int codigo)
         {
@@ -158,7 +162,7 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
         {
             (int)TipoPagos.Efectivo => "EFECTIVO",
             (int)TipoPagos.Tarjeta => "TARJETA",
-            (int)TipoPagos.Qr => "QR / TRANSFERENCIA",
+            (int)TipoPagos.Transferencia => "QR / TRANSFERENCIA",
             _ => "OTROS"
         };
 

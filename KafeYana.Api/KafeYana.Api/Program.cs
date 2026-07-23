@@ -28,6 +28,7 @@ using Scalar.AspNetCore;
 using System.Text;
 using KafeYana.Infrastructure;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Query = KafeYana.Api.GraphQLMap.Query;
 
 QuestPDF.Settings.License = LicenseType.Community;
 
@@ -134,7 +135,7 @@ builder.Services.AddCors( x =>
 
 builder.Services.AddGraphQLServer()
     .RegisterDbContextFactory<AppDbContext>()
-    .AddQueryType<Query>()
+    .AddQueryType<Query>(d => d.Name("Query"))
     .AddTypeExtension<AjustesQuery>()
     .AddTypeExtension<CategoriaQuery>()
     .AddTypeExtension<ClienteQuery>()
@@ -196,16 +197,13 @@ builder.Services.AddGraphQLServer()
 
     })
     .ModifyCostOptions(o => o.EnforceCostLimits = false)
-    .ModifyPagingOptions(o =>
-    {
-        o.DefaultPageSize = 200;
-        o.MaxPageSize = 1000;
-    })
     .AddFiltering<CaseInsensitiveFilteringConvention>()
     .AddProjections()
     .AddSorting()
     .AddAuthorization()
     .AddTypeExtension<ProveedorQuery>()
+    .AddTypeExtension<ReporteCajaQuery>()
+    .AddTypeExtension<ReporteProductoQuery>()
     .AddType<ProveedorType>()
     .AddType<HistorialPuntosType>()
     .AddType<ProductoCanjeableType>()
@@ -232,6 +230,7 @@ builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IVentaServices, VentaServices>();
 builder.Services.AddScoped<ICobroPedidoService, CobroPedidoService>();
+builder.Services.AddScoped<ISubVentaService, SubVentaService>();
 builder.Services.AddScoped<IPromocionPermanenteVentaService, PromocionPermanenteVentaService>();
 builder.Services.AddScoped<IPromocionPermanenteDescuentoService, PromocionPermanenteDescuentoService>();
 builder.Services.AddScoped<IPromocionPermanenteProductoGratisService, PromocionPermanenteProductoGratisService>();
@@ -248,10 +247,12 @@ builder.Services.AddScoped<IInsumoRepositorio, InsumoRepositorio>();
 builder.Services.AddScoped<IRecetaRepositorio, RecetaRepositorio>();
 builder.Services.AddScoped<IVariacionReposiotorio, VariacionRepositorio>();
 builder.Services.AddScoped<IClienteRespositorio, ClienteRepositorio>();
+builder.Services.AddScoped<ICatPaisOrigenRepositorio, CatPaisOrigenRepositorio>();
 builder.Services.AddScoped<IAjusteStockRepositorio, AjusteStockRepositorio>();
 builder.Services.AddScoped<IMesaRepositorio, MesaRepositorio>();
 builder.Services.AddScoped<IPedidoRepositorio, PedidoRepositorio>();
 builder.Services.AddScoped<IRondaRepositorio, RondaRepositorio>();
+builder.Services.AddScoped<ISubVentaRepositorio, SubVentaRepositorio>();
 builder.Services.AddScoped<IVentaRepositorio, VentaRepositorio>();
 builder.Services.AddScoped<INotaAjusteRepositorio, NotaAjusteRepositorio>();
 builder.Services.AddScoped<IOpcionRepositorio, OpcionRepositorio>();
@@ -263,6 +264,8 @@ builder.Services.AddScoped<IInventarioPedidoCompromisoService, InventarioPedidoC
 builder.Services.AddScoped<Detalle_RondaService>();
 builder.Services.AddScoped<IRondaPedidoService, RondaPedidoService>();
 builder.Services.AddScoped<ReporteInventarioService>();
+builder.Services.AddScoped<ReporteCajaService>();
+builder.Services.AddScoped<ReporteProductosService>();
 builder.Services.AddScoped<IProductoMovimientoRepositorio, ProductoMovimientoRepositorio>();
 builder.Services.AddScoped<IInsumoMovimientoRepositorio, InsumoMovimientoRepositorio>();
 builder.Services.AddScoped<IParaLlevarRepositorio, ParaLlevarRepositorio>();
@@ -353,6 +356,7 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await KafeYana.Infrastructure.Data.Seeders.AceleradorPuntosSeeder.SeedAsync(db);
     await KafeYana.Infrastructure.Data.Seeders.ReferidosConfigSeeder.SeedAsync(db);
+    await KafeYana.Infrastructure.Data.Seeders.PuntoVentaSiatSeeder.SeedAsync(db);
 }
 
 app.Run();

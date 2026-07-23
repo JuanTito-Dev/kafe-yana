@@ -1,8 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Domain.Entities;
+using KafeYana.Domain.TiposDeDatos;
 using Microsoft.EntityFrameworkCore;
 
 namespace KafeYana.Infrastructure.Data.Repositorio
@@ -41,6 +44,7 @@ namespace KafeYana.Infrastructure.Data.Repositorio
         {
             return await _db.NotasAjuste
                 .Include(n => n.Detalles)
+                .Include(n => n.EventoSignificativoSiat)
                 .FirstOrDefaultAsync(n => n.Id == id);
         }
 
@@ -50,6 +54,44 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                 .Where(n => n.IdVenta == ventaId)
                 .OrderByDescending(n => n.FechaEmision)
                 .ToListAsync();
+        }
+
+        public async Task<List<NotaAjuste>> BuscarPendientesPorEventoAsync(
+            int eventoSignificativoId,
+            CancellationToken ct = default)
+        {
+            return await _db.NotasAjuste
+                .Include(n => n.EventoSignificativoSiat)
+                .Where(n => n.EventoSignificativoSiatId == eventoSignificativoId
+                    && n.EstadoSiat == FacturaEstado.Pendiente)
+                .OrderBy(n => n.FechaEmision)
+                .ToListAsync(ct);
+        }
+
+        /// <summary>
+        /// Vincula al evento las notas del "período gris" que quedaron
+        /// Pendiente sin EventoSignificativoSiatId durante el cruce del
+        /// umbral de fallos. Ver interfaz para semántica completa.
+        /// </summary>
+        public async Task<int> VincularNotasPendientesAlEventoAsync(
+            int eventoSignificativoId,
+            DateTime fechaInicioEvento,
+            int codigoSucursal,
+            int codigoPuntoVenta,
+            CancellationToken ct = default)
+        {
+            return await _db.NotasAjuste
+                .Where(n =>
+                    n.EstadoSiat == FacturaEstado.Pendiente
+                    && n.EventoSignificativoSiatId == null
+                    && n.CodigoSucursal == codigoSucursal
+                    && n.CodigoPuntoVenta == codigoPuntoVenta
+                    && n.FechaEmision >= fechaInicioEvento)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(n => n.TipoEmision, (int?)2)
+                    .SetProperty(n => n.EventoSignificativoSiatId, (int?)eventoSignificativoId)
+                    .SetProperty(n => n.ErrorMensaje, (string?)null),
+                    ct);
         }
 
         /// <summary>
@@ -76,3 +118,4 @@ namespace KafeYana.Infrastructure.Data.Repositorio
         }
     }
 }
+

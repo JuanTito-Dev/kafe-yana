@@ -16,6 +16,8 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             builder.HasIndex(x => x.IdVenta);
             builder.HasIndex(x => x.EstadoSiat);
             builder.HasIndex(x => x.FechaEmision);
+            builder.HasIndex(x => x.EventoSignificativoSiatId)
+                .HasDatabaseName("IX_NotaAjuste_EventoSignificativoSiatId");
 
             builder.HasIndex(x => x.NumeroNotaCreditoDebito)
                 .IsUnique()
@@ -36,6 +38,9 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
 
             // Decimal precisión
             builder.Property(x => x.MontoTotalOriginal).HasPrecision(18, 2).IsRequired();
+            // DescuentoAdicional: solo aplica al XSD de sector 47 (NCDDE). Nullable
+            // para no romper notas de sector 24 ya emitidas.
+            builder.Property(x => x.DescuentoAdicional).HasPrecision(18, 2);
             builder.Property(x => x.MontoTotalDevuelto).HasPrecision(18, 2).IsRequired();
             builder.Property(x => x.MontoDescuentoCreditoDebito).HasPrecision(18, 2).IsRequired();
             builder.Property(x => x.MontoEfectivoCreditoDebito).HasPrecision(18, 2).IsRequired();
@@ -68,6 +73,16 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
                    .HasForeignKey(x => x.IdVenta)
                    .HasConstraintName("FK_NotaAjuste_Venta")
                    .OnDelete(DeleteBehavior.Restrict);
+
+            // FK a EventoSignificativoSiat — SetNull: si se borra el evento, las
+            // notas históricas NO deben borrarse (valen como comprobante fiscal).
+            // Sólo se desvinculan; el operador puede reasignar/reprocesar manualmente
+            // si fuera necesario. Ver [[kafeyana-contingencia-siat]].
+            builder.HasOne(x => x.EventoSignificativoSiat)
+                   .WithMany()
+                   .HasForeignKey(x => x.EventoSignificativoSiatId)
+                   .HasConstraintName("FK_NotaAjuste_EventoSignificativoSiat_EventoSignificativoSiatId")
+                   .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

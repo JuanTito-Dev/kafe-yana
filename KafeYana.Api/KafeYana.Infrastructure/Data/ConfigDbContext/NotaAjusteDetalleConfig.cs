@@ -26,6 +26,11 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
             // Opcionales
             builder.Property(x => x.MontoDescuento).HasPrecision(18, 2);
 
+            // NroItem: correlativo 1..N dentro de la nota. Solo se serializa para
+            // sector 47 (XSD distinto). Default 0 para mantener compatibilidad con
+            // notas existentes de sector 24.
+            builder.Property(x => x.NroItem).IsRequired().HasDefaultValue(0);
+
             // FK a NotaAjuste — Cascade: borrar la nota borra sus líneas
             builder.HasOne(x => x.NotaAjuste)
                    .WithMany(x => x.Detalles)

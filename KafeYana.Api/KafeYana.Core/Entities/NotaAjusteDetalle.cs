@@ -44,5 +44,13 @@ namespace KafeYana.Domain.Entities
 
         /// <summary>Número de línea de la factura original (1, 2, 3, ...).</summary>
         public int NumeroLineaOriginal { get; set; }
+
+        /// <summary>
+        /// Número correlativo de ítem dentro de la nota (1, 2, 3, ...).
+        /// Obligatorio SOLO para sector 47 (XSD <c>notaComputarizadaCreditoDebitoDescuento.xsd</c>
+        /// — primer hijo de <c>&lt;detalle&gt;</c>). Para sector 24 se mantiene en 0
+        /// (no se serializa). El preparer lo setea correlativo antes de generar el XML.
+        /// </summary>
+        public int NroItem { get; set; }
     }
 }

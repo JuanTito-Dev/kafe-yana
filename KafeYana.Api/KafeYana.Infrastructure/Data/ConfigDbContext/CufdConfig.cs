@@ -38,6 +38,17 @@ namespace KafeYana.Infrastructure.Data.ConfigDbContext
                 .HasColumnType("timestamp with time zone")
                 .HasDefaultValueSql("NOW()")
                 .IsRequired();
+
+            builder.Property(x => x.FechaEmisionSolicitud)
+                .HasColumnType("timestamp with time zone")
+                .IsRequired();
+
+            // Índice compuesto: el lookup de "CUFD vigente para (sucursal, PV)"
+            // (en CufdService.ObtenerCufdVigenteAsync) filtra por estas dos columnas
+            // y ordena por FechaRegistro DESC. Sin índice, hace seq scan y degrada
+            // cuando la tabla crece con histórico de días previos.
+            builder.HasIndex(c => new { c.CodigoSucursal, c.CodigoPuntoVenta })
+                .HasDatabaseName("IX_Cufd_SucursalPuntoVenta");
         }
     }
 }

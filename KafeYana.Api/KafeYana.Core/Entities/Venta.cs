@@ -1,5 +1,6 @@
 ﻿using HotChocolate;
 using KafeYana.Domain.Entities.BaseEntidades;
+using KafeYana.Domain.Entities.Facturacion;
 using KafeYana.Domain.TiposDeDatos;
 
 namespace KafeYana.Domain.Entities
@@ -84,6 +85,17 @@ namespace KafeYana.Domain.Entities
 
         public int? TipoEmision { get; set; }
 
+        /// <summary>
+        /// FK opcional al evento significativo SIAT bajo el cual se emitió esta factura.
+        /// Null en línea; poblado (= 4) en contingencia. Permite JOIN al reenviar facturas
+        /// pendientes y al auditar qué evento cobija cada factura emitida fuera de línea.
+        /// Ver [[kafeyana-contingencia-siat]].
+        /// </summary>
+        public int? EventoSignificativoSiatId { get; set; }
+
+        [GraphQLIgnore]
+        public EventoSignificativoSiat? EventoSignificativoSiat { get; set; }
+
         public FacturaEstado? EstadoSiat { get; set; }
 
         /// <summary>True si la anulación errónea ya fue revertida en el SIAT (solo permitido una vez).</summary>
@@ -98,6 +110,14 @@ namespace KafeYana.Domain.Entities
         public string? XmlBase64 { get; set; }
 
         public List<Detalle_Pago> Detalles { get; set; } = new List<Detalle_Pago>();
+
+        /// <summary>
+        /// Líneas de pago individuales (método + monto). Permite registrar pagos
+        /// mixtos. Hoy KafeYana emite UN solo <c>codigoMetodoPago</c> en el XML
+        /// al SIAT (el de mayor monto), pero persiste todas las líneas para
+        /// auditoría y para futuros flujos.
+        /// </summary>
+        public List<VentaPago> Pagos { get; set; } = new List<VentaPago>();
 
         /// <summary>
         /// Notas de Crédito/Débito SIAT que ajustan esta venta (relación inversa del FK

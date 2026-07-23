@@ -10,9 +10,8 @@ namespace KafeYana.Domain.Request
 {
     public record LoginRequest
     {
-        [Required(ErrorMessage = "Email Requerido")]
-        [EmailAddress]
-        public required string Email { get; set; }
+        [Required(ErrorMessage = "Correo o usuario requerido")]
+        public required string Identificador { get; set; }
 
         [Required(ErrorMessage = "Contraseña requerida")]
         [PasswordPropertyText]

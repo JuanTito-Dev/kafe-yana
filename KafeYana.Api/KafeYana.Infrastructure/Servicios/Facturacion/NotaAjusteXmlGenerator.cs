@@ -8,19 +8,49 @@ using System.Xml;
 namespace KafeYana.Infrastructure.Servicios.Facturacion
 {
     /// <summary>
-    /// Genera el XML raíz &lt;notaFiscalComputarizadaCreditoDebito&gt; que se gzip-ea y
-    /// envía en el campo "archivo" del SOAP de "recepcionDocumentoAjuste".
-    /// Estructura y orden de campos espejados de scripts/gen_siat_ajuste.py.
+    /// Genera el XML del archivo que se gzip-ea y se envía en el campo "archivo" del
+    /// SOAP de "recepcionDocumentoAjuste". Estructura y orden de campos espejados de
+    /// scripts/gen_siat_ajuste.py.
+    ///
+    /// Bifurcación por sector (válido para piloto/producción según catálogo SIN):
+    ///
+    /// • sector 24 (NCD — Nota Crédito/Débito genérica)
+    ///     Raíz: <c>&lt;notaFiscalComputarizadaCreditoDebito&gt;</c>
+    ///     XSD:  <c>notaComputarizadaCreditoDebito.xsd</c>
+    ///     Cabecera SIN <c>&lt;descuentoAdicional&gt;</c>.
+    ///     Detalle SIN <c>&lt;nroItem&gt;</c>.
+    ///
+    /// • sector 47 (NCDDE — Nota Débito por Devolución / Descuentos Posteriores)
+    ///     Raíz: <c>&lt;notaComputarizadaCreditoDebitoDescuento&gt;</c>
+    ///     XSD:  <c>notaComputarizadaCreditoDebitoDescuento.xsd</c>
+    ///     Cabecera CON <c>&lt;descuentoAdicional&gt;</c> (obligatorio — ver
+    ///     scripts/muchacho.py:109).
+    ///     Detalle CON <c>&lt;nroItem&gt;</c> correlativo 1..N como primer hijo.
+    ///
+    /// El SIAT escoge el XSD a aplicar según el <c>codigoDocumentoSector</c> de la
+    /// cabecera; enviar la raíz equivocada dispara error 920
+    /// "Cannot find the declaration of element 'notaFiscalComputarizadaCreditoDebito'".
     /// </summary>
     public class NotaAjusteXmlGenerator : INotaAjusteXmlGenerator
     {
         private const string XsiNs = "http://www.w3.org/2001/XMLSchema-instance";
-        private const string RootElement = "notaFiscalComputarizadaCreditoDebito";
+
+        // Sector 24 — raíz y XSD originales
+        private const string RootElementSector24 = "notaFiscalComputarizadaCreditoDebito";
+        private const string XsdLocationSector24 = "notaComputarizadaCreditoDebito.xsd";
+
+        // Sector 47 — raíz y XSD para descuentos / devoluciones
+        private const string RootElementSector47 = "notaComputarizadaCreditoDebitoDescuento";
+        private const string XsdLocationSector47 = "notaComputarizadaCreditoDebitoDescuento.xsd";
 
         private static readonly UTF8Encoding Utf8SinBom = new(encoderShouldEmitUTF8Identifier: false);
 
         public string Generar(NotaAjuste nota)
         {
+            var (rootElement, xsdLocation) = nota.CodigoDocumentoSector == 47
+                ? (RootElementSector47, XsdLocationSector47)
+                : (RootElementSector24, XsdLocationSector24);
+
             var settings = new XmlWriterSettings
             {
                 Encoding = Utf8SinBom,
@@ -32,14 +62,14 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             using (var writer = XmlWriter.Create(buffer, settings))
             {
                 writer.WriteStartDocument(standalone: true);
-                writer.WriteStartElement(RootElement);
+                writer.WriteStartElement(rootElement);
                 writer.WriteAttributeString("xmlns", "xsi", null, XsiNs);
-                writer.WriteAttributeString("xsi", "noNamespaceSchemaLocation", XsiNs, "notaComputarizadaCreditoDebito.xsd");
+                writer.WriteAttributeString("xsi", "noNamespaceSchemaLocation", XsiNs, xsdLocation);
 
                 EscribirCabecera(writer, nota);
 
                 foreach (var detalle in nota.Detalles)
-                    EscribirDetalle(writer, detalle);
+                    EscribirDetalle(writer, detalle, nota.CodigoDocumentoSector);
 
                 writer.WriteEndElement();
                 writer.WriteEndDocument();
@@ -83,6 +113,13 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
             // Montos
             EscribirElemento(writer, "montoTotalOriginal", FormatoNumero(nota.MontoTotalOriginal));
+
+            // descuentoAdicional: SOLO sector 47. El XSD de sector 24 lo rechaza
+            // como elemento desconocido; el XSD de sector 47 lo exige.
+            // Ver scripts/muchacho.py:109.
+            if (nota.CodigoDocumentoSector == 47)
+                EscribirElemento(writer, "descuentoAdicional", FormatoNumero(nota.DescuentoAdicional ?? 0m));
+
             EscribirElemento(writer, "montoTotalDevuelto", FormatoNumero(nota.MontoTotalDevuelto));
             EscribirElemento(writer, "montoDescuentoCreditoDebito", FormatoNumero(nota.MontoDescuentoCreditoDebito));
             EscribirElemento(writer, "montoEfectivoCreditoDebito", FormatoNumero(nota.MontoEfectivoCreditoDebito));
@@ -99,9 +136,15 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             writer.WriteEndElement();
         }
 
-        private static void EscribirDetalle(XmlWriter writer, NotaAjusteDetalle detalle)
+        private static void EscribirDetalle(XmlWriter writer, NotaAjusteDetalle detalle, int codigoDocumentoSector)
         {
             writer.WriteStartElement("detalle");
+
+            // nroItem: SOLO sector 47. El XSD de sector 47 lo exige como primer
+            // hijo de <detalle>; el de sector 24 lo rechaza como elemento
+            // desconocido. Ver scripts/muchacho.py:53-54.
+            if (codigoDocumentoSector == 47)
+                EscribirElemento(writer, "nroItem", detalle.NroItem.ToString(CultureInfo.InvariantCulture));
 
             EscribirElemento(writer, "actividadEconomica", detalle.ActividadEconomica);
             EscribirElemento(writer, "codigoProductoSin", detalle.CodigoProductoSin.ToString(CultureInfo.InvariantCulture));

@@ -10,7 +10,6 @@ namespace KafeYana.Application.IRepositorio
     public interface IPedidoRepositorio : IGenericRepositorio<Pedido>
     {
         Task<Pedido?> TraerPedido(int Id);
-
-
+        Task EliminarConAbonosAsync(Pedido pedido);
     }
 }

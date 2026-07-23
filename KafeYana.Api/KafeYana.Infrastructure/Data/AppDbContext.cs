@@ -50,6 +50,8 @@ namespace KafeYana.Infrastructure.Data
 
         public DbSet<Venta> Ventas {  get; set; }
 
+        public DbSet<VentaPago> VentaPagos { get; set; }
+
         public DbSet<Detalle_Pago> Detalle_Pagos { get; set; }
 
         public DbSet<NotaAjuste> NotasAjuste { get; set; }
@@ -114,6 +116,10 @@ namespace KafeYana.Infrastructure.Data
 
         public DbSet<PedidoInventarioComprometidoLinea> PedidoInventarioComprometidoLineas { get; set; }
 
+        public DbSet<SubVenta> SubVentas { get; set; }
+
+        public DbSet<SubVentaDetalle> SubVentaDetalles { get; set; }
+
         public DbSet<Cuis> Cuis { get; set; }
 
         public DbSet<Cufd> Cufd { get; set; }
@@ -121,6 +127,30 @@ namespace KafeYana.Infrastructure.Data
         public DbSet<CodigoSiat> CodigosSiat { get; set; }
 
         public DbSet<CatActividad> CatActividades { get; set; }
+
+        public DbSet<PuntoVentaSiat> PuntosVentaSiat { get; set; }
+
+        public DbSet<CatDocumentoSector> CatDocumentosSector { get; set; }
+
+        public DbSet<CatMotivoAnulacion> CatMotivosAnulacion { get; set; }
+
+        public DbSet<CatActividadDocumentoSector> CatActividadesDocumentosSector { get; set; }
+
+        public DbSet<CatLeyenda> CatLeyendas { get; set; }
+
+        public DbSet<CatEventoSignificativo> CatEventosSignificativos { get; set; }
+
+        public DbSet<CatPaisOrigen> CatPaisesOrigen { get; set; }
+
+        public DbSet<CatTipoDocumentoIdentidad> CatTiposDocumentoIdentidad { get; set; }
+
+        public DbSet<CatTipoEmision> CatTiposEmision { get; set; }
+
+        public DbSet<CatTipoMetodoPago> CatMetodosPago { get; set; }
+
+        public DbSet<CatUnidadMedida> CatUnidadesMedida { get; set; }
+
+        public DbSet<EventoSignificativoSiat> EventosSignificativosSiat { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -197,6 +227,28 @@ namespace KafeYana.Infrastructure.Data
             builder.ApplyConfigurationsFromAssembly(typeof(CodigoSiatConfig).Assembly);
 
             builder.ApplyConfigurationsFromAssembly(typeof(CatActividadConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(PuntoVentaSiatConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CatDocumentoSectorConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CatMotivoAnulacionConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CatActividadDocumentoSectorConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CatLeyendaConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CatTipoDocumentoIdentidadConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CatTipoEmisionConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CatTipoMetodoPagoConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(CatUnidadMedidaConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(VentaPagoConfig).Assembly);
+
+            builder.ApplyConfigurationsFromAssembly(typeof(EventoSignificativoSiatConfig).Assembly);
         }
     }
 }

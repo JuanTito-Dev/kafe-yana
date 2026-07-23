@@ -40,5 +40,8 @@ namespace KafeYana.Domain.Entities.Inventario
         public List<Detalle_Ronda_ComboItem> ItemsCombo { get; set; } = new List<Detalle_Ronda_ComboItem>();
 
         public PedidoInventarioComprometido? CompromisoInventario { get; set; }
+
+        /// <summary>Cantidad de unidades ya descontadas por sub-ventas (cobros parciales). Piso mínimo editable.</summary>
+        public int CantidadDescontada { get; set; } = 0;
     }
 }

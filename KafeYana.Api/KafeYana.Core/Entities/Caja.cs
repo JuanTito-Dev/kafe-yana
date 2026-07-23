@@ -83,6 +83,30 @@ namespace KafeYana.Domain.Entities
             TotalVentas += efectivo + tarjeta + qr;
         }
 
+        /// <summary>
+        /// Sobrecarga que toma la lista de líneas de pago del DTO
+        /// (<c>DtoPagos.Lineas</c>) y suma al acumulador correspondiente según
+        /// el código SIN del método. Mantiene los totales de caja correctos sin
+        /// tener que conocer la estructura fija anterior (Efectivo/Tarjeta/Qr).
+        /// </summary>
+        [GraphQLIgnore]
+        public void RegistrarVenta(IEnumerable<(int CodigoMetodoPago, decimal Monto)> lineas)
+        {
+            decimal ef = 0, tj = 0, qr = 0;
+            foreach (var (codigo, monto) in lineas)
+            {
+                if (monto <= 0) continue;
+                switch (codigo)
+                {
+                    case 1: ef += monto; break;             // EFECTIVO
+                    case 2: tj += monto; break;             // TARJETA
+                    case 7: qr += monto; break;             // TRANSFERENCIA BANCARIA (QR)
+                    default: ef += monto; break;            // Otros → se imputan a efectivo por simplicidad de caja.
+                }
+            }
+            RegistrarVenta(ef, tj, qr);
+        }
+
         [GraphQLIgnore]
         public CajaMovimiento RegistrarReembolso(decimal monto, TipoPagos tipoPago, string motivo, string referencia)
         {
@@ -90,7 +114,7 @@ namespace KafeYana.Domain.Entities
             {
                 case TipoPagos.Efectivo: TotalEfectivo -= monto; break;
                 case TipoPagos.Tarjeta: TotalTarjeta  -= monto; break;
-                case TipoPagos.Qr:      TotalQr       -= monto; break;
+                case TipoPagos.Transferencia: TotalQr -= monto; break;
             }
 
             return new CajaMovimiento

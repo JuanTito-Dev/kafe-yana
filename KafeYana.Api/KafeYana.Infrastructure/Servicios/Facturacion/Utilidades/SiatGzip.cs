@@ -1,3 +1,4 @@
+using System;
 using System.IO.Compression;
 using System.Text;
 
@@ -24,7 +25,11 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion.Utilidades
             Comprimir(Encoding.UTF8.GetBytes(xml));
 
         public static string ComprimirABase64(byte[] datosComprimidos) =>
-            Convert.ToBase64String(datosComprimidos);
+            // FIX GAP 11.f: sin opciones, .NET usa Base64FormattingOptions.InsertLineBreaks
+            // que inserta \r\n cada 76 chars → inválido para xs:base64Binary.
+            // SIAT devolvía 920 "No se desempaqueto XMLs" en TODAS las facturas persistidas
+            // por este método. Ver [[kafeyana-siat-gap-920]].
+            Convert.ToBase64String(datosComprimidos, Base64FormattingOptions.None);
 
         public static string ComprimirXmlABase64(string xml) =>
             ComprimirABase64(ComprimirXml(xml));

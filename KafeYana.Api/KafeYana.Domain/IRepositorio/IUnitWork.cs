@@ -28,6 +28,13 @@ namespace KafeYana.Application.IRepositorio
 
         IClienteRespositorio clientes { get; }
 
+        /// <summary>
+        /// Catálogo paramétrico de países de origen del SIAT (<c>CatPaisOrigen</c>).
+        /// Usado por <c>ClientePedidoHelper</c> para resolver el código SIN al
+        /// FK local al facturar clientes extranjeros (CEX/PAS).
+        /// </summary>
+        ICatPaisOrigenRepositorio catPaisesOrigen { get; }
+
         IOpcionRepositorio opciones { get; }
 
         IComboRepositorio Combo { get; }
@@ -83,6 +90,16 @@ namespace KafeYana.Application.IRepositorio
         IConfiguracionQrRepositorio configuracionQr { get; }
 
         IPedidoInventarioCompromisoRepositorio pedidoInventarioCompromisos { get; }
+
+        /// <summary>
+        /// Log de eventos significativos registrados ante el SIN Bolivia.
+        /// Usado por el flujo de contingencia: <c>VentaServices</c> consulta el
+        /// estado antes de facturar, el wrapper detector registra eventos
+        /// automáticamente. Ver [[kafeyana-contingencia-siat]].
+        /// </summary>
+        IEventoSignificativoSiatRepositorio eventosSignificativosSiat { get; }
+
+        ISubVentaRepositorio subventas { get; }
 
         Task<int> SaveUnitWork();
     }

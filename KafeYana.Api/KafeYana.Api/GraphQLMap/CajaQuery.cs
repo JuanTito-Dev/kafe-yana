@@ -1,4 +1,8 @@
-﻿using HotChocolate.Authorization;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using HotChocolate.Authorization;
+using KafeYana.Api.Helpers;
 using KafeYana.Application.IRepositorio;
 using KafeYana.Domain.Entities;
 using KafeYana.Domain.TiposDeDatos;
@@ -16,14 +20,14 @@ namespace KafeYana.Api.GraphQLMap
             return await _db.Query().FirstOrDefaultAsync();
         }
 
-        [UsePaging(IncludeTotalCount = true)]
-        [UseProjection]
-        [UseSorting]
-        [UseFiltering]
         [Authorize(Roles = new[] { RolesKafe.Admin, RolesKafe.Mesero, RolesKafe.Cajero })]
-        public IQueryable<CajaMovimiento> CajaMoviminetos(ICajaMovimientoRepositorio _db)
-        {
-            return _db.Query().AsQueryable();
-        }
+        public Task<OffsetPage<CajaMovimiento>> CajaMoviminetos(
+            ICajaMovimientoRepositorio _db,
+            int? skip,
+            int? take,
+            CancellationToken ct = default)
+            => _db.Query()
+                  .OrderByDescending(m => m.Fecha)
+                  .ToOffsetPageAsync(skip, take, ct);
     }
 }

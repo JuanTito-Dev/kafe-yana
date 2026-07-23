@@ -31,7 +31,9 @@ namespace KafeYana.Infrastructure.Data.Repositorio
         public IDetalle_RondaRepositorio detallesRondas { get; private set; }
 
         public IClienteRespositorio clientes { get; private set; }
-        
+
+        public ICatPaisOrigenRepositorio catPaisesOrigen { get; private set; }
+
         public IOpcionRepositorio opciones { get; private set; }
         
         public IComboRepositorio Combo { get; private set; }
@@ -87,6 +89,10 @@ namespace KafeYana.Infrastructure.Data.Repositorio
 
         public IPedidoInventarioCompromisoRepositorio pedidoInventarioCompromisos { get; private set; }
 
+        public IEventoSignificativoSiatRepositorio eventosSignificativosSiat { get; private set; }
+
+        public ISubVentaRepositorio subventas { get; private set; }
+
         public UnitWork(AppDbContext db, IProductoRepositorio productos, IElaboradoRepositorio elaborados,
                 IInsumoRepositorio insumos,
                 IAjusteStockRepositorio ajusteStocks,
@@ -96,6 +102,7 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                 IRondaRepositorio rondas,
                 IDetalle_RondaRepositorio detallesRondas,
                 IClienteRespositorio clientes,
+            ICatPaisOrigenRepositorio catPaisesOrigen,
                 IOpcionRepositorio opciones,
                 IComboRepositorio combo,
                 IVentaRepositorio ventas,
@@ -123,7 +130,9 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                 IReferidosConfigRepositorio referidosConfig,
                 IHistorialReferidoRepositorio historialReferidos,
                 IConfiguracionQrRepositorio configuracionQr,
-                IPedidoInventarioCompromisoRepositorio pedidoInventarioCompromisos
+                IPedidoInventarioCompromisoRepositorio pedidoInventarioCompromisos,
+                IEventoSignificativoSiatRepositorio eventosSignificativosSiat,
+                ISubVentaRepositorio subventas
                 )
         {
             _db = db;
@@ -137,6 +146,7 @@ namespace KafeYana.Infrastructure.Data.Repositorio
             this.rondas = rondas;
             this.detallesRondas = detallesRondas;
             this.clientes = clientes;
+            this.catPaisesOrigen = catPaisesOrigen;
             this.opciones = opciones;
             Combo = combo;
             this.ventas = ventas;
@@ -165,6 +175,8 @@ namespace KafeYana.Infrastructure.Data.Repositorio
             this.historialReferidos = historialReferidos;
             this.configuracionQr = configuracionQr;
             this.pedidoInventarioCompromisos = pedidoInventarioCompromisos;
+            this.eventosSignificativosSiat = eventosSignificativosSiat;
+            this.subventas = subventas;
         }
 
         public void Dispose()

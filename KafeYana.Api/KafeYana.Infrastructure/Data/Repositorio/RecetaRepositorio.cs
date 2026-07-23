@@ -30,7 +30,11 @@ namespace KafeYana.Infrastructure.Data.Repositorio
 
         public IQueryable<Receta> GetRecetas()
         {
-            return _db.Recetas.AsNoTracking().AsSplitQuery().AsQueryable();
+            return _db.Recetas
+                .AsNoTracking()
+                .AsSplitQuery()
+                .Include(r => r.Elaborado)
+                .AsQueryable();
         }
 
         public async Task<Receta?> GetRectaByIdElaborado(int Id)

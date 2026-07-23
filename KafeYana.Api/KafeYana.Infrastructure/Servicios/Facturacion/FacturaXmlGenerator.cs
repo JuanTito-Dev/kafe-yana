@@ -1,5 +1,6 @@
 using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Domain.Entities;
+using KafeYana.Domain.TiposDeDatos;
 using KafeYana.Infrastructure.Servicios.Facturacion.Utilidades;
 using System.Globalization;
 using System.Text;
@@ -11,6 +12,10 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
     {
         private const string XsiNs = "http://www.w3.org/2001/XMLSchema-instance";
         private const string RootElement = "facturaComputarizadaCompraVenta";
+
+        // Tarjeta (TipoPagos.Tarjeta=2) se declara ante el SIN como
+        // "DEBITO AUTOMATICO - OTRO" en vez del código genérico de tarjeta.
+        private const int CodigoSiatTarjetaDebitoAutomaticoOtro = 308;
 
         private static readonly UTF8Encoding Utf8SinBom = new(encoderShouldEmitUTF8Identifier: false);
 
@@ -70,7 +75,10 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 EscribirElemento(writer, "complemento", venta.Complemento!);
 
             EscribirElemento(writer, "codigoCliente", venta.CodigoCliente);
-            EscribirElemento(writer, "codigoMetodoPago", venta.CodigoMetodoPago.ToString(CultureInfo.InvariantCulture));
+            var codigoMetodoPagoSiat = venta.CodigoMetodoPago == (int)TipoPagos.Tarjeta
+                ? CodigoSiatTarjetaDebitoAutomaticoOtro
+                : venta.CodigoMetodoPago;
+            EscribirElemento(writer, "codigoMetodoPago", codigoMetodoPagoSiat.ToString(CultureInfo.InvariantCulture));
 
             if (SiatXmlHelper.EsNulo(venta.NumeroTarjeta))
                 EscribirNulo(writer, "numeroTarjeta");

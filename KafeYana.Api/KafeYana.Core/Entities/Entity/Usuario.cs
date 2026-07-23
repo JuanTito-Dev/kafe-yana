@@ -14,12 +14,12 @@ namespace KafeYana.Core.Entities.Entity
         public required string Apellido { get; set; }
 
 
-        public static Usuario Crear(string email, string nombre, string Apellido, string Numero)
+        public static Usuario Crear(string email, string username, string nombre, string Apellido, string Numero)
         {
             return new Usuario
             {
                 Email = email.ToLower(),
-                UserName = email.ToLower(),
+                UserName = username,
                 Nombre = nombre,
                 Apellido = Apellido,
                 PhoneNumber = Numero

@@ -56,6 +56,24 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             if (string.IsNullOrWhiteSpace(venta.Cuf))
                 throw new VentaException("La venta no tiene CUF registrado para anular en el SIAT.");
 
+            // ── Cascada obligatoria: anular notas antes que la factura ─────
+            // El SIN no permite "desanular" una factura, pero si lo permitiera
+            // y la factura madre se anula, las notas C/D quedan huérfanas
+            // (documentos válidos que referencian una factura inexistente).
+            // Regla: NO se puede anular una factura mientras tenga notas
+            // activas (cualquier estado ≠ Anulada, incluyendo Pendiente/
+            // Observada por seguridad). El usuario debe anular primero cada
+            // nota y recién después la factura.
+            var notasActivas = (await _db.notasAjuste.ListarPorVentaAsync(ventaId))
+                .Count(n => n.EstadoSiat != FacturaEstado.Anulada);
+
+            if (notasActivas > 0)
+            {
+                throw new VentaException(
+                    $"La factura tiene {notasActivas} nota(s) de ajuste vinculada(s). "
+                  + "Debe anular primero las notas antes de anular la factura en el SIAT.");
+            }
+
             try
             {
                 var solicitud = await _anulacionFactura.PrepararSolicitudAsync(

@@ -17,6 +17,19 @@ namespace KafeYana.Infrastructure.Data.Repositorio
             _dbSet = _db.Set<Pedido>();
         }
 
+        /// <summary>
+        /// Borra el pedido completo — solo válido para un cobro de 100% en un solo
+        /// paso (sin pasar por sub-venta). Si el pedido ya tiene sub-ventas
+        /// registradas, la FK Restrict (ver <c>SubVentaConfig</c>) hace fallar este
+        /// borrado: ese historial de cobros/facturas nunca debe destruirse
+        /// silenciosamente. <see cref="VentaServices.ProcesarVenta"/> valida esto
+        /// explícitamente antes de llegar acá.
+        /// </summary>
+        public async Task EliminarConAbonosAsync(Pedido pedido)
+        {
+            await Remove(pedido);
+        }
+
         public async Task<Pedido?> TraerPedido(int Id)
         {
             return await _dbSet
@@ -33,6 +46,7 @@ namespace KafeYana.Infrastructure.Data.Repositorio
                     .ThenInclude(x => x.Detalle)
                         .ThenInclude(d => d.ItemsCombo)
                 .Include(x => x.Cliente)
+                .Include(x => x.SubVentas)
                 .FirstOrDefaultAsync(x => x.Id == Id);
         }
     }
