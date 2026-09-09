@@ -21,8 +21,10 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
             var matriz = GenerarMatriz(url);
             var modulos = matriz.GetLength(0);
 
-            // Escala entera más grande que quepa en el ancho del papel (mín. 1).
-            var escala = Math.Max(1, maxAnchoPuntos / modulos);
+            // Apuntar a ~200 px de lado (escanea bien y no ocupa medio ticket).
+            var escala = Math.Clamp(200 / modulos, 3, 8);
+            // Nunca exceder el ancho útil del cabezal.
+            while (modulos * escala > maxAnchoPuntos && escala > 1) escala--;
 
             var anchoPx = modulos * escala;
             var bytesPorFila = (anchoPx + 7) / 8;
