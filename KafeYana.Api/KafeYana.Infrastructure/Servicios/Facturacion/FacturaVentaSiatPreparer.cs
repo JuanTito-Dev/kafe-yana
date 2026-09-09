@@ -94,8 +94,15 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             try
             {
                 // CUF/CUFD — si falla el SIAT, seguimos con placeholders (igual que el preparer de notas).
+                // IMPORTANTE: usar venta.CodigoSucursal/venta.CodigoPuntoVenta (el PV real de
+                // la venta, ej. "Caja 2"), NUNCA _siat.CodigoSucursal/_siat.CodigoPuntoVenta
+                // (el default global de appsettings.json). Con más de un PuntoVentaSiat activo,
+                // usar el global aquí pide el CUFD de un PV distinto al que declara la venta →
+                // el SIAT rechaza con [1002] CUF inválido + [1003] CUFD inválido porque el
+                // CodigoControl embebido en el CUF no coincide con el CUFD vigente para el PV
+                // real. Espejo del fix ya aplicado en VentaServices.cs (ver comentario ahí).
                 var cufd = await _cufdService.ObtenerCufdVigenteAsync(
-                    _siat.CodigoSucursal, _siat.CodigoPuntoVenta, fechaEmision, ct);
+                    venta.CodigoSucursal, venta.CodigoPuntoVenta, fechaEmision, ct);
 
                 fechaEmision = cufd.FechaEmisionSolicitud;
                 cufdCodigo = cufd.Codigo;
@@ -103,13 +110,13 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 cuf = _cufGenerator.Generar(new CufGeneracionRequest(
                     Nit: _siat.Nit,
                     FechaEmision: fechaEmision,
-                    CodigoSucursal: _siat.CodigoSucursal,
+                    CodigoSucursal: venta.CodigoSucursal,
                     CodigoModalidad: _siat.CodigoModalidad,
                     TipoEmision: _siat.CodigoEmision,
                     TipoFacturaDocumento: _siat.TipoFacturaDocumento,
                     CodigoDocumentoSector: _siat.CodigoDocumentoSector,
                     NumeroFactura: numeroFactura,
-                    CodigoPuntoVenta: _siat.CodigoPuntoVenta,
+                    CodigoPuntoVenta: venta.CodigoPuntoVenta,
                     CodigoControl: cufd.CodigoControl));
             }
             catch (Exception ex)
@@ -169,8 +176,10 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
 
             try
             {
+                // Mismo criterio que en PrepararVentaSinFacturarAsync: usar el PV real
+                // de la venta, no el default global de appsettings.json.
                 var cufd = await _cufdService.ObtenerCufdVigenteAsync(
-                    _siat.CodigoSucursal, _siat.CodigoPuntoVenta, fechaEmision, ct);
+                    venta.CodigoSucursal, venta.CodigoPuntoVenta, fechaEmision, ct);
 
                 fechaEmision = cufd.FechaEmisionSolicitud;
                 cufdCodigo = cufd.Codigo;
@@ -178,13 +187,13 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 cuf = _cufGenerator.Generar(new CufGeneracionRequest(
                     Nit: _siat.Nit,
                     FechaEmision: fechaEmision,
-                    CodigoSucursal: _siat.CodigoSucursal,
+                    CodigoSucursal: venta.CodigoSucursal,
                     CodigoModalidad: _siat.CodigoModalidad,
                     TipoEmision: _siat.CodigoEmision,
                     TipoFacturaDocumento: _siat.TipoFacturaDocumento,
                     CodigoDocumentoSector: _siat.CodigoDocumentoSector,
                     NumeroFactura: venta.NumeroFactura.Value,
-                    CodigoPuntoVenta: _siat.CodigoPuntoVenta,
+                    CodigoPuntoVenta: venta.CodigoPuntoVenta,
                     CodigoControl: cufd.CodigoControl));
             }
             catch (Exception ex)

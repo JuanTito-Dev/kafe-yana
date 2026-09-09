@@ -618,6 +618,34 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 }
 
                 entity.FechaHoraFinEvento = SiatFechaEmision.ToUtcForDb(horaSiatBot);
+
+                // Guard: FechaHoraInicioEvento viene del reloj LOCAL (DateTime.UtcNow,
+                // seteado en RegistrarLocalmenteSinSoapAsync cuando el SIAT no
+                // respondía), mientras que FechaHoraFinEvento acaba de salir del reloj
+                // OFICIAL del SIAT. Si el reloj local está adelantado (o la
+                // contingencia fue muy breve, ej. una reactiva de prueba), el fin
+                // puede quedar ANTES del inicio → SIAT rechaza con [981] RANGO DE
+                // FECHAS DE EVENTO SIGNIFICATIVO INVALIDO. Forzamos el mismo mínimo
+                // práctico de 2 min que usa el path online unas líneas más arriba.
+                // OJO: FechaHoraFinEvento acaba de salir de la hora OFICIAL del SIAT
+                // (horaSiatBot) — es, por definición, "ahora" según el SIAT. NUNCA hay
+                // que adelantarla más allá de ese valor: el SIAT también rechaza con
+                // [981] un fin en el futuro respecto a su propio reloj (esto pasó al
+                // primer intento del fix: forzar finMinimo hacia adelante lo mandó al
+                // futuro y el SIAT lo rechazó igual). Si el rango sale corto o
+                // invertido, el ajuste correcto es mover el INICIO hacia atrás, no el
+                // fin hacia adelante.
+                var inicioMaximo = entity.FechaHoraFinEvento.Value.AddMinutes(-2);
+                if (entity.FechaHoraInicioEvento > inicioMaximo)
+                {
+                    _logger.LogWarning(
+                        "ReenviarRegistroAsync: evento {Id} — FechaHoraInicioEvento ({Inicio:O}, reloj "
+                      + "local) está adelantado respecto a la hora oficial del SIAT ({HoraSiat:O}) por "
+                      + "desfase de reloj. Ajustando FechaHoraInicioEvento hacia atrás a {Minimo:O} "
+                      + "(no se toca FechaHoraFinEvento — nunca debe superar la hora oficial del SIAT).",
+                        entity.Id, entity.FechaHoraInicioEvento, entity.FechaHoraFinEvento, inicioMaximo);
+                    entity.FechaHoraInicioEvento = inicioMaximo;
+                }
             }
 
             var solicitudSiat = new SolicitudRegistroEventoSignificativoSiatDto

@@ -758,7 +758,10 @@ namespace KafeYana.Infrastructure.Servicios
                 MontoTotal = totalCobrar,
                 MontoTotalSujetoIva = totalCobrar,
                 DescuentoAdicional = descuento?.MontoDescuento > 0 ? descuento.MontoDescuento : null,
-                CodigoExcepcion = _siat.CodigoExcepcion,
+                // Los NITs especiales del SIAT (99001 Consulados/Embajadas, 99002
+                // Control Tributario, 99003 Venta Menor del Día) exigen viajar
+                // siempre con codigoExcepcion=1, sin importar la config global.
+                CodigoExcepcion = EsNitEspecialSiat(numeroDocumento) ? 1 : _siat.CodigoExcepcion,
                 // CAFC es exclusivo de contingencia — CrearVentaBase es compartido
                 // por online normal / offline contingencia / sin factura, así que
                 // acá siempre queda null. Solo ConstruirVentaOfflineAsync lo setea
@@ -1099,6 +1102,15 @@ namespace KafeYana.Infrastructure.Servicios
 
             return ProductoCodigoService.Generar(detalle.Id_Producto);
         }
+
+        /// <summary>
+        /// NITs especiales del catálogo SIAT: 99001 (Consulados/Embajadas),
+        /// 99002 (Control Tributario), 99003 (Venta Menor del Día). Estos
+        /// siempre deben viajar con codigoExcepcion=1 en el XML, según la
+        /// normativa vigente (RND 102100000011).
+        /// </summary>
+        private static bool EsNitEspecialSiat(string? numeroDocumento) =>
+            numeroDocumento?.Trim() is "99001" or "99002" or "99003";
 
         private static string? ResolverComplemento(DtoVentaPedido datos)
         {
