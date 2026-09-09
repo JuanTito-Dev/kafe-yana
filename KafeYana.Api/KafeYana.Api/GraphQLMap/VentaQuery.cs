@@ -73,9 +73,9 @@ namespace KafeYana.Api.GraphQLMap
         /// Acepta el mismo <c>where</c> que <c>ventas</c> (fecha + estado SIAT) y
         /// calcula los totales sobre TODAS las páginas coincidentes en el backend.
         /// "Hoy" y "Mes" se evalúan en zona horaria local (America/La_Paz si está
-        /// disponible, si no UTC). Se cuentan TODAS las ventas del rango (incluso
-        /// las no facturadas y las con estado SIAT no-validada) — sólo el filtro
-        /// <c>where</c> reduce el universo.
+        /// disponible, si no UTC). Las ventas ANULADAS siempre se excluyen; las
+        /// no facturadas (<c>EstadoSiat == null</c>), observadas y pendientes SÍ
+        /// se cuentan. El filtro <c>where</c> reduce aún más el universo.
         /// </summary>
         [Authorize(Roles = new[] { RolesKafe.Admin, RolesKafe.Cajero })]
         public async Task<VentasEstadisticas> VentasEstadisticas(
@@ -97,10 +97,11 @@ namespace KafeYana.Api.GraphQLMap
                     q = q.Where(v => v.Facturado == where.Facturado.Value);
             }
 
-            // Sin filtro de estado SIAT aquí a propósito: el usuario pidió
-            // contar TODAS las ventas que coincidan con el `where`, incluyendo
-            // las que no fueron facturadas electrónicamente o están observadas/
-            // pendientes. Sólo se respeta el `where` recibido.
+            // Excluir ventas anuladas de los KPIs (FacturaEstado.Anulada = 950).
+            // EstadoSiat es enum nullable: null = venta sin factura electrónica y
+            // SÍ cuenta. El OR explícito con == null es necesario: en SQL
+            // `EstadoSiat <> 950` descarta las filas NULL.
+            q = q.Where(v => v.EstadoSiat == null || v.EstadoSiat != FacturaEstado.Anulada);
 
             // Ventana temporal "hoy" / "mes en curso" en zona horaria local.
             // Venta.FechaEmision está en UTC, así que convertimos desde la TZ local.

@@ -25,6 +25,10 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
             using var ms = new MemoryStream();
             ms.Write(Init);
 
+            ms.Write(AlignCenter);
+            FacturaLogo.Escribir(ms);
+            ms.Write(AlignLeft);
+
             EscribirCentrado(ms, venta.RazonSocialEmisor, bold: true);
             EscribirCentrado(ms, EtiquetaSucursal(venta.CodigoSucursal));
             EscribirCentrado(ms, $"No. Punto de Venta {venta.CodigoPuntoVenta}");
@@ -53,8 +57,7 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
             EscribirIzq(ms, $"Cod. Cliente: {venta.CodigoCliente}");
             EscribirLinea(ms);
 
-            EscribirIzq(ms, CabeceraDetalle(), bold: true);
-            EscribirLinea(ms);
+            EscribirIzq(ms, "DETALLE", bold: true);
 
             decimal subtotalLineas = 0;
             decimal descuentoLineas = 0;
@@ -65,63 +68,88 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
                 subtotalLineas += item.SubTotal;
                 descuentoLineas += desc;
 
-                EscribirIzq(ms, $"Cod: {item.CodigoProducto}");
-                EscribirIzq(ms, $"Cant: {FormatoNumero(item.Cantidad)}  UM: {EtiquetaUnidad(item.UnidadMedida)}");
-                foreach (var linea in PartirTexto(item.Descripcion, anchoCaracteres - 2))
+                // Descripción prominente en su propia línea.
+                foreach (var linea in PartirTexto(item.Descripcion, anchoCaracteres))
+                    EscribirIzq(ms, linea, bold: true);
+                // Cantidad x precio unitario ....... subtotal (misma línea).
+                EscribirPar(ms,
+                    $"  {FormatoNumero(item.Cantidad)} x Bs/{FormatoNumero(item.PrecioUnitario)}",
+                    $"Bs/{FormatoNumero(item.SubTotal)}");
+                if (desc > 0m)
+                    EscribirPar(ms, "  Descuento:", $"-Bs/{FormatoNumero(desc)}");
+                // Cod. de producto (interno) y unidad de medida: obligatorios en
+                // la representación gráfica para la modalidad Computarizada en
+                // Línea (RND 102100000011, Art. 69, columna E, incisos h y k).
+                foreach (var linea in PartirTexto(
+                    $"Cod: {item.CodigoProducto}  UM: {EtiquetaUnidad(item.UnidadMedida)}",
+                    anchoCaracteres - 2))
                     EscribirIzq(ms, $"  {linea}");
-                EscribirPar(ms, "P.Unit:", $"Bs/{FormatoNumero(item.PrecioUnitario)}");
-                EscribirPar(ms, "Desc:", $"Bs/{FormatoNumero(desc)}");
-                EscribirPar(ms, "Subtotal:", $"Bs/{FormatoNumero(item.SubTotal)}", bold: true);
                 EscribirLinea(ms, '-');
             }
 
             var descuentoAdicional = venta.DescuentoAdicional ?? 0m;
             var giftCard = venta.MontoGiftCard ?? 0m;
+            var descuentoTotal = descuentoLineas + descuentoAdicional;
 
-            EscribirPar(ms, "SUBTOTAL Bs:", $"Bs/{FormatoNumero(subtotalLineas)}", bold: true);
-            EscribirPar(ms, "DESCUENTO Bs:", $"Bs/{FormatoNumero(descuentoLineas + descuentoAdicional)}");
+            EscribirLinea(ms);
+            if (descuentoTotal > 0m)
+            {
+                EscribirPar(ms, "SUBTOTAL Bs:", $"Bs/{FormatoNumero(subtotalLineas)}");
+                EscribirPar(ms, "DESCUENTO Bs:", $"-Bs/{FormatoNumero(descuentoTotal)}");
+            }
             EscribirPar(ms, "TOTAL Bs:", $"Bs/{FormatoNumero(venta.MontoTotal)}", bold: true);
-            EscribirPar(ms, "MONTO GIFT CARD Bs:", $"Bs/{FormatoNumero(giftCard)}");
-            EscribirPar(ms, "MONTO A PAGAR Bs:", $"Bs/{FormatoNumero(venta.MontoTotal)}", bold: true);
+            if (giftCard > 0m)
+            {
+                EscribirPar(ms, "MONTO GIFT CARD Bs:", $"Bs/{FormatoNumero(giftCard)}");
+                EscribirPar(ms, "MONTO A PAGAR Bs:", $"Bs/{FormatoNumero(venta.MontoTotal - giftCard)}", bold: true);
+            }
             EscribirPar(ms, "IMPORTE BASE CREDITO FISCAL:", $"Bs/{FormatoNumero(venta.MontoTotalSujetoIva)}");
             EscribirLinea(ms);
 
             EscribirIzq(ms, $"Son: {MontoEnLetrasBoliviano.Formatear(venta.MontoTotal)}");
-            EscribirIzq(ms, $"Metodo de pago: {EtiquetaMetodoPago(venta.CodigoMetodoPago)}");
-            EscribirLinea(ms);
 
-            foreach (var linea in PartirTexto(venta.Leyenda, anchoCaracteres))
-                EscribirIzq(ms, linea);
+            if (!string.IsNullOrWhiteSpace(venta.Leyenda))
+            {
+                EscribirLinea(ms);
+                foreach (var linea in PartirTexto(venta.Leyenda, anchoCaracteres))
+                    EscribirCentrado(ms, linea);
+            }
+
+            // QR primero, luego las leyendas obligatorias al pie (centradas).
+            EscribirLinea(ms);
+            ms.Write(AlignCenter);
+            var maxAnchoPuntos = anchoCaracteres <= 32 ? 384 : 576;
+            FacturaEscPosQr.Escribir(ms, urlQr, maxAnchoPuntos);
+            EscribirCentrado(ms, "Consulta en siat.impuestos.gob.bo");
+            ms.Write(AlignLeft);
 
             EscribirLinea(ms);
             foreach (var linea in PartirTexto(
                 "ESTA FACTURA CONTRIBUYE AL DESARROLLO DEL PAIS, EL USO ILICITO SERA SANCIONADO PENALMENTE DE ACUERDO A LEY",
                 anchoCaracteres))
-                EscribirIzq(ms, linea);
+                EscribirCentrado(ms, linea);
 
-            foreach (var linea in PartirTexto(
-                "Este documento es la Representacion Grafica de un Documento Fiscal Digital emitido en una modalidad de facturacion en linea",
-                anchoCaracteres))
-                EscribirIzq(ms, linea);
+            // Leyenda de representación gráfica: cambia según la venta se haya
+            // emitido en línea o fuera de línea / contingencia (RND 102100000011
+            // Art. 69, Datos Finales, incisos d y e). TipoEmision 2 = fuera de línea.
+            var leyendaRepGrafica = venta.TipoEmision == 2
+                ? "Este documento es la Representacion Grafica de un Documento Fiscal Digital emitido fuera de linea, verifique su envio con su proveedor o en la pagina web www.impuestos.gob.bo"
+                : "Este documento es la Representacion Grafica de un Documento Fiscal Digital emitido en una modalidad de facturacion en linea";
+            foreach (var linea in PartirTexto(leyendaRepGrafica, anchoCaracteres))
+                EscribirCentrado(ms, linea);
 
             if (!string.IsNullOrWhiteSpace(venta.CodigoRecepcion))
+            {
+                EscribirLinea(ms);
                 EscribirIzq(ms, $"Cod. Recepcion SIAT: {venta.CodigoRecepcion}");
+            }
 
-            if (venta.EstadoSiat is not null)
-                EscribirIzq(ms, $"Estado SIAT: {(int)venta.EstadoSiat}");
-
-            EscribirLinea(ms);
-            ms.Write(AlignCenter);
-            FacturaEscPosQr.Escribir(ms, urlQr);
             ms.Write(Lf);
             ms.Write(Lf);
             ms.Write(Cut);
 
             return ms.ToArray();
         }
-
-        private static string CabeceraDetalle() =>
-            "CODIGO | CANT | UM | DESCRIPCION | PRECIO | DESC | SUBT";
 
         private static string EtiquetaSucursal(int codigo) =>
             codigo == 0 ? "SUCURSAL CASA MATRIZ" : $"SUCURSAL N. {codigo}";
@@ -157,14 +185,6 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
             var item = UnidadMedidaSiatService.Listar().FirstOrDefault(x => x.Codigo == codigo);
             return item?.Descripcion ?? codigo.ToString(CultureInfo.InvariantCulture);
         }
-
-        private static string EtiquetaMetodoPago(int codigo) => codigo switch
-        {
-            (int)TipoPagos.Efectivo => "EFECTIVO",
-            (int)TipoPagos.Tarjeta => "TARJETA",
-            (int)TipoPagos.Transferencia => "QR / TRANSFERENCIA",
-            _ => "OTROS"
-        };
 
         private static string FormatoNumero(decimal valor) =>
             valor.ToString(valor % 1m == 0m ? "0" : "0.00", CultureInfo.InvariantCulture);

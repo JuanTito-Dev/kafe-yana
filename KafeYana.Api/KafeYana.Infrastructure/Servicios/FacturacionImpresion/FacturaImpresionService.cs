@@ -175,6 +175,18 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
             while (i < data.Length)
             {
                 var b = data[i];
+
+                // GS v 0 (raster del QR): cabecera de 8 bytes + bitmap de
+                // (bytesPorFila * alto) bytes.
+                if (b == 0x1D && i + 7 < data.Length && data[i + 1] == 0x76 && data[i + 2] == 0x30)
+                {
+                    var bytesPorFila = data[i + 4] + data[i + 5] * 256;
+                    var alto = data[i + 6] + data[i + 7] * 256;
+                    sb.AppendLine($"[QR bitmap {bytesPorFila * 8}x{alto}]");
+                    i += 8 + bytesPorFila * alto;
+                    continue;
+                }
+
                 if (b == 0x1B || b == 0x1D)
                 {
                     i += b == 0x1B ? 3 : 4;
