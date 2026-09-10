@@ -187,6 +187,13 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
                     continue;
                 }
 
+                // GS ! n (tamaño de caracter) = 3 bytes.
+                if (b == 0x1D && i + 1 < data.Length && data[i + 1] == 0x21)
+                {
+                    i += 3;
+                    continue;
+                }
+
                 if (b == 0x1B || b == 0x1D)
                 {
                     i += b == 0x1B ? 3 : 4;

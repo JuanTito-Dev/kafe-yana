@@ -15,6 +15,9 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
         private static readonly byte[] AlignCenter = [0x1B, 0x61, 0x01];
         private static readonly byte[] AlignLeft = [0x1B, 0x61, 0x00];
         private static readonly byte[] Normal = [0x1D, 0x21, 0x00];
+        private static readonly byte[] DobleTam = [0x1D, 0x21, 0x11]; // doble alto + ancho
+        private static readonly byte[] FontB = [0x1B, 0x4D, 0x01];    // fuente chica
+        private static readonly byte[] FontA = [0x1B, 0x4D, 0x00];    // fuente normal
         private static readonly byte[] Cut = [0x1D, 0x56, 0x41, 0x10];
         private static readonly byte[] Lf = [0x0A];
 
@@ -29,6 +32,8 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
             FacturaLogo.Escribir(ms);
             ms.Write(AlignLeft);
 
+            // Nombre comercial destacado; la razón social legal va debajo.
+            EscribirTitulo(ms, "KAFE YANA");
             EscribirCentrado(ms, venta.RazonSocialEmisor, bold: true);
             EscribirCentrado(ms, EtiquetaSucursal(venta.CodigoSucursal));
             EscribirCentrado(ms, $"No. Punto de Venta {venta.CodigoPuntoVenta}");
@@ -111,11 +116,10 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
             if (!string.IsNullOrWhiteSpace(venta.Leyenda))
             {
                 EscribirLinea(ms);
-                foreach (var linea in PartirTexto(venta.Leyenda, anchoCaracteres))
-                    EscribirCentrado(ms, linea);
+                EscribirChico(ms, venta.Leyenda);
             }
 
-            // QR primero, luego las leyendas obligatorias al pie (centradas).
+            // QR primero, luego las leyendas obligatorias al pie (chicas, centradas).
             EscribirLinea(ms);
             ms.Write(AlignCenter);
             var maxAnchoPuntos = anchoCaracteres <= 32 ? 384 : 576;
@@ -124,10 +128,8 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
             ms.Write(AlignLeft);
 
             EscribirLinea(ms);
-            foreach (var linea in PartirTexto(
-                "ESTA FACTURA CONTRIBUYE AL DESARROLLO DEL PAIS, EL USO ILICITO SERA SANCIONADO PENALMENTE DE ACUERDO A LEY",
-                anchoCaracteres))
-                EscribirCentrado(ms, linea);
+            EscribirChico(ms,
+                "ESTA FACTURA CONTRIBUYE AL DESARROLLO DEL PAIS, EL USO ILICITO SERA SANCIONADO PENALMENTE DE ACUERDO A LEY");
 
             // Leyenda de representación gráfica: cambia según la venta se haya
             // emitido en línea o fuera de línea / contingencia (RND 102100000011
@@ -135,8 +137,7 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
             var leyendaRepGrafica = venta.TipoEmision == 2
                 ? "Este documento es la Representacion Grafica de un Documento Fiscal Digital emitido fuera de linea, verifique su envio con su proveedor o en la pagina web www.impuestos.gob.bo"
                 : "Este documento es la Representacion Grafica de un Documento Fiscal Digital emitido en una modalidad de facturacion en linea";
-            foreach (var linea in PartirTexto(leyendaRepGrafica, anchoCaracteres))
-                EscribirCentrado(ms, linea);
+            EscribirChico(ms, leyendaRepGrafica);
 
             if (!string.IsNullOrWhiteSpace(venta.CodigoRecepcion))
             {
@@ -196,6 +197,37 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
             ms.Write(Enc.GetBytes(texto));
             ms.Write(Lf);
             if (bold) ms.Write(BoldOff);
+            ms.Write(AlignLeft);
+        }
+
+        /// <summary>Título centrado en doble tamaño + negrita (nombre comercial).</summary>
+        private void EscribirTitulo(MemoryStream ms, string texto)
+        {
+            ms.Write(AlignCenter);
+            ms.Write(DobleTam);
+            ms.Write(BoldOn);
+            ms.Write(Enc.GetBytes(texto));
+            ms.Write(Lf);
+            ms.Write(BoldOff);
+            ms.Write(Normal);
+            ms.Write(AlignLeft);
+        }
+
+        /// <summary>
+        /// Texto centrado en fuente chica (Font B). Se usa para las leyendas del pie,
+        /// que deben ser el texto más pequeño del ticket. Si la impresora no tiene
+        /// Font B, el comando se ignora y queda en tamaño normal (sin romper nada).
+        /// </summary>
+        private void EscribirChico(MemoryStream ms, string texto)
+        {
+            ms.Write(AlignCenter);
+            ms.Write(FontB);
+            foreach (var linea in PartirTexto(texto, anchoCaracteres * 4 / 3))
+            {
+                ms.Write(Enc.GetBytes(linea));
+                ms.Write(Lf);
+            }
+            ms.Write(FontA);
             ms.Write(AlignLeft);
         }
 
