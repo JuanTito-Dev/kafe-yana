@@ -5,12 +5,15 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
     /// encabezado del ticket. Rasterizado una sola vez desde
     /// <c>frontend/src/assets/img/logo.svg</c>; formato: 4 bytes de cabecera
     /// (ancho y alto, uint16 little-endian) + filas empaquetadas MSB-first
-    /// (bit 1 = punto negro). Se imprime ampliado <see cref="Escala"/>x.
+    /// (bit 1 = punto negro). Se imprime escalado a <see cref="AnchoImpresion"/> px.
     /// </summary>
     internal static class FacturaLogo
     {
-        /// <summary>Factor de ampliación (nearest-neighbor) al imprimir.</summary>
-        private const int Escala = 2;
+        /// <summary>
+        /// Ancho al que se imprime el logo, en puntos del cabezal (~8 pt/mm).
+        /// 176 ≈ 22 mm en papel de 80 mm. Subir para agrandar, bajar para achicar.
+        /// </summary>
+        private const int AnchoImpresion = 176;
 
         private const string BlobBase64 =
             "SABhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAQAAAAAAAAAAAwAAAAAAAAAABwAAAAAAAAAABwAAAAAAAAAAB4AAAAAAAAAAB4AAAAAAAAAAB8AAAAAAAAAAA+AAAAAAAAAAA+AAAAAAAAAAGfAAAAAAAAAAGPgAAAAAAAAAHHgAAAAAAAAADHgAAAAAAAAADHmAAAAAAAAAHHmAAAAAAAAAHHmAAAAAAAAAPPnAAAAAAAAAPPHAAAAAAAAAefOAAAAAAAAAeeeAAAAAAAAA8+cAAAAAAAAA988AAAAAAAAB594AAAAAAAAB55wAAAAAAAAB57wAAAAAAAAB57gAAAAAAAAA97gAAAAAAAAA97gAAAAAAAAAd5gAAAAAAAAAe9gAAAAAAAAAO8gAAAAAAAAAG8AAAAAAAAAADcAAAAAAAAAD6ceAAAAAAAAfwcPgAAAAAAB8A8B4AAAAAADwA4A8AAAAAAHABwAcAAAAAAPADgA8AAAAAAPACAA8AAAAAAPgAAD48AAAAAH8AAfz/AAAAAD////n/gAAAAA///+P/gAAAAIP//4OHwAAAAMA/8AMDwAAAAMAAAAcDwAAAAMAAAAYDwAAAAMAAAAAHgAAAAMAAAAAPgAAAAMAAAAAfAAAAAOAAAAA+AAAAAOAAAAB8AAAAAOAAAAD4AAAAAOAAAAHwAAAAAHAAAAPAAAAAAHAAAAOAAAAAAHAAAAcAAAAAAHgAAAcAAAAAADgAAAYAAAAAADwAAAYAAAAAAB4AAAYAAAAAAB8AAAQAAAAABA/AACAAAAAABgfwAeAAAAAABgP//8AAAAAABgD//wAAAAAABwA//AAAAAAAA8AAAAAAAAAAA+AAAD/4AAAAAfwAD//+AAAAAH//////gAAAAD////AAAAAAAAf//gAAAAAAAAB/wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==";
@@ -29,16 +32,17 @@ namespace KafeYana.Infrastructure.Servicios.FacturacionImpresion
             var src = Bits;
             var srcBpr = (w + 7) / 8;
 
-            int dw = w * Escala, dh = h * Escala;
+            int dw = AnchoImpresion;
+            int dh = h * dw / w;                // conserva la proporción
             var dstBpr = (dw + 7) / 8;
             var dst = new byte[dstBpr * dh];
 
             for (var y = 0; y < dh; y++)
             {
-                var sy = y / Escala;
+                var sy = y * h / dh;           // nearest-neighbor
                 for (var x = 0; x < dw; x++)
                 {
-                    var sx = x / Escala;
+                    var sx = x * w / dw;
                     if ((src[sy * srcBpr + (sx >> 3)] & (0x80 >> (sx & 7))) == 0) continue;
                     dst[y * dstBpr + (x >> 3)] |= (byte)(0x80 >> (x & 7));
                 }
