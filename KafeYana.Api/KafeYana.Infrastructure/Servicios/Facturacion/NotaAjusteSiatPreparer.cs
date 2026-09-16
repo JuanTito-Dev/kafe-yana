@@ -136,6 +136,20 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 var cufd = await _cufdService.ObtenerCufdVigenteAsync(
                     sucNota, pvNota, fechaEmision, ct);
 
+                // Si el CUFD reusado (ventana de 5 min en línea) tiene la misma
+                // FechaEmisionSolicitud que la factura referenciada —o una anterior—,
+                // la nota quedaría con fechaEmision == fechaEmisionFactura (o antes).
+                // El SIAT rechaza esto con [1041] "LA FECHA DE EMISION NO SE ENCUENTRA
+                // DENTRO DEL PLAZO ESTABLECIDO EN NORMA": una nota no puede corregir
+                // una factura en el mismo instante (o antes) de que se emitió. Pasa
+                // típicamente cuando la nota se emite segundos/minutos después de la
+                // factura, dentro de la misma ventana de reuso del CUFD. Forzamos un
+                // CUFD nuevo para garantizar una fechaEmision estrictamente posterior.
+                if (cufd.FechaEmisionSolicitud <= nota.FechaEmisionFactura)
+                {
+                    cufd = await _cufdService.SolicitarCufdAsync(sucNota, pvNota, fechaEmision, ct);
+                }
+
                 // El CUF DEBE construirse con EXACTAMENTE la misma fechaEmisionBOT
                 // que el SIAT embebió en el CUFD. Si usáramos la `fechaEmision` local
                 // (la del SOAP sincronizarFechaHora), puede haber drift de milisegundos
