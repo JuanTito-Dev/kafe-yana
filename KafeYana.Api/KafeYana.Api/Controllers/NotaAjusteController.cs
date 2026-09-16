@@ -184,6 +184,31 @@ namespace KafeYana.Api.Controllers
         }
 
         /// <summary>
+        /// Elimina (DELETE real) una nota que el SIAT nunca validó (Pendiente/
+        /// Observada). No toca al SIAT — solo la borra localmente para que
+        /// deje de bloquear la anulación de la factura que la originó.
+        /// </summary>
+        [HttpDelete("{id:int}")]
+        [Authorize(Roles = $"{RolesKafe.Admin}, {RolesKafe.Cajero}")]
+        public async Task<IActionResult> EliminarNota(int id, CancellationToken ct)
+        {
+            try
+            {
+                await _anulacionService.EliminarAsync(id, ct);
+
+                return Ok(new
+                {
+                    message = "Nota eliminada.",
+                    NotaAjusteId = id
+                });
+            }
+            catch (VentaException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Revierte en el SIAT la anulación errónea de una nota C/D (EstadoSiat = 950).
         /// Solo permitido una vez por nota.
         /// </summary>

@@ -130,6 +130,31 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             }
         }
 
+        public async Task EliminarAsync(
+            int notaId,
+            CancellationToken ct = default)
+        {
+            var nota = await _db.notasAjuste.FindByIdAsync(notaId);
+            if (nota is null)
+                throw new VentaException("Nota no encontrada.");
+
+            if (nota.EstadoSiat == FacturaEstado.Validada || nota.EstadoSiat == FacturaEstado.Anulada)
+            {
+                throw new VentaException(
+                    "Solo se pueden eliminar notas que el SIAT nunca validó (Pendiente/Observada). "
+                  + "Una nota Validada o Anulada es un documento fiscal real: use el flujo de anulación.");
+            }
+
+            var numero = nota.NumeroNotaCreditoDebito;
+            await _db.notasAjuste.Remove(nota);
+            await _db.SaveUnitWork();
+
+            logger.LogInformation(
+                "Nota {Numero} (NotaId={NotaId}) eliminada (nunca validada por el SIAT).",
+                numero,
+                notaId);
+        }
+
         private static string FormatearErroresSiat(RespuestaAnulacionDocumentoAjusteDto respuesta)
         {
             var errores = string.Join(" | ", respuesta.CodigosRespuesta

@@ -39,6 +39,16 @@ namespace KafeYana.Application.IServicios.IFacturacion
             int notaId,
             int codigoMotivo,
             CancellationToken ct = default);
+
+        /// <summary>
+        /// Elimina (DELETE real) una nota que el SIAT nunca validó (Pendiente/
+        /// Observada). No toca al SIAT — solo borra la fila localmente para que
+        /// deje de bloquear la anulación de la factura que la originó. Rechaza
+        /// si la nota ya es Validada o Anulada (documento fiscal real).
+        /// </summary>
+        Task EliminarAsync(
+            int notaId,
+            CancellationToken ct = default);
     }
 
     public interface INotaAjusteSiatReversionAnulacionService

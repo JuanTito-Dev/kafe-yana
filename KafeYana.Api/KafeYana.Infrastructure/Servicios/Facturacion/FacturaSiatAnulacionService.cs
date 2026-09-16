@@ -63,7 +63,10 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             // Regla: NO se puede anular una factura mientras tenga notas
             // activas (cualquier estado ≠ Anulada, incluyendo Pendiente/
             // Observada por seguridad). El usuario debe anular primero cada
-            // nota y recién después la factura.
+            // nota y recién después la factura. Las notas que el SIAT nunca
+            // validó se pueden borrar directamente (ver
+            // NotaAjusteSiatAnulacionService.EliminarAsync), así que si no
+            // aparecen acá es porque ya no existen.
             var notasActivas = (await _db.notasAjuste.ListarPorVentaAsync(ventaId))
                 .Count(n => n.EstadoSiat != FacturaEstado.Anulada);
 
