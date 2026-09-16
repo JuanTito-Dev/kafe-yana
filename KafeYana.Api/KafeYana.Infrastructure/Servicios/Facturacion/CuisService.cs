@@ -1,6 +1,7 @@
 ﻿using KafeYana.Application.IServicios.IFacturacion;
 using KafeYana.Domain.Entities.Facturacion;
 using KafeYana.Infrastructure.Data;
+using KafeYana.Infrastructure.Servicios.Facturacion.Utilidades;
 using KafeYana.Infrastructure.SiatClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -96,12 +97,16 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             return await ObtenerCuisAsync(codigoSucursal, codigoPuntoVenta, ct);
         }
 
+        // El SIAT devuelve sus fechas en hora BOT (Bolivia, UTC-4) marcadas como
+        // Unspecified por SiatHttpClient.ParseFecha. Antes esta rama solo le pegaba
+        // la etiqueta "Utc" sin sumar las 4 horas. Mismo bug que en CufdService.NormalizarUtc.
         private static DateTime NormalizarUtc(DateTime fecha) =>
             fecha.Kind switch
             {
                 DateTimeKind.Utc => fecha,
                 DateTimeKind.Local => fecha.ToUniversalTime(),
-                _ => DateTime.SpecifyKind(fecha, DateTimeKind.Utc)
+                _ => TimeZoneInfo.ConvertTimeToUtc(
+                        DateTime.SpecifyKind(fecha, DateTimeKind.Unspecified), SiatFechaEmision.ZonaBolivia)
             };
 
         private static string FormatearErroresSiat(IEnumerable<CodigoRespuesta> mensajes)
