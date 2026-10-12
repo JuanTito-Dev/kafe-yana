@@ -101,7 +101,12 @@ namespace KafeYana.Api.GraphQLMap
             // EstadoSiat es enum nullable: null = venta sin factura electrónica y
             // SÍ cuenta. El OR explícito con == null es necesario: en SQL
             // `EstadoSiat <> 950` descarta las filas NULL.
-            q = q.Where(v => v.EstadoSiat == null || v.EstadoSiat != FacturaEstado.Anulada);
+            // Mismo criterio que los reportes (frontend `esVentaValida` y
+            // ReporteProductosService): sin factura, Validada u Observada.
+            // Excluye Anulada, Pendiente y Rechazada para que dashboard y reportes cuadren.
+            q = q.Where(v => v.EstadoSiat == null
+                          || v.EstadoSiat == FacturaEstado.Validada
+                          || v.EstadoSiat == FacturaEstado.Observada);
 
             // Ventana temporal "hoy" / "mes en curso" en zona horaria local.
             // Venta.FechaEmision está en UTC, así que convertimos desde la TZ local.
