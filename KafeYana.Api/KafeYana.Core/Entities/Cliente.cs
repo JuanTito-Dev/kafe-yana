@@ -5,7 +5,7 @@ namespace KafeYana.Domain.Entities
 {
     public class Cliente : BaseEntity
     {
-        public int? Dni { get; set; }
+        public long? Dni { get; set; }
 
         public required string Nombre { get; set; }
 

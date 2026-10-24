@@ -14,7 +14,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
             IUnitWork db,
             int? idCliente,
             string? nombre,
-            int? dni)
+            long? dni)
         {
             if (idCliente is int id && id > 0)
             {
@@ -51,7 +51,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 return (cliente, cliente.Dni?.ToString() ?? "0");
             }
 
-            if (!string.IsNullOrWhiteSpace(datos.Nombre) && datos.Dni is int dni && dni > 0)
+            if (!string.IsNullOrWhiteSpace(datos.Nombre) && datos.Dni is long dni && dni > 0)
             {
                 var cliente = await ResolverOCrearClientePorDocumentoAsync(db, datos.Nombre.Trim(), dni, datos.CodigoPaisOrigen);
                 return (cliente, dni.ToString());
@@ -80,7 +80,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
                 return (cliente, ObtenerNumeroDocumento(cliente));
             }
 
-            if (!string.IsNullOrWhiteSpace(datos.Nombre) && datos.Dni is int dni && dni > 0)
+            if (!string.IsNullOrWhiteSpace(datos.Nombre) && datos.Dni is long dni && dni > 0)
             {
                 var cliente = await ResolverOCrearClientePorDocumentoAsync(db, datos.Nombre.Trim(), dni, datos.CodigoPaisOrigen);
                 return (cliente, dni.ToString());
@@ -153,7 +153,7 @@ namespace KafeYana.Infrastructure.Servicios.Facturacion
         private static async Task<Cliente> ResolverOCrearClientePorDocumentoAsync(
             IUnitWork db,
             string nombre,
-            int dni,
+            long dni,
             int? codigoPaisOrigen)
         {
             // Resolver código SIN → Id local una sola vez (reusado abajo para

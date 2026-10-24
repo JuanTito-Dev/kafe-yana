@@ -181,7 +181,7 @@ namespace KafeYana.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_categorias_nombre");
 
-                    b.ToTable("Categorias", (string)null);
+                    b.ToTable("Categorias");
                 });
 
             modelBuilder.Entity("KafeYana.Domain.Entities.AceleradorPuntos", b =>
@@ -902,8 +902,8 @@ namespace KafeYana.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<int?>("Dni")
-                        .HasColumnType("integer");
+                    b.Property<long?>("Dni")
+                        .HasColumnType("bigint");
 
                     b.Property<bool>("Estado")
                         .ValueGeneratedOnAdd()
@@ -962,7 +962,7 @@ namespace KafeYana.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("unique_nombre_cliente");
 
-                    b.ToTable("Clientes", null, t =>
+                    b.ToTable("Clientes", t =>
                         {
                             t.HasCheckConstraint("CK_Cliente_Puntos_NonNegative", "\"Puntos\" >= 0");
                         });

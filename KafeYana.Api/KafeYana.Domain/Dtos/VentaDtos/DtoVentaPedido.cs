@@ -57,7 +57,7 @@ namespace KafeYana.Application.Dtos.VentaDtos
         public string? Nombre { get; set; }
 
         /// <summary>Cédula de identidad (C.L.). Obligatoria solo si no se envía Id_Cliente al facturar.</summary>
-        public int? Dni { get; set; }
+        public long? Dni { get; set; }
 
         /// <summary>Complemento SEGIP. Opcional; null si no aplica.</summary>
         [MaxLength(10, ErrorMessage = "El complemento no puede exceder 10 caracteres.")]

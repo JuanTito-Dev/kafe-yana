@@ -20,7 +20,7 @@ namespace KafeYana.Api.GraphQLMap
             int? take,
             string? search = null,
             int? id = null,
-            int? dni = null,
+            long? dni = null,
             CancellationToken ct = default)
         {
             IQueryable<Cliente> q = _clientes.GetClientes().AsNoTracking();

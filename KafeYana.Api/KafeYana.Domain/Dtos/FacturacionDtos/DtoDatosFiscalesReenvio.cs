@@ -16,7 +16,7 @@ namespace KafeYana.Application.Dtos.FacturacionDtos
 
         public string? Nombre { get; set; }
 
-        public int? Dni { get; set; }
+        public long? Dni { get; set; }
 
         [MaxLength(10, ErrorMessage = "El complemento no puede exceder 10 caracteres.")]
         public string? Complemento { get; set; }

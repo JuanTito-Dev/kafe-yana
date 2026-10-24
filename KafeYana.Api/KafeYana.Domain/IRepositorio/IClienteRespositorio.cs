@@ -13,7 +13,7 @@ namespace KafeYana.Application.IRepositorio
 
         public Task<Cliente?> GetCliente(int Id);
 
-        Task<Cliente?> GetByDniAsync(int dni);
+        Task<Cliente?> GetByDniAsync(long dni);
 
         Task<Cliente?> GetByNombreAsync(string nombre);
     }

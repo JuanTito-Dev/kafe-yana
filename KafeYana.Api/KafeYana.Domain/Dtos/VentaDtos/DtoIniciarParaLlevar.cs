@@ -11,7 +11,7 @@ namespace KafeYana.Application.Dtos.VentaDtos
         public string? Nombre { get; set; }
 
         /// <summary>Cédula de identidad (C.L.). Obligatoria solo si no se envía Id_Cliente.</summary>
-        public int? Dni { get; set; }
+        public long? Dni { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

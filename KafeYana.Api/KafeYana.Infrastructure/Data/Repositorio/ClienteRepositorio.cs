@@ -28,7 +28,7 @@ namespace KafeYana.Infrastructure.Data.Repositorio
             return await _clientes.FindAsync(Id);
         }
 
-        public async Task<Cliente?> GetByDniAsync(int dni) =>
+        public async Task<Cliente?> GetByDniAsync(long dni) =>
             await _clientes.FirstOrDefaultAsync(c => c.Dni == dni);
 
         public async Task<Cliente?> GetByNombreAsync(string nombre) =>
