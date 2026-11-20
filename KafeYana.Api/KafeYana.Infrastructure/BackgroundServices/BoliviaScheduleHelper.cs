@@ -8,7 +8,7 @@ namespace KafeYana.Infrastructure.BackgroundServices
     /// Bolivia no usa horario de verano, así que UTC-4 es constante todo el año.
     /// Si el server está en otra zona horaria, el cálculo compensa usando
     /// <see cref="TimeZoneInfo"/>. Se resuelve primero por el id de Windows
-    /// (<c>SA Pacific Standard Time</c>) y luego por el id IANA de Linux/macOS
+    /// (<c>SA Western Standard Time</c>) y luego por el id IANA de Linux/macOS
     /// (<c>America/La_Paz</c>), con fallback a <see cref="TimeZoneInfo.Utc"/>.
     ///
     /// Antes este código vivía duplicado en <c>SincronizacionMotivoAnulacionHostedService</c>;
@@ -22,7 +22,7 @@ namespace KafeYana.Infrastructure.BackgroundServices
         /// tocar <see cref="TimeZoneInfo"/> si nadie usa este helper.
         /// </summary>
         public static TimeZoneInfo BoliviaTz { get; } =
-            TryFindTz("SA Pacific Standard Time")
+            TryFindTz("SA Western Standard Time")
             ?? TryFindTz("America/La_Paz")
             ?? TimeZoneInfo.Utc;
 

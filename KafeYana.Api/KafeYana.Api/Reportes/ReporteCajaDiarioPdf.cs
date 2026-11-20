@@ -11,6 +11,11 @@ namespace KafeYana.Api.Reportes
     /// </summary>
     public class ReporteCajaDiarioPdf(DtoReporteDiarioCaja datos) : IDocument
     {
+        private static DateTime HoraBolivia(DateTime fecha) =>
+            TimeZoneInfo.ConvertTime(
+                fecha.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(fecha, DateTimeKind.Utc) : fecha,
+                KafeYana.Infrastructure.BackgroundServices.BoliviaScheduleHelper.BoliviaTz);
+
         private static readonly string ColorCafe     = "#7B3F00";
         private static readonly string ColorCabecer  = "#8B4513";
         private static readonly string ColorFilaAlt  = "#F5E6D3";
@@ -151,9 +156,9 @@ namespace KafeYana.Api.Reportes
                             .Text(c.Codigo).FontColor(ColorCafe);
 
                         table.Cell().Background(bg).PaddingHorizontal(5).PaddingVertical(4)
-                            .Text(c.Apertura.ToLocalTime().ToString("dd/MM HH:mm")).FontColor(ColorCafe);
+                            .Text(HoraBolivia(c.Apertura).ToString("dd/MM HH:mm")).FontColor(ColorCafe);
                         table.Cell().Background(bg).PaddingHorizontal(5).PaddingVertical(4)
-                            .Text(c.Cierre?.ToLocalTime().ToString("dd/MM HH:mm") ?? "—").FontColor(ColorCafe);
+                            .Text((c.Cierre is null ? null : HoraBolivia(c.Cierre.Value).ToString("dd/MM HH:mm")) ?? "—").FontColor(ColorCafe);
 
                         table.Cell().Background(bg).PaddingHorizontal(5).PaddingVertical(4)
                             .AlignRight().Text($"Bs {c.SaldoInicial:N2}").FontColor(ColorCafe);
@@ -220,7 +225,7 @@ namespace KafeYana.Api.Reportes
                         table.Cell().Background(bg).PaddingHorizontal(4).PaddingVertical(3)
                             .Text(m.CodigoCaja).FontColor(ColorCafe);
                         table.Cell().Background(bg).PaddingHorizontal(4).PaddingVertical(3)
-                            .Text(m.Fecha.ToLocalTime().ToString("HH:mm")).FontColor(ColorCafe);
+                            .Text(HoraBolivia(m.Fecha).ToString("HH:mm")).FontColor(ColorCafe);
                         table.Cell().Background(bg).PaddingHorizontal(4).PaddingVertical(3)
                             .Text(m.Tipo).FontColor(esIngreso ? ColorCerrada : ColorAbierta);
                         table.Cell().Background(bg).PaddingHorizontal(4).PaddingVertical(3)

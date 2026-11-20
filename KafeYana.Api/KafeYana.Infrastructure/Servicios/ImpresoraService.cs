@@ -142,7 +142,7 @@ namespace KafeYana.Infrastructure.Servicios
             if (!string.IsNullOrEmpty(ronda))
             { ms.Write(Enc.GetBytes(ronda)); ms.Write(LF); }
             ms.Write(ALIGN_LEFT);
-            ms.Write(Enc.GetBytes($"Hora: {DateTime.Now:HH:mm  dd/MM/yyyy}")); ms.Write(LF);
+            ms.Write(Enc.GetBytes($"Hora: {TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, KafeYana.Infrastructure.BackgroundServices.BoliviaScheduleHelper.BoliviaTz):HH:mm  dd/MM/yyyy}")); ms.Write(LF);
             ms.Write(Enc.GetBytes(new string('=', 32))); ms.Write(LF);
 
             foreach (var item in items)
@@ -171,7 +171,7 @@ namespace KafeYana.Infrastructure.Servicios
             if (!string.IsNullOrEmpty(ronda))
             { ms.Write(Enc.GetBytes(ronda)); ms.Write(LF); }
             ms.Write(ALIGN_LEFT);
-            ms.Write(Enc.GetBytes($"Hora: {DateTime.Now:HH:mm  dd/MM/yyyy}")); ms.Write(LF);
+            ms.Write(Enc.GetBytes($"Hora: {TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, KafeYana.Infrastructure.BackgroundServices.BoliviaScheduleHelper.BoliviaTz):HH:mm  dd/MM/yyyy}")); ms.Write(LF);
             ms.Write(Enc.GetBytes(new string('=', 32))); ms.Write(LF);
 
             decimal total = 0;
@@ -225,7 +225,7 @@ namespace KafeYana.Infrastructure.Servicios
             if (!string.IsNullOrEmpty(mesa) && mesa != codigo)
             { ms.Write(Enc.GetBytes(mesa)); ms.Write(LF); }
             ms.Write(Enc.GetBytes($"Cod: {codigo}")); ms.Write(LF);
-            ms.Write(Enc.GetBytes($"Hora: {DateTime.Now:HH:mm  dd/MM/yyyy}")); ms.Write(LF);
+            ms.Write(Enc.GetBytes($"Hora: {TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, KafeYana.Infrastructure.BackgroundServices.BoliviaScheduleHelper.BoliviaTz):HH:mm  dd/MM/yyyy}")); ms.Write(LF);
             ms.Write(ALIGN_LEFT);
             ms.Write(Enc.GetBytes(new string('=', 32))); ms.Write(LF);
 
@@ -267,7 +267,7 @@ namespace KafeYana.Infrastructure.Servicios
             if (!string.IsNullOrEmpty(mesa) && mesa != codigo)
             { ms.Write(Enc.GetBytes(mesa)); ms.Write(LF); }
             ms.Write(Enc.GetBytes($"Cod: {codigo}")); ms.Write(LF);
-            ms.Write(Enc.GetBytes($"Hora: {DateTime.Now:HH:mm  dd/MM/yyyy}")); ms.Write(LF);
+            ms.Write(Enc.GetBytes($"Hora: {TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, KafeYana.Infrastructure.BackgroundServices.BoliviaScheduleHelper.BoliviaTz):HH:mm  dd/MM/yyyy}")); ms.Write(LF);
             ms.Write(Enc.GetBytes(new string('=', 32))); ms.Write(LF);
             ms.Write(BOLD_ON); ms.Write(ALIGN_CENTER); ms.Write(BIG);
             ms.Write(Enc.GetBytes($"TOTAL  Bs/ {total:F2}")); ms.Write(LF);

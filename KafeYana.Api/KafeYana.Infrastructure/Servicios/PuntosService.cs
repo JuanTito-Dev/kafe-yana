@@ -25,10 +25,11 @@ namespace KafeYana.Infrastructure.Servicios
                 return 0;
 
             var aceleradores = await _db.aceleradores.ObtenerTodosAsync();
-            var ahora        = TimeOnly.FromDateTime(DateTime.Now);
+            var ahoraBolivia = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, KafeYana.Infrastructure.BackgroundServices.BoliviaScheduleHelper.BoliviaTz);
+            var ahora        = TimeOnly.FromDateTime(ahoraBolivia);
             var esHoy        = cliente.Fecha_nacimiento.HasValue
-                               && cliente.Fecha_nacimiento.Value.Month == DateTime.Today.Month
-                               && cliente.Fecha_nacimiento.Value.Day   == DateTime.Today.Day;
+                               && cliente.Fecha_nacimiento.Value.Month == ahoraBolivia.Month
+                               && cliente.Fecha_nacimiento.Value.Day   == ahoraBolivia.Day;
 
             var desgloseBuilder  = new StringBuilder();
             var sumaMultiplicadores = 0;

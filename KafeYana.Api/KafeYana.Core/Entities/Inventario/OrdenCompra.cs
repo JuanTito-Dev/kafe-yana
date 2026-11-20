@@ -13,7 +13,7 @@ namespace KafeYana.Domain.Entities.Inventario
     {
         public string Codigo { get; set; } 
         public required string Nombre_Proveedor { get; set; }
-        public DateOnly Fecha { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
+        public DateOnly Fecha { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-4)); // Bolivia UTC-4 fijo, sin horario de verano
         public bool Recibido { get; private set; } = false;
 
         public string Estado { get; private set; } = EstadoOrdenes.Pendiente;

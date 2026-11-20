@@ -19,9 +19,18 @@ namespace KafeYana.Infrastructure.Servicios
             // Normalizamos a la TZ La Paz para "abrir" el día calendario local.
             var tz = ResolveLaPazTimeZone();
             var nowLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
-            var baseDate = fechaLocal.Date == default
+            // Si llega en UTC (p.ej. DateTime.UtcNow por defecto o un ISO con "Z"),
+            // se pasa a hora La Paz antes de tomar el día: después de las 20:00 BOT
+            // el día UTC ya es el siguiente y descuadraba el reporte.
+            var fechaEnLaPaz = fechaLocal.Kind switch
+            {
+                DateTimeKind.Utc   => TimeZoneInfo.ConvertTimeFromUtc(fechaLocal, tz),
+                DateTimeKind.Local => TimeZoneInfo.ConvertTime(fechaLocal, tz),
+                _                  => fechaLocal,
+            };
+            var baseDate = fechaLocal == default
                 ? nowLocal.Date
-                : fechaLocal.Date;
+                : fechaEnLaPaz.Date;
 
             var inicioLocal = new DateTime(baseDate.Year, baseDate.Month, baseDate.Day, 0, 0, 0, DateTimeKind.Unspecified);
             var finLocal = inicioLocal.AddDays(1);

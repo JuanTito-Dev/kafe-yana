@@ -17,7 +17,7 @@ public sealed class PromocionTemporadaReclamoService(
         if (await _unitWork.clientes.GetCliente(idCliente) is null)
             throw new InventarioException("Cliente no encontrado.");
 
-        var ahora = DateTime.UtcNow;
+        var ahora = HoyBolivia();
         var promociones = await _unitWork.promocionTemporadas.ObtenerActivasVigentesAsync(ahora);
 
         if (promociones.Count == 0)
@@ -68,7 +68,7 @@ public sealed class PromocionTemporadaReclamoService(
         if (await _unitWork.historialPromocionTemporadas.ExisteReclamoAsync(dto.IdCliente, dto.IdPromocionTemporada))
             throw new InventarioException("El cliente ya reclamó esta promoción por temporada.");
 
-        var ahora = DateTime.UtcNow;
+        var ahora = HoyBolivia();
         var promo = await _unitWork.promocionTemporadas
             .ObtenerActivaVigenteParaReclamoAsync(dto.IdPromocionTemporada, ahora);
 
@@ -127,4 +127,15 @@ public sealed class PromocionTemporadaReclamoService(
             ProductosReclamados  = productosReclamados
         };
     }
+
+    /// <summary>
+    /// Día calendario actual en Bolivia, con Kind=Utc para comparar contra las
+    /// fechas de la promo (guardadas como medianoche UTC del día elegido).
+    /// Con DateTime.UtcNow, después de las 20:00 BOT la promo que termina hoy
+    /// ya figuraba vencida.
+    /// </summary>
+    private static DateTime HoyBolivia() =>
+        DateTime.SpecifyKind(
+            TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, KafeYana.Infrastructure.BackgroundServices.BoliviaScheduleHelper.BoliviaTz).Date,
+            DateTimeKind.Utc);
 }
